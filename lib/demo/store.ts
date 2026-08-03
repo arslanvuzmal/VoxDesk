@@ -72,17 +72,41 @@ export interface IDemoSessionStore {
   ): Promise<{ allowed: boolean; secondsRemaining: number }>;
 }
 
-// Memory Store for Development Only
+const globalForDemoStore = globalThis as unknown as {
+  voxdeskSessions?: Map<string, DemoSessionData>;
+  voxdeskIpSessionCount?: Map<string, { count: number; date: string }>;
+  voxdeskIpLastSession?: Map<string, number>;
+  voxdeskGlobalDailySessions?: { count: number; date: string };
+  voxdeskLocks?: Set<string>;
+  voxdeskResponses?: Map<string, StoredResponse>;
+};
+
+// Memory Store for Development & Zero-Config Fallback
 class MemoryDemoSessionStore implements IDemoSessionStore {
-  private sessions = new Map<string, DemoSessionData>();
-  private ipSessionCount = new Map<string, { count: number; date: string }>();
-  private ipLastSession = new Map<string, number>();
-  private globalDailySessions = {
-    count: 0,
-    date: new Date().toISOString().slice(0, 10),
-  };
-  private locks = new Set<string>();
-  private responses = new Map<string, StoredResponse>();
+  private sessions =
+    globalForDemoStore.voxdeskSessions ||
+    (globalForDemoStore.voxdeskSessions = new Map<string, DemoSessionData>());
+  private ipSessionCount =
+    globalForDemoStore.voxdeskIpSessionCount ||
+    (globalForDemoStore.voxdeskIpSessionCount = new Map<
+      string,
+      { count: number; date: string }
+    >());
+  private ipLastSession =
+    globalForDemoStore.voxdeskIpLastSession ||
+    (globalForDemoStore.voxdeskIpLastSession = new Map<string, number>());
+  private globalDailySessions =
+    globalForDemoStore.voxdeskGlobalDailySessions ||
+    (globalForDemoStore.voxdeskGlobalDailySessions = {
+      count: 0,
+      date: new Date().toISOString().slice(0, 10),
+    });
+  private locks =
+    globalForDemoStore.voxdeskLocks ||
+    (globalForDemoStore.voxdeskLocks = new Set<string>());
+  private responses =
+    globalForDemoStore.voxdeskResponses ||
+    (globalForDemoStore.voxdeskResponses = new Map<string, StoredResponse>());
 
   private getTodayStr() {
     return new Date().toISOString().slice(0, 10);
@@ -536,46 +560,21 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
 }
 
 export function getDemoSessionStoreStatus(): {
-  provider: "redis" | "memory" | "unavailable";
+  provider: "redis" | "memory";
   ready: boolean;
 } {
-  const isProduction = process.env.NODE_ENV === "production";
   const hasRedis = !!(
     env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
   );
-
-  if (isProduction) {
-    if (hasRedis) return { provider: "redis", ready: true };
-    return { provider: "unavailable", ready: false };
-  }
 
   if (hasRedis) return { provider: "redis", ready: true };
   return { provider: "memory", ready: true };
 }
 
 function createSessionStore(): IDemoSessionStore {
-  const isProduction = process.env.NODE_ENV === "production";
   const hasRedis = !!(
     env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
   );
-
-  if (isProduction) {
-    if (!hasRedis) {
-      // Return proxy store that throws on use to prevent non-persistent session operations
-      return new Proxy({} as IDemoSessionStore, {
-        get(_target, prop) {
-          if (prop === "then") return undefined;
-          throw new Error(
-            "DEMO_SESSION_STORE_UNAVAILABLE: Managed Redis persistence is not configured on this serverless environment.",
-          );
-        },
-      });
-    }
-    return new RedisDemoSessionStore(
-      env.UPSTASH_REDIS_REST_URL!,
-      env.UPSTASH_REDIS_REST_TOKEN!,
-    );
-  }
 
   if (hasRedis) {
     return new RedisDemoSessionStore(
@@ -584,9 +583,6 @@ function createSessionStore(): IDemoSessionStore {
     );
   }
 
-  console.warn(
-    "[DEV WARN] Using in-memory session store. This store will reset on server restart and is not shared across serverless functions.",
-  );
   return new MemoryDemoSessionStore();
 }
 
