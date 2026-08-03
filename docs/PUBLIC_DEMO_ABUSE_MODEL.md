@@ -1,6 +1,6 @@
 # VoxDesk AI — Public Demo Abuse Model & Security Safeguards
 
-**Owner:** Arslan Vuzmal Lone  
+**Owner:** Arslan Vuzmal Lone
 
 ---
 

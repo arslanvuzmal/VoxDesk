@@ -29,7 +29,10 @@ export class GenericWebhookCRMProvider implements CRMProvider {
     };
   }
 
-  async updateContact(contactId: string, input: Partial<CRMContactInput>): Promise<CRMContactRecord> {
+  async updateContact(
+    contactId: string,
+    input: Partial<CRMContactInput>,
+  ): Promise<CRMContactRecord> {
     return {
       id: contactId,
       externalId: `wh-${contactId}`,
@@ -41,7 +44,11 @@ export class GenericWebhookCRMProvider implements CRMProvider {
     return `wh-event-${input.activityType}-${Date.now()}`;
   }
 
-  async createTask(_title: string, _priority: string, _dueDate: Date): Promise<string> {
+  async createTask(
+    _title: string,
+    _priority: string,
+    _dueDate: Date,
+  ): Promise<string> {
     return `wh-task-${Date.now()}`;
   }
 

@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
     const isValid = await provider.verifyWebhook(headersObj, rawBody);
 
     if (!isValid && process.env.NODE_ENV === "production") {
-      return NextResponse.json({ error: "Invalid webhook signature" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 },
+      );
     }
 
     let parsedBody: Record<string, unknown> = {};
@@ -37,6 +40,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Webhook Telephony Error:", error);
-    return NextResponse.json({ error: "Webhook processing error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook processing error" },
+      { status: 500 },
+    );
   }
 }

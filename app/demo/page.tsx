@@ -4,10 +4,21 @@ import { useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
 import { RealVoiceConsole } from "@/components/calls/real-voice-console";
-import { Mic, ArrowRight, Calendar, Users, PhoneForwarded, HelpCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import {
+  Mic,
+  ArrowRight,
+  Calendar,
+  Users,
+  PhoneForwarded,
+  HelpCircle,
+  CheckCircle2,
+  ShieldCheck,
+} from "lucide-react";
 
 export default function DemoPage() {
-  const [selectedScenario, setSelectedScenario] = useState<"BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE">("BOOKING");
+  const [selectedScenario, setSelectedScenario] = useState<
+    "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE"
+  >("BOOKING");
   const [demoMode, setDemoMode] = useState<"VOICE" | "GUIDED">("VOICE");
   const [hasConsented, setHasConsented] = useState(false);
   const [activeSession, setActiveSession] = useState(false);
@@ -42,7 +53,9 @@ export default function DemoPage() {
                 Try the VoxDesk voice receptionist
               </h1>
               <p className="text-sm text-[#D4D4D8] max-w-xl mx-auto">
-                Choose a business problem, speak naturally and watch VoxDesk turn the conversation into an appointment, qualified enquiry or human handoff.
+                Choose a business problem, speak naturally and watch VoxDesk
+                turn the conversation into an appointment, qualified enquiry or
+                human handoff.
               </p>
             </div>
 
@@ -61,11 +74,21 @@ export default function DemoPage() {
                   <div className="w-8 h-8 rounded bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 flex items-center justify-center text-[#2DD4BF]">
                     <Calendar className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-mono text-[#8B949E]">Max 3 mins</span>
+                  <span className="text-[11px] font-mono text-[#8B949E]">
+                    Max 3 mins
+                  </span>
                 </div>
-                <h3 className="font-bold text-white text-base">1. Book a Consultation</h3>
-                <p className="text-xs text-[#D4D4D8] mt-1"><strong>Problem:</strong> After-hours callers cannot book legal consultation slots.</p>
-                <p className="text-xs text-[#8B949E] mt-1"><strong>Outcome:</strong> Checks Google Calendar availability & confirms slot.</p>
+                <h3 className="font-bold text-white text-base">
+                  1. Book a Consultation
+                </h3>
+                <p className="text-xs text-[#D4D4D8] mt-1">
+                  <strong>Problem:</strong> After-hours callers cannot book
+                  legal consultation slots.
+                </p>
+                <p className="text-xs text-[#8B949E] mt-1">
+                  <strong>Outcome:</strong> Checks Google Calendar availability
+                  & confirms slot.
+                </p>
               </div>
 
               {/* Card 2: Qualification */}
@@ -81,11 +104,21 @@ export default function DemoPage() {
                   <div className="w-8 h-8 rounded bg-[#34D399]/10 border border-[#34D399]/20 flex items-center justify-center text-[#34D399]">
                     <Users className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-mono text-[#8B949E]">Max 3 mins</span>
+                  <span className="text-[11px] font-mono text-[#8B949E]">
+                    Max 3 mins
+                  </span>
                 </div>
-                <h3 className="font-bold text-white text-base">2. Qualify a Sales Enquiry</h3>
-                <p className="text-xs text-[#D4D4D8] mt-1"><strong>Problem:</strong> Manual lead intake takes too much staff time.</p>
-                <p className="text-xs text-[#8B949E] mt-1"><strong>Outcome:</strong> Evaluates BANT budget, timeline & outputs HOT score.</p>
+                <h3 className="font-bold text-white text-base">
+                  2. Qualify a Sales Enquiry
+                </h3>
+                <p className="text-xs text-[#D4D4D8] mt-1">
+                  <strong>Problem:</strong> Manual lead intake takes too much
+                  staff time.
+                </p>
+                <p className="text-xs text-[#8B949E] mt-1">
+                  <strong>Outcome:</strong> Evaluates BANT budget, timeline &
+                  outputs HOT score.
+                </p>
               </div>
 
               {/* Card 3: Escalation */}
@@ -101,11 +134,21 @@ export default function DemoPage() {
                   <div className="w-8 h-8 rounded bg-[#FBBF24]/10 border border-[#FBBF24]/20 flex items-center justify-center text-[#FBBF24]">
                     <PhoneForwarded className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-mono text-[#8B949E]">Max 3 mins</span>
+                  <span className="text-[11px] font-mono text-[#8B949E]">
+                    Max 3 mins
+                  </span>
                 </div>
-                <h3 className="font-bold text-white text-base">3. Request a Human Handoff</h3>
-                <p className="text-xs text-[#D4D4D8] mt-1"><strong>Problem:</strong> Urgent callers trapped in automated phone trees.</p>
-                <p className="text-xs text-[#8B949E] mt-1"><strong>Outcome:</strong> Detects urgency & generates structured Transfer Brief.</p>
+                <h3 className="font-bold text-white text-base">
+                  3. Request a Human Handoff
+                </h3>
+                <p className="text-xs text-[#D4D4D8] mt-1">
+                  <strong>Problem:</strong> Urgent callers trapped in automated
+                  phone trees.
+                </p>
+                <p className="text-xs text-[#8B949E] mt-1">
+                  <strong>Outcome:</strong> Detects urgency & generates
+                  structured Transfer Brief.
+                </p>
               </div>
 
               {/* Card 4: Routine Question */}
@@ -121,11 +164,21 @@ export default function DemoPage() {
                   <div className="w-8 h-8 rounded bg-[#60A5FA]/10 border border-[#60A5FA]/20 flex items-center justify-center text-[#60A5FA]">
                     <HelpCircle className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] font-mono text-[#8B949E]">Max 2 mins</span>
+                  <span className="text-[11px] font-mono text-[#8B949E]">
+                    Max 2 mins
+                  </span>
                 </div>
-                <h3 className="font-bold text-white text-base">4. Ask a Routine Question</h3>
-                <p className="text-xs text-[#D4D4D8] mt-1"><strong>Problem:</strong> Staff repeatedly answering basic business questions.</p>
-                <p className="text-xs text-[#8B949E] mt-1"><strong>Outcome:</strong> Answers from approved knowledge base.</p>
+                <h3 className="font-bold text-white text-base">
+                  4. Ask a Routine Question
+                </h3>
+                <p className="text-xs text-[#D4D4D8] mt-1">
+                  <strong>Problem:</strong> Staff repeatedly answering basic
+                  business questions.
+                </p>
+                <p className="text-xs text-[#8B949E] mt-1">
+                  <strong>Outcome:</strong> Answers from approved knowledge
+                  base.
+                </p>
               </div>
             </div>
 
@@ -133,12 +186,24 @@ export default function DemoPage() {
             <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-3 text-xs">
               <div className="flex items-center gap-2 text-white font-bold">
                 <ShieldCheck className="w-4 h-4 text-[#2DD4BF]" />
-                <span>Sandbox Security & Microphone Permission Disclosures</span>
+                <span>
+                  Sandbox Security & Microphone Permission Disclosures
+                </span>
               </div>
               <ul className="space-y-1 text-[#8B949E]">
-                <li>• Microphone audio is processed only for this demonstration and is not retained by VoxDesk.</li>
-                <li>• The demonstration uses fictional business data ("Northstar Legal Consultations") and does not place real phone calls.</li>
-                <li>• Calls are limited to a maximum of 3 minutes and 6 conversational turns.</li>
+                <li>
+                  • Microphone audio is processed only for this demonstration
+                  and is not retained by VoxDesk.
+                </li>
+                <li>
+                  • The demonstration uses fictional business data
+                  (&quot;Northstar Legal Consultations&quot;) and does not place
+                  real phone calls.
+                </li>
+                <li>
+                  • Calls are limited to a maximum of 3 minutes and 6
+                  conversational turns.
+                </li>
               </ul>
 
               <label className="flex items-center gap-2 pt-2 text-[#D4D4D8] cursor-pointer">
@@ -148,7 +213,10 @@ export default function DemoPage() {
                   onChange={(e) => setHasConsented(e.target.checked)}
                   className="rounded border-[#272D35] bg-[#0F1216] text-[#2DD4BF] focus:ring-0"
                 />
-                <span>I understand the disclosures and agree to grant temporary microphone access.</span>
+                <span>
+                  I understand the disclosures and agree to grant temporary
+                  microphone access.
+                </span>
               </label>
             </div>
 

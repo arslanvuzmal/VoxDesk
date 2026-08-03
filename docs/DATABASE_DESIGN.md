@@ -2,7 +2,7 @@
 
 **Author / Owner:** Arslan Vuzmal Lone  
 **ORM:** Prisma ORM  
-**Database:** PostgreSQL (Supabase Compatible)  
+**Database:** PostgreSQL (Supabase Compatible)
 
 ---
 

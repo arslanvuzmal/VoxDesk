@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     const slots = await calendar.checkAvailability(
       body.service || "Legal Consultation",
       new Date(body.targetDate || Date.now() + 86400000 * 2),
-      body.timezone || "America/New_York"
+      body.timezone || "America/New_York",
     );
 
     return NextResponse.json({
@@ -18,6 +18,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Calendar Availability API Error:", error);
-    return NextResponse.json({ error: "Failed to check calendar availability" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to check calendar availability" },
+      { status: 500 },
+    );
   }
 }

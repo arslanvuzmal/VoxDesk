@@ -4,7 +4,11 @@ import { DemoCalendarProvider } from "../../lib/calendar/demo-calendar";
 describe("Appointment Booking Workflow Integration", () => {
   it("should check availability and create confirmed appointment", async () => {
     const calendar = new DemoCalendarProvider();
-    const slots = await calendar.checkAvailability("Legal Consultation", new Date(), "America/New_York");
+    const slots = await calendar.checkAvailability(
+      "Legal Consultation",
+      new Date(),
+      "America/New_York",
+    );
     expect(slots.length).toBeGreaterThan(0);
 
     const targetSlot = slots[0];

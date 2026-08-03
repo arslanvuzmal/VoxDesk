@@ -17,7 +17,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return ["General Consultation (30 mins)", "Follow-up Meeting (45 mins)"];
   }
 
-  async checkAvailability(_service: string, targetDate: Date, _timezone: string): Promise<AvailableSlot[]> {
+  async checkAvailability(
+    _service: string,
+    targetDate: Date,
+    _timezone: string,
+  ): Promise<AvailableSlot[]> {
     const slot1 = new Date(targetDate);
     slot1.setHours(10, 0, 0, 0);
     return [
@@ -30,7 +34,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     ];
   }
 
-  async createAppointment(input: AppointmentCreateInput): Promise<CalendarAppointmentRecord> {
+  async createAppointment(
+    input: AppointmentCreateInput,
+  ): Promise<CalendarAppointmentRecord> {
     return {
       id: `gcal-${Date.now()}`,
       externalEventId: `gcal-evt-${Date.now()}`,
@@ -43,7 +49,11 @@ export class GoogleCalendarProvider implements CalendarProvider {
     };
   }
 
-  async rescheduleAppointment(appointmentId: string, newStartTime: Date, timezone: string): Promise<CalendarAppointmentRecord> {
+  async rescheduleAppointment(
+    appointmentId: string,
+    newStartTime: Date,
+    timezone: string,
+  ): Promise<CalendarAppointmentRecord> {
     return {
       id: appointmentId,
       externalEventId: `gcal-evt-${appointmentId}`,
@@ -60,7 +70,9 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return true;
   }
 
-  async getAppointment(appointmentId: string): Promise<CalendarAppointmentRecord | null> {
+  async getAppointment(
+    appointmentId: string,
+  ): Promise<CalendarAppointmentRecord | null> {
     return {
       id: appointmentId,
       externalEventId: `gcal-${appointmentId}`,

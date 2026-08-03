@@ -33,7 +33,10 @@ export class DemoCRMProvider implements CRMProvider {
     return record;
   }
 
-  async updateContact(contactId: string, input: Partial<CRMContactInput>): Promise<CRMContactRecord> {
+  async updateContact(
+    contactId: string,
+    input: Partial<CRMContactInput>,
+  ): Promise<CRMContactRecord> {
     const existing = this.contacts.get(contactId);
     if (!existing) {
       throw new Error(`CRM Contact '${contactId}' not found`);
@@ -48,7 +51,11 @@ export class DemoCRMProvider implements CRMProvider {
     return `activity-demo-${input.activityType.toLowerCase()}-${Date.now()}`;
   }
 
-  async createTask(title: string, _priority: string, _dueDate: Date): Promise<string> {
+  async createTask(
+    title: string,
+    _priority: string,
+    _dueDate: Date,
+  ): Promise<string> {
     return `task-demo-${title.slice(0, 10).toLowerCase()}-${Date.now()}`;
   }
 
@@ -56,7 +63,8 @@ export class DemoCRMProvider implements CRMProvider {
     return {
       providerType: "DEMO",
       status: "DEMO",
-      message: "Deterministic Demo CRM Provider operational (No external credentials required)",
+      message:
+        "Deterministic Demo CRM Provider operational (No external credentials required)",
     };
   }
 }

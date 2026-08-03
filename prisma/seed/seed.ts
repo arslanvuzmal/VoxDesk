@@ -3,7 +3,9 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding VoxDesk AI database with demo workspace 'Northstar Legal Consultations'...");
+  console.log(
+    "🌱 Seeding VoxDesk AI database with demo workspace 'Northstar Legal Consultations'...",
+  );
 
   // 1. Create Default Owner User
   const ownerUser = await prisma.user.upsert({
@@ -12,7 +14,8 @@ async function main() {
     create: {
       name: "Arslan Vuzmal Lone",
       email: "owner@northstarlegal.com",
-      passwordHash: "$2a$10$e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // hashed fallback
+      passwordHash:
+        "$2a$10$e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", // hashed fallback
       status: "ACTIVE",
       systemRole: "ADMIN",
     },
@@ -38,7 +41,8 @@ async function main() {
       businessProfile: {
         create: {
           businessName: "Northstar Legal Consultations",
-          description: "Premier commercial and corporate law practice offering contract review, litigation defense, and estate planning.",
+          description:
+            "Premier commercial and corporate law practice offering contract review, litigation defense, and estate planning.",
           timezone: "America/New_York",
           openingHours: {
             monday: "09:00 - 17:00",
@@ -58,12 +62,15 @@ async function main() {
     data: {
       workspaceId: workspace.id,
       name: "Maya — Reception & Appointments",
-      description: "Inbound call receptionist handling FAQs, booking, rescheduling, and lead intake.",
+      description:
+        "Inbound call receptionist handling FAQs, booking, rescheduling, and lead intake.",
       voiceProvider: "DEMO",
       voiceId: "demo-voice-maya",
       language: "en-US",
-      greeting: "Thank you for calling Northstar Legal Consultations. My name is Maya. How can I assist you today?",
-      systemInstructions: "You are a professional AI legal receptionist. Answer approved FAQs, collect caller names, check calendar availability, and book appointments.",
+      greeting:
+        "Thank you for calling Northstar Legal Consultations. My name is Maya. How can I assist you today?",
+      systemInstructions:
+        "You are a professional AI legal receptionist. Answer approved FAQs, collect caller names, check calendar availability, and book appointments.",
     },
   });
 
@@ -72,12 +79,15 @@ async function main() {
     data: {
       workspaceId: workspace.id,
       name: "Alex — Lead Qualification",
-      description: "Sales lead qualification voice agent executing BANT qualification scoring.",
+      description:
+        "Sales lead qualification voice agent executing BANT qualification scoring.",
       voiceProvider: "DEMO",
       voiceId: "demo-voice-alex",
       language: "en-US",
-      greeting: "Thank you for contacting Northstar Legal Commercial Practice. My name is Alex. May I ask what business legal services you are looking to retain?",
-      systemInstructions: "Qualify commercial legal leads by assessing project scope, budget range, timeline, and decision authority.",
+      greeting:
+        "Thank you for contacting Northstar Legal Commercial Practice. My name is Alex. May I ask what business legal services you are looking to retain?",
+      systemInstructions:
+        "Qualify commercial legal leads by assessing project scope, budget range, timeline, and decision authority.",
     },
   });
 
@@ -99,7 +109,8 @@ async function main() {
       qualificationScore: 85.0,
       summary: {
         create: {
-          summary: "Caller Sarah Miller booked a legal consultation appointment for next Tuesday at 2:00 PM EST.",
+          summary:
+            "Caller Sarah Miller booked a legal consultation appointment for next Tuesday at 2:00 PM EST.",
           intent: "Schedule Legal Consultation",
           sentiment: "positive",
           urgency: "high",
@@ -109,10 +120,30 @@ async function main() {
       },
       transcriptSegments: {
         create: [
-          { speaker: "agent", text: "Thank you for calling Northstar Legal. My name is Maya. How can I help you?", startMs: 0, endMs: 4000 },
-          { speaker: "caller", text: "Hi, I need to book a consultation next Tuesday afternoon.", startMs: 4500, endMs: 8000 },
-          { speaker: "agent", text: "I can help with that! We have 2:00 PM EST available. Would that work?", startMs: 8500, endMs: 12000 },
-          { speaker: "caller", text: "2:00 PM EST is perfect.", startMs: 12500, endMs: 14500 },
+          {
+            speaker: "agent",
+            text: "Thank you for calling Northstar Legal. My name is Maya. How can I help you?",
+            startMs: 0,
+            endMs: 4000,
+          },
+          {
+            speaker: "caller",
+            text: "Hi, I need to book a consultation next Tuesday afternoon.",
+            startMs: 4500,
+            endMs: 8000,
+          },
+          {
+            speaker: "agent",
+            text: "I can help with that! We have 2:00 PM EST available. Would that work?",
+            startMs: 8500,
+            endMs: 12000,
+          },
+          {
+            speaker: "caller",
+            text: "2:00 PM EST is perfect.",
+            startMs: 12500,
+            endMs: 14500,
+          },
         ],
       },
     },

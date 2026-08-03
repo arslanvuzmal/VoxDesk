@@ -14,10 +14,17 @@ export class CalComProvider implements CalendarProvider {
   }
 
   async listServices(): Promise<string[]> {
-    return ["Cal.com Strategy Session (30 mins)", "Cal.com Technical Onboarding (60 mins)"];
+    return [
+      "Cal.com Strategy Session (30 mins)",
+      "Cal.com Technical Onboarding (60 mins)",
+    ];
   }
 
-  async checkAvailability(_service: string, targetDate: Date, _timezone: string): Promise<AvailableSlot[]> {
+  async checkAvailability(
+    _service: string,
+    targetDate: Date,
+    _timezone: string,
+  ): Promise<AvailableSlot[]> {
     const slot = new Date(targetDate);
     slot.setHours(11, 0, 0, 0);
     return [
@@ -30,7 +37,9 @@ export class CalComProvider implements CalendarProvider {
     ];
   }
 
-  async createAppointment(input: AppointmentCreateInput): Promise<CalendarAppointmentRecord> {
+  async createAppointment(
+    input: AppointmentCreateInput,
+  ): Promise<CalendarAppointmentRecord> {
     return {
       id: `calcom-${Date.now()}`,
       externalEventId: `calcom-booking-${Date.now()}`,
@@ -43,7 +52,11 @@ export class CalComProvider implements CalendarProvider {
     };
   }
 
-  async rescheduleAppointment(appointmentId: string, newStartTime: Date, timezone: string): Promise<CalendarAppointmentRecord> {
+  async rescheduleAppointment(
+    appointmentId: string,
+    newStartTime: Date,
+    timezone: string,
+  ): Promise<CalendarAppointmentRecord> {
     return {
       id: appointmentId,
       externalEventId: `calcom-${appointmentId}`,
@@ -60,7 +73,9 @@ export class CalComProvider implements CalendarProvider {
     return true;
   }
 
-  async getAppointment(appointmentId: string): Promise<CalendarAppointmentRecord | null> {
+  async getAppointment(
+    appointmentId: string,
+  ): Promise<CalendarAppointmentRecord | null> {
     return {
       id: appointmentId,
       externalEventId: `calcom-${appointmentId}`,

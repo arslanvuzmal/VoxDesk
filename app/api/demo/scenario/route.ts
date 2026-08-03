@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ scenarios: DEMO_SCENARIOS });
   }
 
-  const scenario = DEMO_SCENARIOS.find((s) => s.id === scenarioId) || DEMO_SCENARIOS[0];
+  const scenario =
+    DEMO_SCENARIOS.find((s) => s.id === scenarioId) || DEMO_SCENARIOS[0];
   return NextResponse.json({ scenario });
 }

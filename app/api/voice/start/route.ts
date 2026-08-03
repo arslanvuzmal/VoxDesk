@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Voice Start API Error:", error);
-    return NextResponse.json({ error: "Failed to initiate call session" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to initiate call session" },
+      { status: 500 },
+    );
   }
 }

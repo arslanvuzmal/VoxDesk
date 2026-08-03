@@ -24,7 +24,9 @@ export interface QualificationResult {
   recommendedAction: string;
 }
 
-export function calculateLeadQualification(input: LeadQualificationInput): QualificationResult {
+export function calculateLeadQualification(
+  input: LeadQualificationInput,
+): QualificationResult {
   const breakdown: QualificationCriterionScore[] = [];
   const missingFields: string[] = [];
 
@@ -51,8 +53,15 @@ export function calculateLeadQualification(input: LeadQualificationInput): Quali
   // 2. Budget (Weight 20)
   if (input.budgetRange) {
     const text = input.budgetRange.toLowerCase();
-    const isHigh = text.includes("10,000") || text.includes("25,000") || text.includes("10k") || text.includes("high") || text.includes("above") || text.includes(">");
-    const isMedium = text.includes("5,000") || text.includes("5k") || text.includes("medium");
+    const isHigh =
+      text.includes("10,000") ||
+      text.includes("25,000") ||
+      text.includes("10k") ||
+      text.includes("high") ||
+      text.includes("above") ||
+      text.includes(">");
+    const isMedium =
+      text.includes("5,000") || text.includes("5k") || text.includes("medium");
     const score = isHigh ? 20 : isMedium ? 15 : 10;
     breakdown.push({
       criterion: "Budget Range",
@@ -75,7 +84,11 @@ export function calculateLeadQualification(input: LeadQualificationInput): Quali
   // 3. Timeline (Weight 20)
   if (input.timeline) {
     const text = input.timeline.toLowerCase();
-    const isImmediate = text.includes("immediate") || text.includes("this week") || text.includes("today") || text.includes("now");
+    const isImmediate =
+      text.includes("immediate") ||
+      text.includes("this week") ||
+      text.includes("today") ||
+      text.includes("now");
     const score = isImmediate ? 20 : 12;
     breakdown.push({
       criterion: "Timeline",
@@ -98,7 +111,12 @@ export function calculateLeadQualification(input: LeadQualificationInput): Quali
   // 4. Decision Authority (Weight 15)
   if (input.authority) {
     const text = input.authority.toLowerCase();
-    const isDecisionMaker = text.includes("owner") || text.includes("decision") || text.includes("director") || text.includes("self") || text.includes("partner");
+    const isDecisionMaker =
+      text.includes("owner") ||
+      text.includes("decision") ||
+      text.includes("director") ||
+      text.includes("self") ||
+      text.includes("partner");
     const score = isDecisionMaker ? 15 : 8;
     breakdown.push({
       criterion: "Decision Authority",
@@ -121,7 +139,10 @@ export function calculateLeadQualification(input: LeadQualificationInput): Quali
   // 5. Urgency (Weight 20)
   if (input.urgency) {
     const text = input.urgency.toLowerCase();
-    const isHighUrgency = text.includes("high") || text.includes("urgent") || text.includes("emergency");
+    const isHighUrgency =
+      text.includes("high") ||
+      text.includes("urgent") ||
+      text.includes("emergency");
     const score = isHighUrgency ? 20 : 10;
     breakdown.push({
       criterion: "Urgency Level",
@@ -144,17 +165,21 @@ export function calculateLeadQualification(input: LeadQualificationInput): Quali
   const totalScore = breakdown.reduce((acc, b) => acc + b.score, 0);
 
   let category: LeadCategory = "COLD";
-  let recommendedAction = "Send general business brochure and follow-up in 30 days";
+  let recommendedAction =
+    "Send general business brochure and follow-up in 30 days";
 
   if (totalScore >= 75) {
     category = "HOT";
-    recommendedAction = "Assign to senior account executive for immediate calendar consultation";
+    recommendedAction =
+      "Assign to senior account executive for immediate calendar consultation";
   } else if (totalScore >= 50) {
     category = "WARM";
-    recommendedAction = "Schedule consultation and trigger nurture email sequence";
+    recommendedAction =
+      "Schedule consultation and trigger nurture email sequence";
   } else if (totalScore >= 30) {
     category = "REVIEW";
-    recommendedAction = "Route to operator queue for manual qualification review";
+    recommendedAction =
+      "Route to operator queue for manual qualification review";
   }
 
   return {

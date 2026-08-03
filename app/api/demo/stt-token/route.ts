@@ -1,52 +1,91 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "@/lib/demo/session";
+import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
+import { demoSessionStore } from "@/lib/demo/store";
+import { env } from "@/lib/config/env";
 
 export async function POST(req: NextRequest) {
-  const cookieToken = req.cookies.get("voxdesk_demo_session")?.value;
-  const session = verifySessionToken(cookieToken || "");
-
-  if (!session) {
-    return NextResponse.json({ error: "Session expired or invalid" }, { status: 401 });
-  }
-
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json({
-      available: false,
-      mode: "browser_speech_recognition",
-      message: "ElevenLabs API key not configured. Using browser Web Speech STT fallback.",
-    });
-  }
-
   try {
-    const res = await fetch("https://api.elevenlabs.io/v1/single-use-tokens/scribe", {
-      method: "POST",
-      headers: {
-        "xi-api-key": apiKey,
-        "Content-Type": "application/json",
-      },
-    });
+    const cookieToken = req.cookies.get("voxdesk_demo_session")?.value;
+    if (!cookieToken) {
+      return NextResponse.json(
+        { error: "Missing session cookie" },
+        { status: 401 },
+      );
+    }
 
-    if (!res.ok) {
+    const session = await getDemoSessionFromCookieToken(cookieToken);
+    if (!session) {
+      return NextResponse.json(
+        { error: "Session expired or invalid" },
+        { status: 401 },
+      );
+    }
+
+    // Check kill switch
+    if (env.DEMO_LIVE_PROVIDER_KILL_SWITCH === "true") {
       return NextResponse.json({
-        available: false,
-        mode: "browser_speech_recognition",
-        message: "Could not issue single-use STT token. Using browser Web Speech STT fallback.",
+        fallbackWebSpeech: true,
+        reason: "The live provider demonstration is temporarily paused.",
       });
     }
 
-    const data = await res.json();
-    return NextResponse.json({
-      available: true,
-      token: data.token,
-      model: process.env.ELEVENLABS_STT_MODEL || "scribe_v2_realtime",
+    // Check active connection
+    if (session.activeSTTConnection) {
+      return NextResponse.json(
+        {
+          error: "Active STT connection already exists for this session.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const apiKey = env.ELEVENLABS_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({
+        fallbackWebSpeech: true,
+        reason: "ElevenLabs API key not configured.",
+      });
+    }
+
+    // Fetch single-use Scribe token from ElevenLabs API
+    const response = await fetch(
+      "https://api.elevenlabs.io/v1/single-use-tokens/scribe",
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": apiKey,
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return NextResponse.json({
+        fallbackWebSpeech: true,
+        reason: "ElevenLabs single-use token issuance failed.",
+      });
+    }
+
+    const data = await response.json();
+    const temporaryToken = data.token;
+
+    // Update session state
+    await demoSessionStore.updateSession(session.sessionId, {
+      activeSTTConnection: true,
+      sttTokenIssuedAt: Date.now(),
     });
-  } catch (error) {
+
+    const res = NextResponse.json({
+      token: temporaryToken,
+      fallbackWebSpeech: false,
+    });
+
+    res.headers.set("Cache-Control", "no-store, private");
+    return res;
+  } catch {
     return NextResponse.json({
-      available: false,
-      mode: "browser_speech_recognition",
-      message: "Network error requesting STT token. Using browser Web Speech STT fallback.",
+      fallbackWebSpeech: true,
+      reason: "Unexpected error during STT token generation.",
     });
   }
 }

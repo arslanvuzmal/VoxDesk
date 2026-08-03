@@ -22,7 +22,10 @@ export class VapiVoiceProvider implements VoiceProvider {
     return `vapi-agent-${config.name.toLowerCase().replace(/\s+/g, "-")}`;
   }
 
-  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+  async updateAgent(
+    _agentId: string,
+    _config: Partial<VoiceAgentConfig>,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -30,7 +33,10 @@ export class VapiVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async assignPhoneNumber(_agentId: string, _phoneNumber: string): Promise<boolean> {
+  async assignPhoneNumber(
+    _agentId: string,
+    _phoneNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -53,7 +59,10 @@ export class VapiVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async transferCall(_providerCallId: string, _targetNumber: string): Promise<boolean> {
+  async transferCall(
+    _providerCallId: string,
+    _targetNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -74,7 +83,10 @@ export class VapiVoiceProvider implements VoiceProvider {
     return [];
   }
 
-  async verifyWebhook(headers: Record<string, string>, _body: string): Promise<boolean> {
+  async verifyWebhook(
+    headers: Record<string, string>,
+    _body: string,
+  ): Promise<boolean> {
     if (!this.secret) return false;
     return headers["x-vapi-secret"] === this.secret;
   }
@@ -95,7 +107,9 @@ export class VapiVoiceProvider implements VoiceProvider {
       providerType: "VAPI",
       status: hasCreds ? "OPERATIONAL" : "MISCONFIGURED",
       latencyMs: hasCreds ? 180 : 0,
-      message: hasCreds ? "Vapi API connection configured" : "Vapi API key missing (VAPI_API_KEY)",
+      message: hasCreds
+        ? "Vapi API connection configured"
+        : "Vapi API key missing (VAPI_API_KEY)",
     };
   }
 }

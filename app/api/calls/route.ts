@@ -69,7 +69,9 @@ export async function GET(req: NextRequest) {
     },
   ];
 
-  const filtered = statusFilter ? calls.filter((c) => c.status === statusFilter) : calls;
+  const filtered = statusFilter
+    ? calls.filter((c) => c.status === statusFilter)
+    : calls;
 
   return NextResponse.json({
     calls: filtered,

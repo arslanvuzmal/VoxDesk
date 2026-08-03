@@ -46,15 +46,25 @@ export default function RegisterPage() {
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-electric-600 flex items-center justify-center mx-auto shadow-lg shadow-teal-500/20">
             <Mic className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Create VoxDesk AI Workspace</h1>
-          <p className="text-xs text-gray-400">Deploy your multi-tenant AI voice receptionist environment.</p>
+          <h1 className="text-2xl font-extrabold text-white">
+            Create VoxDesk AI Workspace
+          </h1>
+          <p className="text-xs text-gray-400">
+            Deploy your multi-tenant AI voice receptionist environment.
+          </p>
         </div>
 
-        {error && <div className="p-3 rounded-xl bg-red-950/60 border border-red-800 text-xs text-red-300">{error}</div>}
+        {error && (
+          <div className="p-3 rounded-xl bg-red-950/60 border border-red-800 text-xs text-red-300">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           <div>
-            <label className="block font-medium text-gray-300 mb-1">Full Name</label>
+            <label className="block font-medium text-gray-300 mb-1">
+              Full Name
+            </label>
             <input
               type="text"
               value={name}
@@ -65,7 +75,9 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">Workspace Name</label>
+            <label className="block font-medium text-gray-300 mb-1">
+              Workspace Name
+            </label>
             <input
               type="text"
               value={workspaceName}
@@ -77,7 +89,9 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">Work Email</label>
+            <label className="block font-medium text-gray-300 mb-1">
+              Work Email
+            </label>
             <input
               type="email"
               value={email}
@@ -89,7 +103,9 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">Password</label>
+            <label className="block font-medium text-gray-300 mb-1">
+              Password
+            </label>
             <input
               type="password"
               value={password}
@@ -111,7 +127,10 @@ export default function RegisterPage() {
 
         <p className="text-center text-xs text-gray-400">
           Already registered?{" "}
-          <Link href="/login" className="text-teal-400 font-semibold hover:underline">
+          <Link
+            href="/login"
+            className="text-teal-400 font-semibold hover:underline"
+          >
             Sign In
           </Link>
         </p>

@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
         newState = "LISTENING";
         break;
       case "silence":
-        responseMessage = "Long silence detected; agent prompting caller for clarification";
+        responseMessage =
+          "Long silence detected; agent prompting caller for clarification";
         newState = "PROMPTING";
         break;
       case "transfer":
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Voice Event API Error:", error);
-    return NextResponse.json({ error: "Failed to process call event" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to process call event" },
+      { status: 500 },
+    );
   }
 }

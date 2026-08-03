@@ -22,7 +22,10 @@ export class TwilioVoiceProvider implements VoiceProvider {
     return `twilio-agent-${config.name.toLowerCase().replace(/\s+/g, "-")}`;
   }
 
-  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+  async updateAgent(
+    _agentId: string,
+    _config: Partial<VoiceAgentConfig>,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -30,7 +33,10 @@ export class TwilioVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async assignPhoneNumber(_agentId: string, _phoneNumber: string): Promise<boolean> {
+  async assignPhoneNumber(
+    _agentId: string,
+    _phoneNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -53,7 +59,10 @@ export class TwilioVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async transferCall(_providerCallId: string, _targetNumber: string): Promise<boolean> {
+  async transferCall(
+    _providerCallId: string,
+    _targetNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -74,17 +83,26 @@ export class TwilioVoiceProvider implements VoiceProvider {
     return [];
   }
 
-  async verifyWebhook(headers: Record<string, string>, body: string): Promise<boolean> {
+  async verifyWebhook(
+    headers: Record<string, string>,
+    body: string,
+  ): Promise<boolean> {
     const signature = headers["x-twilio-signature"];
     if (!signature || !this.authToken) return false;
     // HMAC validation logic
-    const expected = crypto.createHmac("sha1", this.authToken).update(body).digest("base64");
+    const expected = crypto
+      .createHmac("sha1", this.authToken)
+      .update(body)
+      .digest("base64");
     return signature === expected;
   }
 
   parseWebhookEvent(body: Record<string, unknown>): WebhookEventPayload {
     return {
-      eventType: (body.CallStatus as string) === "completed" ? "call.completed" : "call.updated",
+      eventType:
+        (body.CallStatus as string) === "completed"
+          ? "call.completed"
+          : "call.updated",
       providerCallId: (body.CallSid as string) || "CA00000000000000000000",
       timestamp: new Date(),
       rawPayload: body,
@@ -97,7 +115,9 @@ export class TwilioVoiceProvider implements VoiceProvider {
       providerType: "TWILIO",
       status: hasCreds ? "OPERATIONAL" : "MISCONFIGURED",
       latencyMs: hasCreds ? 140 : 0,
-      message: hasCreds ? "Twilio connection configured" : "Twilio credentials missing (ACCOUNT_SID / AUTH_TOKEN)",
+      message: hasCreds
+        ? "Twilio connection configured"
+        : "Twilio credentials missing (ACCOUNT_SID / AUTH_TOKEN)",
     };
   }
 }

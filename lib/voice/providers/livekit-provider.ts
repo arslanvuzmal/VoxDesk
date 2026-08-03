@@ -23,7 +23,10 @@ export class LiveKitVoiceProvider implements VoiceProvider {
     return `livekit-agent-${config.name.toLowerCase().replace(/\s+/g, "-")}`;
   }
 
-  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+  async updateAgent(
+    _agentId: string,
+    _config: Partial<VoiceAgentConfig>,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -31,7 +34,10 @@ export class LiveKitVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async assignPhoneNumber(_agentId: string, _phoneNumber: string): Promise<boolean> {
+  async assignPhoneNumber(
+    _agentId: string,
+    _phoneNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -54,7 +60,10 @@ export class LiveKitVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async transferCall(_providerCallId: string, _targetNumber: string): Promise<boolean> {
+  async transferCall(
+    _providerCallId: string,
+    _targetNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -75,7 +84,10 @@ export class LiveKitVoiceProvider implements VoiceProvider {
     return [];
   }
 
-  async verifyWebhook(_headers: Record<string, string>, _body: string): Promise<boolean> {
+  async verifyWebhook(
+    _headers: Record<string, string>,
+    _body: string,
+  ): Promise<boolean> {
     return Boolean(this.apiKey && this.apiSecret);
   }
 
@@ -94,7 +106,9 @@ export class LiveKitVoiceProvider implements VoiceProvider {
       providerType: "LIVEKIT",
       status: hasCreds ? "OPERATIONAL" : "MISCONFIGURED",
       latencyMs: hasCreds ? 110 : 0,
-      message: hasCreds ? "LiveKit WebRTC agent server connected" : "LiveKit credentials missing (URL / API_KEY / API_SECRET)",
+      message: hasCreds
+        ? "LiveKit WebRTC agent server connected"
+        : "LiveKit credentials missing (URL / API_KEY / API_SECRET)",
     };
   }
 }

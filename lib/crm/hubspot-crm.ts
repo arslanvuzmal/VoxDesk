@@ -28,7 +28,10 @@ export class HubSpotCRMProvider implements CRMProvider {
     };
   }
 
-  async updateContact(contactId: string, input: Partial<CRMContactInput>): Promise<CRMContactRecord> {
+  async updateContact(
+    contactId: string,
+    input: Partial<CRMContactInput>,
+  ): Promise<CRMContactRecord> {
     return {
       id: contactId,
       externalId: `hs-${contactId}`,
@@ -40,7 +43,11 @@ export class HubSpotCRMProvider implements CRMProvider {
     return `hs-engagement-${input.activityType}-${Date.now()}`;
   }
 
-  async createTask(_title: string, _priority: string, _dueDate: Date): Promise<string> {
+  async createTask(
+    _title: string,
+    _priority: string,
+    _dueDate: Date,
+  ): Promise<string> {
     return `hs-task-${Date.now()}`;
   }
 
@@ -49,7 +56,9 @@ export class HubSpotCRMProvider implements CRMProvider {
     return {
       providerType: "HUBSPOT",
       status: hasCreds ? "OPERATIONAL" : "DEGRADED",
-      message: hasCreds ? "HubSpot v3 API token configured" : "HubSpot token missing (HUBSPOT_ACCESS_TOKEN)",
+      message: hasCreds
+        ? "HubSpot v3 API token configured"
+        : "HubSpot token missing (HUBSPOT_ACCESS_TOKEN)",
     };
   }
 }

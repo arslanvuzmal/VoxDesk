@@ -3,7 +3,7 @@
 **Project Name:** VoxDesk AI  
 **Project Owner:** Arslan Vuzmal Lone  
 **Official URL:** https://voxdesk-ai.vercel.app  
-**Report Date:** 2026-08-03  
+**Report Date:** 2026-08-03
 
 ---
 
@@ -12,6 +12,7 @@
 VoxDesk AI has been upgraded with a controlled, secure, and cost-capped browser voice pipeline.
 
 Prospective clients can:
+
 1. Select from 4 problem-focused business scenarios (Booking, Lead Qualification, Escalation, Routine Question).
 2. Grant microphone permission and speak naturally into their browser.
 3. See real-time speech transcription (via ElevenLabs Scribe Realtime token or Web Speech fallback).
@@ -23,10 +24,10 @@ Prospective clients can:
 
 ## 2. Security & Cost Safeguards Audit
 
-* **API Key Protection:** `import "server-only";` is present on all server modules (`lib/providers/openrouter.server.ts`, `lib/providers/elevenlabs-tts.server.ts`).
-* **Secret Leaks:** 0 secrets exposed in client JS bundles, network logs, or documentation.
-* **Quota Limits:** Max 3 minutes, 6 turns per session, 600 max user chars, 350 max agent chars.
-* **IP Rate Limiting:** Max 3 demo sessions per IP per 24h.
+- **API Key Protection:** `import "server-only";` is present on all server modules (`lib/providers/openrouter.server.ts`, `lib/providers/elevenlabs-tts.server.ts`).
+- **Secret Leaks:** 0 secrets exposed in client JS bundles, network logs, or documentation.
+- **Quota Limits:** Max 3 minutes, 6 turns per session, 600 max user chars, 350 max agent chars.
+- **IP Rate Limiting:** Max 3 demo sessions per IP per 24h.
 
 ---
 

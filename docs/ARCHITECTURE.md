@@ -1,7 +1,7 @@
 # VoxDesk AI — System Architecture & Component Specification
 
 **Author / Owner:** Arslan Vuzmal Lone  
-**Version:** 1.0.0  
+**Version:** 1.0.0
 
 ---
 
@@ -12,27 +12,27 @@ VoxDesk AI is architected as a modular Next.js SaaS application structured aroun
 ```mermaid
 graph TD
     Client[Browser / Mobile Client] --> |HTTPS / WSS| NextApp[Next.js App Router]
-    
+
     subgraph "Core SaaS Application"
         NextApp --> Auth[Auth & RBAC Middleware]
         Auth --> WSGuard[Workspace Isolation Scope]
-        
+
         WSGuard --> StateEngine[16-State Conversation Engine]
         WSGuard --> BookingEngine[Calendar & Slot Manager]
         WSGuard --> LeadEngine[Lead Qualification & Scoring]
         WSGuard --> EscalationEngine[Human Transfer & Briefing]
     end
-    
+
     subgraph "Pluggable Provider Abstraction Layer"
         StateEngine --> VoiceAdapters[Voice Providers: Demo / Twilio / Vapi / Retell / LiveKit]
         StateEngine --> STTAdapters[STT Providers: Demo / Deepgram / OpenAI]
         StateEngine --> TTSAdapters[TTS Providers: Demo / ElevenLabs / OpenAI]
         StateEngine --> LLMAdapters[LLM Providers: Demo / OpenAI / Anthropic / Gemini]
-        
+
         BookingEngine --> CalAdapters[Calendar Adapters: Demo / Google Cal / Cal.com]
         WSGuard --> CRMAdapters[CRM Adapters: Demo / HubSpot / Webhook]
     end
-    
+
     subgraph "Persistence Layer"
         WSGuard --> Prisma[Prisma ORM]
         Prisma --> Postgres[(PostgreSQL Database)]
@@ -50,21 +50,21 @@ stateDiagram-v2
     [*] --> INITIALISING
     INITIALISING --> GREETING
     GREETING --> IDENTIFYING_INTENT
-    
+
     IDENTIFYING_INTENT --> ANSWERING_QUESTION: FAQ / Info Request
     IDENTIFYING_INTENT --> COLLECTING_CONTACT: Service Request
     IDENTIFYING_INTENT --> QUALIFYING_LEAD: Sales Enquiry
     IDENTIFYING_INTENT --> ESCALATING: Human Transfer / Complaint
-    
+
     ANSWERING_QUESTION --> IDENTIFYING_INTENT
     COLLECTING_CONTACT --> CHECKING_AVAILABILITY
     QUALIFYING_LEAD --> CHECKING_AVAILABILITY
-    
+
     CHECKING_AVAILABILITY --> OFFERING_SLOTS
     OFFERING_SLOTS --> CONFIRMING_APPOINTMENT
     CONFIRMING_APPOINTMENT --> SUMMARISING: Confirmed
     CONFIRMING_APPOINTMENT --> OFFERING_SLOTS: Slot Rejected
-    
+
     ESCALATING --> CLOSING: Transfer Complete / Callback Task Created
     SUMMARISING --> CLOSING
     CLOSING --> COMPLETED

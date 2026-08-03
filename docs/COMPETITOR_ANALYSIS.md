@@ -1,7 +1,7 @@
 # VoxDesk AI — Competitor Analysis & Market Positioning
 
 **Author / Owner:** Arslan Vuzmal Lone  
-**Date:** 2026-08-03  
+**Date:** 2026-08-03
 
 ---
 
@@ -9,14 +9,14 @@
 
 VoxDesk AI addresses key gaps in current market offerings for SMB voice receptionists and AI call automation platforms.
 
-| Feature Area | Generic Telephony Wrappers | Enterprise AI Voice Platforms | VoxDesk AI |
-| :--- | :--- | :--- | :--- |
-| **Demo & Offline Capability** | Requires live Twilio/Vapi credentials | Requires expensive enterprise sandbox | **100% Deterministic Demo Mode with interactive audio & waveform** |
-| **State Machine Enforcement** | Unrestricted prompt-driven LLM | Proprietary closed-source workflow | **Hybrid LLM + Server-Enforced State Machine (16 explicit states)** |
-| **Appointment Booking** | Basic hardcoded slot booking | Custom enterprise integration | **Pluggable Calendar Adapter (Google Calendar, Cal.com, Demo)** |
-| **Lead Qualification** | Text summary only | Simple tag assignment | **BANT/CHAMP Scoring Matrix with evidence breakdown & auto-category** |
-| **Human Escalation** | Blind call forwarding | Complex SIP transfer configuration | **Instant Context Brief + Callback Task Queue fallback** |
-| **Multi-Tenancy & RBAC** | Single client configuration | SSO Enterprise pricing tier | **Built-in multi-workspace isolation with 5 granular roles** |
+| Feature Area                  | Generic Telephony Wrappers            | Enterprise AI Voice Platforms         | VoxDesk AI                                                            |
+| :---------------------------- | :------------------------------------ | :------------------------------------ | :-------------------------------------------------------------------- |
+| **Demo & Offline Capability** | Requires live Twilio/Vapi credentials | Requires expensive enterprise sandbox | **100% Deterministic Demo Mode with interactive audio & waveform**    |
+| **State Machine Enforcement** | Unrestricted prompt-driven LLM        | Proprietary closed-source workflow    | **Hybrid LLM + Server-Enforced State Machine (16 explicit states)**   |
+| **Appointment Booking**       | Basic hardcoded slot booking          | Custom enterprise integration         | **Pluggable Calendar Adapter (Google Calendar, Cal.com, Demo)**       |
+| **Lead Qualification**        | Text summary only                     | Simple tag assignment                 | **BANT/CHAMP Scoring Matrix with evidence breakdown & auto-category** |
+| **Human Escalation**          | Blind call forwarding                 | Complex SIP transfer configuration    | **Instant Context Brief + Callback Task Queue fallback**              |
+| **Multi-Tenancy & RBAC**      | Single client configuration           | SSO Enterprise pricing tier           | **Built-in multi-workspace isolation with 5 granular roles**          |
 
 ---
 

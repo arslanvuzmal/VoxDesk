@@ -1,24 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "@/lib/demo/session";
+import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
 
 export async function GET(req: NextRequest) {
   const cookieToken = req.cookies.get("voxdesk_demo_session")?.value;
-  const session = verifySessionToken(cookieToken || "");
+  const session = cookieToken
+    ? await getDemoSessionFromCookieToken(cookieToken)
+    : null;
 
   if (!session) {
-    return NextResponse.json({ active: false, reason: "No active or valid session" });
+    return NextResponse.json({
+      active: false,
+      reason: "Session expired or invalid",
+    });
   }
 
-  const remainingMs = Math.max(0, session.expiresAt - Date.now());
+  const secondsRemaining = Math.max(
+    0,
+    Math.floor((session.expiresAt - Date.now()) / 1000),
+  );
+  const turnsRemaining = Math.max(0, session.maxTurns - session.turnsUsed);
 
   return NextResponse.json({
     active: true,
-    sessionId: session.id,
+    sessionId: session.sessionId,
     scenario: session.scenario,
     state: session.state,
-    turnsRemaining: session.maxTurns - session.turnsUsed,
-    remainingSeconds: Math.floor(remainingMs / 1000),
-    hasElevenLabsKey: !!process.env.ELEVENLABS_API_KEY,
-    hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+    turnsUsed: session.turnsUsed,
+    turnsRemaining,
+    secondsRemaining,
+    completed: session.completed,
   });
 }

@@ -19,7 +19,10 @@ export class RetellVoiceProvider implements VoiceProvider {
     return `retell-agent-${config.name.toLowerCase().replace(/\s+/g, "-")}`;
   }
 
-  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+  async updateAgent(
+    _agentId: string,
+    _config: Partial<VoiceAgentConfig>,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -27,7 +30,10 @@ export class RetellVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async assignPhoneNumber(_agentId: string, _phoneNumber: string): Promise<boolean> {
+  async assignPhoneNumber(
+    _agentId: string,
+    _phoneNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -50,7 +56,10 @@ export class RetellVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async transferCall(_providerCallId: string, _targetNumber: string): Promise<boolean> {
+  async transferCall(
+    _providerCallId: string,
+    _targetNumber: string,
+  ): Promise<boolean> {
     return true;
   }
 
@@ -71,7 +80,10 @@ export class RetellVoiceProvider implements VoiceProvider {
     return [];
   }
 
-  async verifyWebhook(_headers: Record<string, string>, _body: string): Promise<boolean> {
+  async verifyWebhook(
+    _headers: Record<string, string>,
+    _body: string,
+  ): Promise<boolean> {
     return Boolean(this.apiKey);
   }
 
@@ -90,7 +102,9 @@ export class RetellVoiceProvider implements VoiceProvider {
       providerType: "RETELL",
       status: hasCreds ? "OPERATIONAL" : "MISCONFIGURED",
       latencyMs: hasCreds ? 150 : 0,
-      message: hasCreds ? "Retell AI connection configured" : "Retell API key missing (RETELL_API_KEY)",
+      message: hasCreds
+        ? "Retell AI connection configured"
+        : "Retell API key missing (RETELL_API_KEY)",
     };
   }
 }

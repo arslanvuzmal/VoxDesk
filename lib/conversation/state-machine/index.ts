@@ -53,18 +53,30 @@ export const STATE_CONFIGS: Record<ConversationState, StateConfig> = {
   },
   ANSWERING_QUESTION: {
     purpose: "Answer business question using approved Q&A knowledge base",
-    allowedNextStates: ["IDENTIFYING_INTENT", "COLLECTING_CONTACT", "CHECKING_AVAILABILITY", "ESCALATING", "CLOSING"],
+    allowedNextStates: [
+      "IDENTIFYING_INTENT",
+      "COLLECTING_CONTACT",
+      "CHECKING_AVAILABILITY",
+      "ESCALATING",
+      "CLOSING",
+    ],
     requiredFields: [],
     maxTurns: 3,
   },
   COLLECTING_CONTACT: {
     purpose: "Collect caller name and contact phone/email",
-    allowedNextStates: ["QUALIFYING_LEAD", "CHECKING_AVAILABILITY", "ESCALATING", "CLOSING"],
+    allowedNextStates: [
+      "QUALIFYING_LEAD",
+      "CHECKING_AVAILABILITY",
+      "ESCALATING",
+      "CLOSING",
+    ],
     requiredFields: ["callerName"],
     maxTurns: 4,
   },
   QUALIFYING_LEAD: {
-    purpose: "Collect service interest, budget, timeline, and decision authority",
+    purpose:
+      "Collect service interest, budget, timeline, and decision authority",
     allowedNextStates: ["CHECKING_AVAILABILITY", "ESCALATING", "CLOSING"],
     requiredFields: ["serviceInterest"],
     maxTurns: 5,
@@ -77,13 +89,23 @@ export const STATE_CONFIGS: Record<ConversationState, StateConfig> = {
   },
   OFFERING_SLOTS: {
     purpose: "Present 2 available appointment slots to the caller",
-    allowedNextStates: ["CONFIRMING_APPOINTMENT", "OFFERING_SLOTS", "ESCALATING", "CLOSING"],
+    allowedNextStates: [
+      "CONFIRMING_APPOINTMENT",
+      "OFFERING_SLOTS",
+      "ESCALATING",
+      "CLOSING",
+    ],
     requiredFields: [],
     maxTurns: 3,
   },
   CONFIRMING_APPOINTMENT: {
     purpose: "Obtain explicit confirmation from caller for target slot",
-    allowedNextStates: ["SUMMARISING", "OFFERING_SLOTS", "ESCALATING", "CLOSING"],
+    allowedNextStates: [
+      "SUMMARISING",
+      "OFFERING_SLOTS",
+      "ESCALATING",
+      "CLOSING",
+    ],
     requiredFields: ["selectedSlot"],
     maxTurns: 2,
   },
@@ -150,7 +172,9 @@ export class ConversationStateMachine {
 
   public transition(nextState: ConversationState): ConversationState {
     if (!this.canTransitionTo(nextState)) {
-      throw new Error(`Invalid state transition from '${this.currentState}' to '${nextState}'`);
+      throw new Error(
+        `Invalid state transition from '${this.currentState}' to '${nextState}'`,
+      );
     }
     this.currentState = nextState;
     this.turnsInState = 0;

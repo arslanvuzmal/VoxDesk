@@ -29,7 +29,7 @@ export async function generateAgentTTS(text: string): Promise<TTSResult> {
       headers: {
         "xi-api-key": apiKey,
         "Content-Type": "application/json",
-        "Accept": "audio/mpeg",
+        Accept: "audio/mpeg",
       },
       body: JSON.stringify({
         text: sanitizedText,
@@ -42,7 +42,9 @@ export async function generateAgentTTS(text: string): Promise<TTSResult> {
     });
 
     if (!response.ok) {
-      console.warn(`ElevenLabs TTS returned status ${response.status}. Using Web Speech fallback.`);
+      console.warn(
+        `ElevenLabs TTS returned status ${response.status}. Using Web Speech fallback.`,
+      );
       return {
         fallbackWebSpeech: true,
         mimeType: "audio/mpeg",
@@ -60,7 +62,10 @@ export async function generateAgentTTS(text: string): Promise<TTSResult> {
       characterCount: sanitizedText.length,
     };
   } catch (error) {
-    console.warn("ElevenLabs TTS request failed. Using browser speech fallback:", error);
+    console.warn(
+      "ElevenLabs TTS request failed. Using browser speech fallback:",
+      error,
+    );
     return {
       fallbackWebSpeech: true,
       mimeType: "audio/mpeg",

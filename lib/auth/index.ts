@@ -9,7 +9,10 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string,
+): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
@@ -36,25 +39,32 @@ export async function createSession(userId: string, workspaceId?: string) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 Days
 
   try {
-    await prisma.session.create({
-      data: {
-        userId,
-        tokenHash,
-        expiresAt,
-      },
-    });
+    if (prisma) {
+      await prisma.session.create({
+        data: {
+          userId,
+          tokenHash,
+          expiresAt,
+        },
+      });
+    }
   } catch (err) {
-    console.warn("Database session persistence unavailable, falling back to stateless token:", err);
+    console.warn(
+      "Database session persistence unavailable, falling back to stateless token:",
+      err,
+    );
   }
 
   return { token, expiresAt };
 }
 
-export async function validateSession(token: string): Promise<SessionUser | null> {
+export async function validateSession(
+  token: string,
+): Promise<SessionUser | null> {
   if (!token) return null;
 
-  // Handle Demo session tokens directly
-  if (token.startsWith("demo-session-")) {
+  // Exact match for Demo session owner token
+  if (token === "demo-session-token-owner") {
     return {
       id: "demo-user-owner",
       name: "Arslan Vuzmal Lone",
@@ -65,7 +75,19 @@ export async function validateSession(token: string): Promise<SessionUser | null
     };
   }
 
+  if (token === "demo-session-token-operator") {
+    return {
+      id: "demo-user-operator",
+      name: "Demo Operator",
+      email: "demo@northstarlegal.com",
+      status: "ACTIVE",
+      activeWorkspaceId: "northstar-legal-ws",
+      activeWorkspaceRole: "OPERATOR",
+    };
+  }
+
   try {
+    if (!prisma) return null;
     const tokenHash = hashToken(token);
 
     const session = await prisma.session.findUnique({
@@ -85,7 +107,9 @@ export async function validateSession(token: string): Promise<SessionUser | null
 
     if (!session || session.expiresAt < new Date()) {
       if (session) {
-        await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
+        await prisma.session
+          .delete({ where: { id: session.id } })
+          .catch(() => {});
       }
       return null;
     }
@@ -102,21 +126,16 @@ export async function validateSession(token: string): Promise<SessionUser | null
       activeWorkspaceRole: primaryMembership.role as WorkspaceRole,
     };
   } catch (err) {
-    console.warn("Database validate session fallback:", err);
-    // Fallback user if database query fails during demo mode
-    return {
-      id: "demo-user-owner",
-      name: "Arslan Vuzmal Lone",
-      email: "owner@northstarlegal.com",
-      status: "ACTIVE",
-      activeWorkspaceId: "northstar-legal-ws",
-      activeWorkspaceRole: "OWNER",
-    };
+    return null;
   }
 }
 
 export async function revokeSession(token: string): Promise<void> {
   if (!token) return;
   const tokenHash = hashToken(token);
-  await prisma.session.deleteMany({ where: { tokenHash } }).catch(() => {});
+  try {
+    if (prisma) {
+      await prisma.session.deleteMany({ where: { tokenHash } }).catch(() => {});
+    }
+  } catch {}
 }

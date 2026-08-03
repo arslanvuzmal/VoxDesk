@@ -6,13 +6,16 @@ description: Captures high-resolution, professional application screenshots and 
 # Portfolio Capture Skill
 
 ## When to Use
+
 Use after completing UI development and verifying browser journeys to generate clean marketing screenshots for Fiverr gig listings.
 
 ## Inputs Required
+
 - Running VoxDesk AI instance with populated demo database.
 - Target screenshot resolutions (1280 × 769 px for Fiverr gallery).
 
 ## Step-by-Step Process
+
 1. Ensure application is loaded with high-quality demo data ("Northstar Legal Consultations").
 2. Set browser viewport to 1280 × 769 px.
 3. Capture 12 required screenshot perspectives:
@@ -32,17 +35,21 @@ Use after completing UI development and verifying browser journeys to generate c
 5. Verify no sensitive credentials or real personal data appear in captures.
 
 ## Decision Tree
+
 - **Do screenshots expose real secrets or look sparse?**
   - YES -> Re-seed demo database -> Re-capture screenshots.
   - NO -> Finalize portfolio asset bundle.
 
 ## Validation Checklist
+
 - [ ] 12 distinct portfolio screenshots captured at 1280 × 769 px.
 - [ ] Gallery composition plan (`portfolio/fiverr/GALLERY_PLAN.md`) created.
 - [ ] Video script (`portfolio/video/VIDEO_SCRIPT.md`) aligned with UI capabilities.
 
 ## Failure Conditions
+
 - Distorted image ratios, missing demo elements, or credential leaks.
 
 ## Expected Output
+
 Complete set of 12 portfolio screenshot images and Fiverr gallery collateral.

@@ -1,7 +1,7 @@
 # VoxDesk AI — Real Voice Demo Specifications
 
 **Owner:** Arslan Vuzmal Lone  
-**Official URL:** https://voxdesk-ai.vercel.app/demo  
+**Official URL:** https://voxdesk-ai.vercel.app/demo
 
 ---
 
@@ -10,6 +10,7 @@
 VoxDesk AI provides a browser-based interactive voice demonstration that allows prospective clients to test natural speech interactions with an AI voice receptionist.
 
 The experience connects:
+
 1. Microphone input transcribed via ElevenLabs Scribe Realtime (or Web Speech API fallback).
 2. Server-side OpenRouter LLM (`lib/providers/openrouter.server.ts`) with Zod-validated structured outputs.
 3. Server-side ElevenLabs Text-to-Speech (`lib/providers/elevenlabs-tts.server.ts`) with browser Web Speech synthesis fallback.

@@ -17,7 +17,10 @@ export async function POST(req: NextRequest) {
     const parsed = RegisterSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid registration details" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid registration details" },
+        { status: 400 },
+      );
     }
 
     const existing = await prisma.user.findUnique({
@@ -25,11 +28,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (existing) {
-      return NextResponse.json({ error: "An account with this email already exists" }, { status: 409 });
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 },
+      );
     }
 
     const passwordHash = await hashPassword(parsed.data.password);
-    const slug = parsed.data.workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Math.random().toString(36).substring(7);
+    const slug =
+      parsed.data.workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
+      "-" +
+      Math.random().toString(36).substring(7);
 
     const user = await prisma.user.create({
       data: {

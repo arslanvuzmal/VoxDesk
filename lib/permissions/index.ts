@@ -1,4 +1,5 @@
-export type WorkspaceRole = "OWNER" | "ADMIN" | "OPERATOR" | "ANALYST" | "VIEWER";
+export type WorkspaceRole =
+  "OWNER" | "ADMIN" | "OPERATOR" | "ANALYST" | "VIEWER";
 
 export type PermissionAction =
   | "workspace:manage"
@@ -65,23 +66,25 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, PermissionAction[]> = {
     "appointments:manage",
     "analytics:view",
   ],
-  ANALYST: [
-    "calls:view",
-    "analytics:view",
-  ],
-  VIEWER: [
-    "calls:view",
-    "analytics:view",
-  ],
+  ANALYST: ["calls:view", "analytics:view"],
+  VIEWER: ["calls:view", "analytics:view"],
 };
 
-export function hasPermission(role: WorkspaceRole, action: PermissionAction): boolean {
+export function hasPermission(
+  role: WorkspaceRole,
+  action: PermissionAction,
+): boolean {
   const allowedActions = ROLE_PERMISSIONS[role] || [];
   return allowedActions.includes(action);
 }
 
-export function enforcePermission(role: WorkspaceRole, action: PermissionAction): void {
+export function enforcePermission(
+  role: WorkspaceRole,
+  action: PermissionAction,
+): void {
   if (!hasPermission(role, action)) {
-    throw new Error(`Permission denied for action '${action}' under role '${role}'`);
+    throw new Error(
+      `Permission denied for action '${action}' under role '${role}'`,
+    );
   }
 }

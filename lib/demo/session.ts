@@ -1,66 +1,61 @@
+import "server-only";
 import crypto from "crypto";
+import { env } from "@/lib/config/env";
+import { demoSessionStore, DemoSessionData } from "@/lib/demo/store";
+import { generateIPHash, generateUserAgentHash } from "@/lib/demo/rate-limit";
 
-export interface DemoSessionData {
-  id: string;
-  createdAt: number;
-  expiresAt: number;
-  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
-  state: string;
-  turnsUsed: number;
-  maxTurns: number;
-  userCharCount: number;
-  agentCharCount: number;
-  completed: boolean;
-  ipHash: string;
+function getSecretKey(): string {
+  return env.DEMO_SESSION_SECRET;
 }
 
-const DEMO_SECRET = process.env.DEMO_SESSION_SECRET || "voxdesk-demo-secret-key-2026";
-
-export function hashClientIP(ip: string): string {
-  const salt = process.env.IP_HASH_SECRET || "voxdesk-ip-salt-2026";
-  return crypto.createHmac("sha256", salt).update(ip || "127.0.0.1").digest("hex").slice(0, 16);
+export function signOpaqueSessionId(sessionId: string): string {
+  const hmac = crypto.createHmac("sha256", getSecretKey());
+  hmac.update(sessionId);
+  const signature = hmac.digest("hex");
+  return `${sessionId}.${signature}`;
 }
 
-export function createDemoSession(scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE", clientIP: string): DemoSessionData {
-  const now = Date.now();
-  const durationMs = parseInt(process.env.DEMO_MAX_DURATION_SECONDS || "180", 10) * 1000;
-  const maxTurns = parseInt(process.env.DEMO_MAX_TURNS || "6", 10);
+export function verifyOpaqueSessionToken(token: string): string | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 2) return null;
 
-  return {
-    id: `demo_sess_${crypto.randomBytes(8).toString("hex")}`,
-    createdAt: now,
-    expiresAt: now + durationMs,
+  const [sessionId, providedSignature] = parts;
+  const hmac = crypto.createHmac("sha256", getSecretKey());
+  hmac.update(sessionId);
+  const expectedSignature = hmac.digest("hex");
+
+  const providedBuf = Buffer.from(providedSignature, "hex");
+  const expectedBuf = Buffer.from(expectedSignature, "hex");
+
+  if (providedBuf.length !== expectedBuf.length) return null;
+  if (!crypto.timingSafeEqual(providedBuf, expectedBuf)) return null;
+
+  return sessionId;
+}
+
+export async function createDemoSession(
+  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
+  reqIp: string,
+  reqUserAgent: string,
+): Promise<{ token: string; session: DemoSessionData }> {
+  const ipHash = generateIPHash(reqIp);
+  const uaHash = generateUserAgentHash(reqUserAgent);
+
+  const session = await demoSessionStore.createSession(
     scenario,
-    state: "GREETING",
-    turnsUsed: 0,
-    maxTurns,
-    userCharCount: 0,
-    agentCharCount: 0,
-    completed: false,
-    ipHash: hashClientIP(clientIP),
-  };
+    ipHash,
+    uaHash,
+  );
+  const token = signOpaqueSessionId(session.sessionId);
+
+  return { token, session };
 }
 
-export function signSessionPayload(data: DemoSessionData): string {
-  const jsonStr = JSON.stringify(data);
-  const signature = crypto.createHmac("sha256", DEMO_SECRET).update(jsonStr).digest("hex");
-  return `${Buffer.from(jsonStr).toString("base64")}.${signature}`;
-}
-
-export function verifySessionToken(token: string): DemoSessionData | null {
-  if (!token || !token.includes(".")) return null;
-  const [b64Data, signature] = token.split(".");
-
-  try {
-    const jsonStr = Buffer.from(b64Data, "base64").toString("utf-8");
-    const expectedSig = crypto.createHmac("sha256", DEMO_SECRET).update(jsonStr).digest("hex");
-
-    if (signature !== expectedSig) return null;
-    const data: DemoSessionData = JSON.parse(jsonStr);
-
-    if (Date.now() > data.expiresAt) return null;
-    return data;
-  } catch {
-    return null;
-  }
+export async function getDemoSessionFromCookieToken(
+  token: string,
+): Promise<DemoSessionData | null> {
+  const sessionId = verifyOpaqueSessionToken(token);
+  if (!sessionId) return null;
+  return await demoSessionStore.getSession(sessionId);
 }

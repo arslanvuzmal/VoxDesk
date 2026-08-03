@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { encryptText, decryptText, maskPhoneNumber, maskEmail } from "../../lib/encryption";
+import {
+  encryptText,
+  decryptText,
+  maskPhoneNumber,
+  maskEmail,
+} from "../../lib/encryption";
 
 describe("Encryption & Masking Security Module", () => {
   it("should encrypt and decrypt plaintext accurately", () => {

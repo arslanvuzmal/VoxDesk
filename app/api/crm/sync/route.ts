@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
     const activityId = await crm.createActivity({
       contactId: contact.id,
       activityType: body.activityType || "APPOINTMENT_BOOKED",
-      summary: body.summary || "Call handling completed and appointment scheduled for Tuesday 2:00 PM EST.",
+      summary:
+        body.summary ||
+        "Call handling completed and appointment scheduled for Tuesday 2:00 PM EST.",
       details: body.details || { score: 85, category: "HOT" },
     });
 
@@ -28,6 +30,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("CRM Sync API Error:", error);
-    return NextResponse.json({ error: "Failed to sync CRM activity" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to sync CRM activity" },
+      { status: 500 },
+    );
   }
 }

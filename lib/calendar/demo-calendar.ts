@@ -18,7 +18,11 @@ export class DemoCalendarProvider implements CalendarProvider {
     ];
   }
 
-  async checkAvailability(_service: string, targetDate: Date, _timezone: string): Promise<AvailableSlot[]> {
+  async checkAvailability(
+    _service: string,
+    targetDate: Date,
+    _timezone: string,
+  ): Promise<AvailableSlot[]> {
     const base = new Date(targetDate);
     base.setHours(14, 0, 0, 0); // 2:00 PM
 
@@ -44,7 +48,9 @@ export class DemoCalendarProvider implements CalendarProvider {
     ];
   }
 
-  async createAppointment(input: AppointmentCreateInput): Promise<CalendarAppointmentRecord> {
+  async createAppointment(
+    input: AppointmentCreateInput,
+  ): Promise<CalendarAppointmentRecord> {
     const id = `demo-appt-${Date.now()}`;
     const record: CalendarAppointmentRecord = {
       id,
@@ -60,7 +66,11 @@ export class DemoCalendarProvider implements CalendarProvider {
     return record;
   }
 
-  async rescheduleAppointment(appointmentId: string, newStartTime: Date, _timezone: string): Promise<CalendarAppointmentRecord> {
+  async rescheduleAppointment(
+    appointmentId: string,
+    newStartTime: Date,
+    _timezone: string,
+  ): Promise<CalendarAppointmentRecord> {
     const existing = this.appointments.get(appointmentId);
     if (!existing) {
       throw new Error(`Appointment '${appointmentId}' not found`);
@@ -80,7 +90,9 @@ export class DemoCalendarProvider implements CalendarProvider {
     return false;
   }
 
-  async getAppointment(appointmentId: string): Promise<CalendarAppointmentRecord | null> {
+  async getAppointment(
+    appointmentId: string,
+  ): Promise<CalendarAppointmentRecord | null> {
     return this.appointments.get(appointmentId) || null;
   }
 }

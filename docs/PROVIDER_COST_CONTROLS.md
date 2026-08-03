@@ -1,6 +1,6 @@
 # VoxDesk AI — Provider Cost Controls & Budgeting
 
-**Owner:** Arslan Vuzmal Lone  
+**Owner:** Arslan Vuzmal Lone
 
 ---
 

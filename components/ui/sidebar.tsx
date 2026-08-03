@@ -15,7 +15,12 @@ import {
   Plug,
   UserCheck,
   Settings,
+  LogOut,
 } from "lucide-react";
+
+interface SidebarProps {
+  user?: any;
+}
 
 const navItems = [
   { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -32,8 +37,13 @@ const navItems = [
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ user }: SidebarProps) {
   const pathname = usePathname();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  };
 
   return (
     <aside className="w-56 bg-[#0F1216] border-r border-[#272D35] min-h-screen flex flex-col shrink-0">
@@ -43,10 +53,12 @@ export function Sidebar() {
           <div className="w-6 h-6 rounded bg-[#2DD4BF] text-[#0B0D10] font-bold text-xs flex items-center justify-center">
             V
           </div>
-          <span className="text-sm font-bold text-white tracking-tight">VoxDesk AI</span>
+          <span className="text-sm font-bold text-white tracking-tight">
+            VoxDesk AI
+          </span>
         </Link>
         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#171C22] text-[#2DD4BF] border border-[#272D35]">
-          Demo
+          Fictional Demo
         </span>
       </div>
 
@@ -66,7 +78,9 @@ export function Sidebar() {
                   : "hover:bg-[#13171C] hover:text-white"
               }`}
             >
-              <Icon className={`w-4 h-4 ${isActive ? "text-[#2DD4BF]" : "text-[#8B949E]"}`} />
+              <Icon
+                className={`w-4 h-4 ${isActive ? "text-[#2DD4BF]" : "text-[#8B949E]"}`}
+              />
               <span>{item.label}</span>
             </Link>
           );
@@ -74,9 +88,20 @@ export function Sidebar() {
       </nav>
 
       {/* Footer workspace info */}
-      <div className="p-3 border-t border-[#272D35] text-[11px] text-[#8B949E]">
-        <p className="font-semibold text-white truncate">Northstar Legal</p>
-        <p className="truncate text-[10px]">Demo Workspace</p>
+      <div className="p-3 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#8B949E]">
+        <div className="truncate">
+          <p className="font-semibold text-white truncate">
+            {user?.name || "Arslan Vuzmal Lone"}
+          </p>
+          <p className="truncate text-[10px]">Fictional Demo Workspace</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          title="Log out"
+          className="p-1 rounded hover:bg-[#171C22] text-[#8B949E] hover:text-white"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
       </div>
     </aside>
   );

@@ -1,6 +1,7 @@
 import { DEMO_SCENARIOS } from "../lib/demo/scenarios";
 
-const story = DEMO_SCENARIOS.find((s) => s.id === "scenario-22-story") || DEMO_SCENARIOS[0];
+const story =
+  DEMO_SCENARIOS.find((s) => s.id === "scenario-22-story") || DEMO_SCENARIOS[0];
 
 console.log("==========================================");
 console.log("VOXDESK AI — GUIDED CLIENT STORY DEMONSTRATION");
@@ -18,7 +19,11 @@ console.log("10. Analytics Dashboard Metric Update");
 
 console.log("\nDialogue Trajectory:");
 story.dialogueScript.forEach((step) => {
-  console.log(` -> [${step.state}] ${step.speaker.toUpperCase()}: ${step.text}`);
+  console.log(
+    ` -> [${step.state}] ${step.speaker.toUpperCase()}: ${step.text}`,
+  );
 });
 
-console.log("\n🎉 Guided Client Story Verification Passed (Completed in ~60s timeline).");
+console.log(
+  "\n🎉 Guided Client Story Verification Passed (Completed in ~60s timeline).",
+);

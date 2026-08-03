@@ -1,7 +1,7 @@
 # VoxDesk AI — Portfolio Video Script (55–70 Seconds)
 
 **Owner / Presenter:** Arslan Vuzmal Lone  
-**Target Duration:** 60 Seconds  
+**Target Duration:** 60 Seconds
 
 ---
 

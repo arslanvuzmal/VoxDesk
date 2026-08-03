@@ -44,8 +44,12 @@ export default function LoginPage() {
           <div className="w-10 h-10 rounded-lg bg-[#2DD4BF] text-[#0B0D10] font-bold text-lg flex items-center justify-center mx-auto">
             V
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Sign In to VoxDesk AI</h1>
-          <p className="text-xs text-[#8B949E]">Access voice operations, live call console, and call history.</p>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            Sign In to VoxDesk AI
+          </h1>
+          <p className="text-xs text-[#8B949E]">
+            Access voice operations, live call console, and call history.
+          </p>
         </div>
 
         {/* Demo Credentials Box */}
@@ -54,15 +58,27 @@ export default function LoginPage() {
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>DEMO WORKSPACE CREDENTIALS:</span>
           </div>
-          <p><span className="text-[#8B949E]">Email:</span> <strong className="text-white">owner@northstarlegal.com</strong></p>
-          <p><span className="text-[#8B949E]">Password:</span> <strong className="text-white">password123</strong></p>
+          <p>
+            <span className="text-[#8B949E]">Email:</span>{" "}
+            <strong className="text-white">owner@northstarlegal.com</strong>
+          </p>
+          <p>
+            <span className="text-[#8B949E]">Password:</span>{" "}
+            <strong className="text-white">password123</strong>
+          </p>
         </div>
 
-        {error && <div className="p-3 rounded-lg bg-[#FB7185]/10 border border-[#FB7185]/30 text-xs text-[#FB7185]">{error}</div>}
+        {error && (
+          <div className="p-3 rounded-lg bg-[#FB7185]/10 border border-[#FB7185]/30 text-xs text-[#FB7185]">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-[#D4D4D8] mb-1">Email Address</label>
+            <label className="block font-semibold text-[#D4D4D8] mb-1">
+              Email Address
+            </label>
             <input
               type="email"
               value={email}
@@ -73,7 +89,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block font-semibold text-[#D4D4D8] mb-1">Password</label>
+            <label className="block font-semibold text-[#D4D4D8] mb-1">
+              Password
+            </label>
             <input
               type="password"
               value={password}
@@ -88,14 +106,23 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors"
           >
-            <span>{loading ? "Authenticating..." : "Sign In to Workspace"}</span>
+            <span>
+              {loading ? "Authenticating..." : "Sign In to Workspace"}
+            </span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <div className="pt-2 text-center text-xs text-[#8B949E] border-t border-[#272D35] flex items-center justify-between">
-          <Link href="/" className="hover:text-white">← Return to Home</Link>
-          <Link href="/demo" className="text-[#2DD4BF] hover:underline font-semibold">Explore Demo Sandbox →</Link>
+          <Link href="/" className="hover:text-white">
+            ← Return to Home
+          </Link>
+          <Link
+            href="/demo"
+            className="text-[#2DD4BF] hover:underline font-semibold"
+          >
+            Explore Demo Sandbox →
+          </Link>
         </div>
       </div>
     </div>

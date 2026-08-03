@@ -13,4 +13,7 @@ scenario.dialogueScript.forEach((turn, i) => {
   console.log(`  ${turn.speaker.toUpperCase()}: "${turn.text}"`);
 });
 
-console.log("\n✅ Simulated call completed cleanly with outcome:", scenario.expectedOutcome);
+console.log(
+  "\n✅ Simulated call completed cleanly with outcome:",
+  scenario.expectedOutcome,
+);

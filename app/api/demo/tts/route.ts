@@ -1,41 +1,123 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifySessionToken } from "@/lib/demo/session";
+import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
+import { demoSessionStore } from "@/lib/demo/store";
 import { generateAgentTTS } from "@/lib/providers/elevenlabs-tts.server";
+import { env } from "@/lib/config/env";
 
 export async function POST(req: NextRequest) {
   try {
     const cookieToken = req.cookies.get("voxdesk_demo_session")?.value;
-    const session = verifySessionToken(cookieToken || "");
+    if (!cookieToken) {
+      return NextResponse.json(
+        { error: "Missing session cookie" },
+        { status: 401 },
+      );
+    }
 
+    const session = await getDemoSessionFromCookieToken(cookieToken);
     if (!session) {
-      return NextResponse.json({ error: "Session expired or invalid" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Session expired or invalid" },
+        { status: 401 },
+      );
     }
 
     const body = await req.json();
-    const text = (body.spokenReply || "").slice(0, 350);
+    const responseId = body.responseId;
 
-    if (!text) {
-      return NextResponse.json({ error: "No text provided for TTS" }, { status: 400 });
+    if (!responseId || typeof responseId !== "string") {
+      return NextResponse.json(
+        {
+          error:
+            "Invalid request: Must supply a valid server responseId voucher. Arbitrary browser text is rejected.",
+        },
+        { status: 400 },
+      );
     }
 
-    const result = await generateAgentTTS(text);
+    // Retrieve stored response
+    const storedResponse = await demoSessionStore.getStoredResponse(responseId);
 
-    if (result.fallbackWebSpeech || !result.audioBuffer) {
+    if (!storedResponse) {
+      return NextResponse.json(
+        { error: "Unknown or expired response ID." },
+        { status: 404 },
+      );
+    }
+
+    if (storedResponse.sessionId !== session.sessionId) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized: Response ID does not belong to active session.",
+        },
+        { status: 403 },
+      );
+    }
+
+    if (storedResponse.consumed) {
+      return NextResponse.json(
+        { error: "Conflict: Response ID has already been consumed." },
+        { status: 409 },
+      );
+    }
+
+    // Check TTS Character Budget
+    const maxTtsChars =
+      parseInt(env.DEMO_MAX_TTS_CHARACTERS_PER_SESSION, 10) || 1600;
+    if (session.ttsCharacters + storedResponse.characterCount > maxTtsChars) {
       return NextResponse.json({
         fallbackWebSpeech: true,
-        text: text,
+        text: storedResponse.text,
+        voiceName: "Maya (Browser Fallback - Session Budget Exceeded)",
+      });
+    }
+
+    // Consume response ID
+    await demoSessionStore.consumeResponse(responseId);
+
+    // Update TTS character usage
+    await demoSessionStore.updateSession(session.sessionId, {
+      ttsCharacters: session.ttsCharacters + storedResponse.characterCount,
+    });
+
+    // Check Kill Switch or missing ElevenLabs API key
+    if (
+      env.DEMO_LIVE_PROVIDER_KILL_SWITCH === "true" ||
+      !env.ELEVENLABS_API_KEY
+    ) {
+      return NextResponse.json({
+        fallbackWebSpeech: true,
+        text: storedResponse.text,
         voiceName: "Maya (Browser Fallback)",
       });
     }
 
-    return new NextResponse(new Uint8Array(result.audioBuffer), {
+    const result = await generateAgentTTS(storedResponse.text);
+
+    if (result.fallbackWebSpeech || !result.audioBuffer) {
+      return NextResponse.json({
+        fallbackWebSpeech: true,
+        text: storedResponse.text,
+        voiceName: "Maya (Browser Fallback)",
+      });
+    }
+
+    const res = new NextResponse(new Uint8Array(result.audioBuffer), {
       headers: {
         "Content-Type": result.mimeType,
         "Content-Length": result.audioBuffer.length.toString(),
-        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "Cache-Control": "no-store, private",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Disposition": "inline",
+        "Referrer-Policy": "no-referrer",
       },
     });
+
+    return res;
   } catch (error) {
-    return NextResponse.json({ fallbackWebSpeech: true, error: "TTS generation failed" });
+    return NextResponse.json(
+      { fallbackWebSpeech: true, error: "TTS generation failed" },
+      { status: 500 },
+    );
   }
 }

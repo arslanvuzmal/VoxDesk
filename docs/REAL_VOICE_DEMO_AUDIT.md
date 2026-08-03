@@ -3,16 +3,16 @@
 **Date:** 2026-08-03  
 **Project Owner:** Arslan Vuzmal Lone  
 **Repository:** `arslanvuzmal/voxdesk-ai`  
-**Official URL:** `https://voxdesk-ai.vercel.app`  
+**Official URL:** `https://voxdesk-ai.vercel.app`
 
 ---
 
 ## 1. Secret Scan & Security Audit
 
-* **Exposed Credentials Scan:** PASSED
-* **OpenRouter Key Leaks:** NONE FOUND in codebase, client bundles, or documentation.
-* **ElevenLabs Key Leaks:** NONE FOUND in codebase, client bundles, or documentation.
-* **Security Enforcement:** Every provider module handling credentials includes `import "server-only";` to guarantee permanent keys never bundle into browser JavaScript.
+- **Exposed Credentials Scan:** PASSED
+- **OpenRouter Key Leaks:** NONE FOUND in codebase, client bundles, or documentation.
+- **ElevenLabs Key Leaks:** NONE FOUND in codebase, client bundles, or documentation.
+- **Security Enforcement:** Every provider module handling credentials includes `import "server-only";` to guarantee permanent keys never bundle into browser JavaScript.
 
 ---
 
@@ -23,7 +23,7 @@
          |
          | (1. Single-use Scribe Token via /api/demo/stt-token)
          v
-[ ElevenLabs Scribe Realtime STT ] 
+[ ElevenLabs Scribe Realtime STT ]
          |
          | (2. Realtime Transcript)
          v
@@ -42,15 +42,15 @@
 
 ## 3. Rate Limits & Budget Safeguards
 
-| Resource / Quota | Limit | Enforced Location |
-| :--- | :--- | :--- |
-| **Max Session Duration** | 180 seconds (3 mins) | Server Session Controller |
-| **Max Turns per Session** | 6 turns | Server Session Controller |
-| **User Input Length** | Max 600 characters | `/api/demo/respond` |
-| **Agent Spoken Reply** | Max 350 characters | `lib/providers/openrouter.server.ts` |
-| **IP Daily Sessions** | Max 3 sessions per IP per day | Cookie & IP Hash Ledger |
-| **Global Concurrent Sessions** | Max 5 sessions | Server Session Controller |
-| **Global Daily Session Limit**| Max 75 sessions | Global Daily Ledger |
+| Resource / Quota               | Limit                         | Enforced Location                    |
+| :----------------------------- | :---------------------------- | :----------------------------------- |
+| **Max Session Duration**       | 180 seconds (3 mins)          | Server Session Controller            |
+| **Max Turns per Session**      | 6 turns                       | Server Session Controller            |
+| **User Input Length**          | Max 600 characters            | `/api/demo/respond`                  |
+| **Agent Spoken Reply**         | Max 350 characters            | `lib/providers/openrouter.server.ts` |
+| **IP Daily Sessions**          | Max 3 sessions per IP per day | Cookie & IP Hash Ledger              |
+| **Global Concurrent Sessions** | Max 5 sessions                | Server Session Controller            |
+| **Global Daily Session Limit** | Max 75 sessions               | Global Daily Ledger                  |
 
 ---
 

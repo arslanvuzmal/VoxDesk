@@ -30,13 +30,14 @@
     "demo:story": "tsx scripts/demo-story.ts",
     "demo:verify": "tsx scripts/demo-verify.ts",
     "portfolio:capture": "tsx scripts/portfolio-capture.ts",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run test:security"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:security && npm run build"
   },
   "dependencies": {
     "@elevenlabs/client": "^1.17.0",
     "@elevenlabs/elevenlabs-js": "^2.60.0",
     "@openrouter/sdk": "^1.2.4",
     "@prisma/client": "^6.3.1",
+    "@upstash/redis": "^1.34.4",
     "bcryptjs": "^3.0.2",
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",

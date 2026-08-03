@@ -1,7 +1,9 @@
 import crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
-const DEFAULT_KEY = process.env.ENCRYPTION_KEY || "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+const DEFAULT_KEY =
+  process.env.ENCRYPTION_KEY ||
+  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
 function getKey(): Buffer {
   return Buffer.from(DEFAULT_KEY.slice(0, 64), "hex");

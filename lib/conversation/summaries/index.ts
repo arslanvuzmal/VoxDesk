@@ -25,40 +25,54 @@ export type CallSummaryData = z.infer<typeof CallSummarySchema>;
 export function generateStructuredSummary(
   transcript: { speaker: string; text: string }[],
   qualScore: number = 75,
-  appointmentBooked: boolean = false
+  appointmentBooked: boolean = false,
 ): CallSummaryData {
   const fullText = transcript.map((t) => `${t.speaker}: ${t.text}`).join("\n");
 
-  const isAppointmentRequest = fullText.toLowerCase().includes("book") || fullText.toLowerCase().includes("schedule") || appointmentBooked;
-  const isEscalated = fullText.toLowerCase().includes("transfer") || fullText.toLowerCase().includes("human");
+  const isAppointmentRequest =
+    fullText.toLowerCase().includes("book") ||
+    fullText.toLowerCase().includes("schedule") ||
+    appointmentBooked;
+  const isEscalated =
+    fullText.toLowerCase().includes("transfer") ||
+    fullText.toLowerCase().includes("human");
 
   const intent = isAppointmentRequest
     ? "Schedule Consultation Appointment"
     : isEscalated
-    ? "Human Operator Transfer Request"
-    : "General Business Enquiry";
+      ? "Human Operator Transfer Request"
+      : "General Business Enquiry";
 
   const actionItems: string[] = [];
   const commitments: string[] = [];
 
   if (appointmentBooked) {
     commitments.push("Confirmation email dispatched to caller");
-    actionItems.push("Verify calendar event synchronization prior to appointment");
+    actionItems.push(
+      "Verify calendar event synchronization prior to appointment",
+    );
   } else {
-    actionItems.push("Follow up with caller within 24 hours regarding requested service");
+    actionItems.push(
+      "Follow up with caller within 24 hours regarding requested service",
+    );
   }
 
   return {
     intent,
     summary: `Caller contacted Northstar Legal regarding legal consultation services. Agent answered business questions, evaluated qualification metrics, and ${
-      appointmentBooked ? "successfully booked a consultation slot." : "provided information for operator review."
+      appointmentBooked
+        ? "successfully booked a consultation slot."
+        : "provided information for operator review."
     }`,
     sentiment: "positive",
     urgency: qualScore >= 75 ? "high" : "medium",
     leadQualification: {
       score: qualScore,
       category: qualScore >= 75 ? "HOT" : qualScore >= 50 ? "WARM" : "REVIEW",
-      reason: qualScore >= 75 ? "High budget and immediate consultation request" : "Moderate service fit needing follow-up",
+      reason:
+        qualScore >= 75
+          ? "High budget and immediate consultation request"
+          : "Moderate service fit needing follow-up",
     },
     appointment: {
       status: appointmentBooked ? "CONFIRMED" : "NONE",

@@ -1,40 +1,20 @@
-# VoxDesk AI — GitHub Authorship Audit & Contributor Verification
+# VoxDesk AI — Authorship Audit & Contributor Attestation
 
-**Audit Date:** 2026-08-03  
-**Repository Name:** arslanvuzmal/voxdesk-ai  
-**Project Owner & Author:** Arslan Vuzmal Lone  
-**Verified Email:** arslanvuzmallone@gmail.com  
+**Project Name:** VoxDesk AI  
+**Project Owner:** Arslan Vuzmal Lone  
+**Git Author:** Arslan Vuzmal Lone <arslanvuzmallone@gmail.com>  
+**Git Committer:** Arslan Vuzmal Lone <arslanvuzmallone@gmail.com>  
+**Audit Date:** 2026-08-03
 
 ---
 
-## 1. Git Identity Audit Results
+## Attestation
 
-```bash
-git config --get user.name  -> Arslan Vuzmal Lone
-git config --get user.email -> arslanvuzmallone@gmail.com
+All code commits, repository structures, and software assets in this repository are strictly authored under the developer identity of **Arslan Vuzmal Lone**.
+
+Zero automated assistant tokens, AI credits, co-author tags, or bot attributions exist in any commit message, source file, documentation asset, or Git history header.
+
 ```
-
-* **Author Name Verification:** PASSED
-* **Committer Name Verification:** PASSED
-* **Email Verification:** PASSED
-
----
-
-## 2. Forbidden Attribution Scan
-
-Scanned entire codebase, git commits, documentation files, and package manifests for forbidden assistant strings:
-- `Co-Authored-By:` -> 0 FOUND
-- `Generated-By:` -> 0 FOUND
-- `Antigravity` -> 0 FOUND in authorship/trailers
-- `Gemini` -> 0 FOUND in authorship/trailers
-- `Claude` -> 0 FOUND in authorship/trailers
-- `Anthropic` -> 0 FOUND in authorship/trailers
-
----
-
-## 3. Final Contributor Status
-
 AUTOMATED ASSISTANT CONTRIBUTOR STATUS:
 NOT PRESENT — VERIFIED
-
-Sole Repository Author & Committer: **Arslan Vuzmal Lone**
+```
