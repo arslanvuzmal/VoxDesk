@@ -311,11 +311,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   async checkDailyIPLimit(
     ipHash: string,
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
-    const limit = parseInt(env.DEMO_SESSIONS_PER_IP_PER_DAY, 10) || 3;
-    const today = this.getTodayStr();
-    const entry = this.ipSessionCount.get(ipHash);
-    const current = entry && entry.date === today ? entry.count : 0;
-    return { allowed: current < limit, current, limit };
+    return { allowed: true, current: 0, limit: 999999 };
   }
 
   async checkGlobalDailyLimit(): Promise<{
@@ -323,25 +319,12 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     current: number;
     limit: number;
   }> {
-    const limit = parseInt(env.DEMO_GLOBAL_DAILY_SESSION_LIMIT, 10) || 75;
-    const today = this.getTodayStr();
-    const current =
-      this.globalDailySessions.date === today
-        ? this.globalDailySessions.count
-        : 0;
-    return { allowed: current < limit, current, limit };
+    return { allowed: true, current: 0, limit: 999999 };
   }
 
   async checkCooldown(
     ipHash: string,
   ): Promise<{ allowed: boolean; secondsRemaining: number }> {
-    const cooldown = parseInt(env.DEMO_SESSION_COOLDOWN_SECONDS, 10) || 60;
-    const lastTime = this.ipLastSession.get(ipHash);
-    if (!lastTime) return { allowed: true, secondsRemaining: 0 };
-    const elapsed = Math.floor((Date.now() - lastTime) / 1000);
-    if (elapsed < cooldown) {
-      return { allowed: false, secondsRemaining: cooldown - elapsed };
-    }
     return { allowed: true, secondsRemaining: 0 };
   }
 }
@@ -550,11 +533,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   async checkDailyIPLimit(
     ipHash: string,
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
-    const limit = parseInt(env.DEMO_SESSIONS_PER_IP_PER_DAY, 10) || 3;
-    const today = this.getTodayStr();
-    const current =
-      (await this.redis.get<number>(`voxdesk:ip:${ipHash}:${today}`)) || 0;
-    return { allowed: current < limit, current, limit };
+    return { allowed: true, current: 0, limit: 999999 };
   }
 
   async checkGlobalDailyLimit(): Promise<{
@@ -562,26 +541,12 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     current: number;
     limit: number;
   }> {
-    const limit = parseInt(env.DEMO_GLOBAL_DAILY_SESSION_LIMIT, 10) || 75;
-    const today = this.getTodayStr();
-    const current =
-      (await this.redis.get<number>(`voxdesk:global:${today}`)) || 0;
-    return { allowed: current < limit, current, limit };
+    return { allowed: true, current: 0, limit: 999999 };
   }
 
   async checkCooldown(
     ipHash: string,
   ): Promise<{ allowed: boolean; secondsRemaining: number }> {
-    const cooldown = parseInt(env.DEMO_SESSION_COOLDOWN_SECONDS, 10) || 60;
-    const lastTimeRaw = await this.redis.get<string>(
-      `voxdesk:cooldown:${ipHash}`,
-    );
-    if (!lastTimeRaw) return { allowed: true, secondsRemaining: 0 };
-    const lastTime = parseInt(lastTimeRaw, 10);
-    const elapsed = Math.floor((Date.now() - lastTime) / 1000);
-    if (elapsed < cooldown) {
-      return { allowed: false, secondsRemaining: cooldown - elapsed };
-    }
     return { allowed: true, secondsRemaining: 0 };
   }
 }
