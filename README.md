@@ -11,10 +11,10 @@
 
 ## Live Production Deployment & Guided Story
 
-- **Live Vercel Application:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app)
+- **Live Vercel Application:** [https://voxdesk-ai.vercel.app](https://voxdesk-ai.vercel.app)
 - **Public GitHub Repository:** [https://github.com/arslanvuzmal/voxdesk-ai](https://github.com/arslanvuzmal/voxdesk-ai)
-- **Interactive Live Call Console:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo)
-- **1-Minute Guided Client Story:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo/story](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo/story)
+- **Interactive Live Call Console:** [https://voxdesk-ai.vercel.app/demo](https://voxdesk-ai.vercel.app/demo)
+- **1-Minute Guided Client Story:** [https://voxdesk-ai.vercel.app/demo/story](https://voxdesk-ai.vercel.app/demo/story)
 
 ### Demo Credentials
 - **Owner Email:** `owner@northstarlegal.com`
