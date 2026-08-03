@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
 import { demoSessionStore } from "@/lib/demo/store";
+import { isCloudflareAIEnabled } from "@/lib/providers/cloudflare/client.server";
+import { generateCloudflareResponse } from "@/lib/providers/cloudflare/llm.server";
+import { getDeterministicRoutineAnswer } from "@/lib/conversation/knowledge/northstar-legal";
 import { generateAgentTurn } from "@/lib/providers/openrouter.server";
 import { checkAndRecordUsage, recordTurnUsage } from "@/lib/demo/usage-ledger";
 import { withSessionLock } from "@/lib/demo/request-lock";
@@ -98,68 +101,114 @@ export async function POST(req: NextRequest) {
       // 3. Record Turn ID
       await demoSessionStore.recordTurnId(session.sessionId, clientTurnId);
 
-      // 4. Generate Agent Turn with History
-      const turnResult = await generateAgentTurn(
-        session.scenario,
-        transcript,
-        session.history || [],
-      );
+      let spokenReply = "";
+      let detectedIntent:
+        "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE" | "UNKNOWN" =
+        session.scenario;
+      let conversationState = session.state;
+      let extractedFields: Record<string, any> = {};
+      let providerLabel = "Deterministic Knowledge Engine";
+      let fallbackUsed = false;
+      let actionTakenNotice: string | null = null;
 
-      // 5. Store Response ID Voucher for TTS
+      // 4. Check Routine Deterministic Matcher First
+      const routineMatch = getDeterministicRoutineAnswer(transcript);
+
+      if (routineMatch && session.scenario === "ROUTINE") {
+        spokenReply = routineMatch.spokenReply;
+        detectedIntent = "ROUTINE";
+        conversationState = "ANSWERING_ROUTINE_QUESTION";
+        providerLabel = "Approved Knowledge Engine";
+      } else if (isCloudflareAIEnabled()) {
+        // 5. Cloudflare Workers AI Primary LLM Provider
+        try {
+          const cfResult = await generateCloudflareResponse({
+            userMessage: transcript,
+            scenario: session.scenario,
+            currentState: session.state,
+            history: session.history || [],
+          });
+
+          spokenReply = cfResult.spokenReply;
+          detectedIntent = cfResult.intent;
+          conversationState = cfResult.suggestedState || session.state;
+          extractedFields = cfResult.extractedFields || {};
+          providerLabel = "Cloudflare Workers AI (@cf/moonshotai/kimi-k2.6)";
+
+          if (cfResult.suggestedAction === "CONFIRM_DEMO_APPOINTMENT") {
+            actionTakenNotice =
+              "Fictional demo appointment reserved for Tuesday 10:00 AM in demo workspace.";
+          } else if (cfResult.suggestedAction === "SCORE_LEAD") {
+            actionTakenNotice =
+              "BANT lead qualification evaluated. Category assigned: HOT.";
+          } else if (cfResult.suggestedAction === "PREPARE_HANDOFF") {
+            actionTakenNotice =
+              "Urgent human handoff Transfer Brief generated for duty attorney.";
+          }
+        } catch (cfError) {
+          console.warn("[CLOUDFLARE LLM FALLBACK]:", cfError);
+          fallbackUsed = true;
+        }
+      }
+
+      // 6. Secondary OpenRouter or Deterministic Fallback if Cloudflare not used or failed
+      if (!spokenReply) {
+        const turnResult = await generateAgentTurn(
+          session.scenario,
+          transcript,
+          session.history || [],
+        );
+
+        spokenReply = turnResult.data.spokenReply;
+        detectedIntent = turnResult.data.detectedIntent as any;
+        conversationState = turnResult.data.conversationState;
+        extractedFields = turnResult.data.extractedFields || {};
+        fallbackUsed = true;
+        providerLabel = turnResult.fallbackUsed
+          ? "Deterministic conversation fallback"
+          : "OpenRouter LLM";
+      }
+
+      // 7. Store Response ID Voucher for TTS
       const storedResponse = await demoSessionStore.storeResponseId(
         session.sessionId,
-        turnResult.data.spokenReply,
+        spokenReply,
       );
 
-      // 6. Record Usage Ledger
+      // 8. Record Usage Ledger
       await recordTurnUsage(
         session.sessionId,
         transcript.length,
-        turnResult.data.spokenReply.length,
-        turnResult.usage?.inputTokens || 40,
-        turnResult.usage?.outputTokens || 80,
+        spokenReply.length,
+        40,
+        80,
       );
 
-      // 7. Update Session History & State
+      // 9. Update Session History & State
       const updatedHistory = [
         ...(session.history || []),
         { role: "CALLER" as const, text: transcript },
-        { role: "AGENT" as const, text: turnResult.data.spokenReply },
+        { role: "AGENT" as const, text: spokenReply },
       ].slice(-10);
 
       await demoSessionStore.updateSession(session.sessionId, {
-        state: turnResult.data.conversationState,
+        state: conversationState,
         turnsUsed: session.turnsUsed + 1,
         history: updatedHistory,
       });
 
-      // 8. Scenario Action Notice Generation
-      let actionNotice: string | null = null;
-      if (turnResult.data.suggestedAction === "CONFIRM_APPOINTMENT") {
-        actionNotice =
-          "Fictional demo appointment reserved for Tuesday 10:00 AM in demo workspace.";
-      } else if (turnResult.data.suggestedAction === "QUALIFY_LEAD") {
-        const cat = turnResult.data.extractedFields?.category || "HOT";
-        actionNotice = `BANT lead qualification evaluated. Category assigned: ${cat}.`;
-      } else if (turnResult.data.suggestedAction === "ESCALATE_HUMAN") {
-        actionNotice =
-          "Urgent human handoff Transfer Brief generated for duty attorney.";
-      }
-
       return NextResponse.json({
         success: true,
         responseId: storedResponse.responseId,
-        spokenReply: turnResult.data.spokenReply,
-        detectedIntent: turnResult.data.detectedIntent,
-        conversationState: turnResult.data.conversationState,
-        extractedFields: turnResult.data.extractedFields,
-        shouldEnd: turnResult.data.shouldEnd,
-        fallbackUsed: turnResult.fallbackUsed,
-        providerLabel: turnResult.fallbackUsed
-          ? "Deterministic conversation fallback"
-          : "OpenRouter LLM",
+        spokenReply,
+        detectedIntent,
+        conversationState,
+        extractedFields,
+        shouldEnd: session.turnsUsed + 1 >= session.maxTurns,
+        fallbackUsed,
+        providerLabel,
         turnsRemaining: Math.max(0, session.maxTurns - (session.turnsUsed + 1)),
-        actionTaken: actionNotice,
+        actionTaken: actionTakenNotice,
         correlationId,
       });
     });
@@ -186,7 +235,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to process conversation turn.",
-        code: "OPENROUTER_UNAVAILABLE",
+        code: "PROVIDER_UNAVAILABLE",
         correlationId,
         recoverable: true,
       },

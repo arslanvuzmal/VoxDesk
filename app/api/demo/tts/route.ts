@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
 import { demoSessionStore } from "@/lib/demo/store";
+import { generateCloudflareTTSAudio } from "@/lib/providers/cloudflare/tts.server";
+import { isCloudflareAIEnabled } from "@/lib/providers/cloudflare/client.server";
 import { generateAgentTTS } from "@/lib/providers/elevenlabs-tts.server";
 import { env } from "@/lib/config/env";
 
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     // Check TTS Character Budget
     const maxTtsChars =
-      parseInt(env.DEMO_MAX_TTS_CHARACTERS_PER_SESSION, 10) || 1600;
+      parseInt(env.CLOUDFLARE_MAX_TTS_CHARACTERS_PER_SESSION, 10) || 1800;
     if (session.ttsCharacters + storedResponse.characterCount > maxTtsChars) {
       return NextResponse.json({
         fallbackWebSpeech: true,
@@ -80,40 +82,51 @@ export async function POST(req: NextRequest) {
       ttsCharacters: session.ttsCharacters + storedResponse.characterCount,
     });
 
-    // Check Kill Switch or missing ElevenLabs API key
+    // Check Cloudflare Workers AI TTS First
+    if (isCloudflareAIEnabled()) {
+      try {
+        const cfResult = await generateCloudflareTTSAudio(storedResponse.text);
+        return new NextResponse(new Uint8Array(cfResult.audioBuffer), {
+          headers: {
+            "Content-Type": cfResult.contentType,
+            "Content-Length": cfResult.audioBuffer.length.toString(),
+            "Cache-Control": "no-store, private",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": "inline",
+            "Referrer-Policy": "no-referrer",
+          },
+        });
+      } catch (cfError) {
+        console.warn("[CLOUDFLARE TTS FALLBACK]:", cfError);
+      }
+    }
+
+    // Check ElevenLabs Secondary Provider
     if (
-      env.DEMO_LIVE_PROVIDER_KILL_SWITCH === "true" ||
-      !env.ELEVENLABS_API_KEY
+      env.DEMO_LIVE_PROVIDER_KILL_SWITCH !== "true" &&
+      env.ELEVENLABS_API_KEY
     ) {
-      return NextResponse.json({
-        fallbackWebSpeech: true,
-        text: storedResponse.text,
-        voiceName: "Maya (Browser Fallback)",
-      });
+      const result = await generateAgentTTS(storedResponse.text);
+      if (!result.fallbackWebSpeech && result.audioBuffer) {
+        return new NextResponse(new Uint8Array(result.audioBuffer), {
+          headers: {
+            "Content-Type": result.mimeType,
+            "Content-Length": result.audioBuffer.length.toString(),
+            "Cache-Control": "no-store, private",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": "inline",
+            "Referrer-Policy": "no-referrer",
+          },
+        });
+      }
     }
 
-    const result = await generateAgentTTS(storedResponse.text);
-
-    if (result.fallbackWebSpeech || !result.audioBuffer) {
-      return NextResponse.json({
-        fallbackWebSpeech: true,
-        text: storedResponse.text,
-        voiceName: "Maya (Browser Fallback)",
-      });
-    }
-
-    const res = new NextResponse(new Uint8Array(result.audioBuffer), {
-      headers: {
-        "Content-Type": result.mimeType,
-        "Content-Length": result.audioBuffer.length.toString(),
-        "Cache-Control": "no-store, private",
-        "X-Content-Type-Options": "nosniff",
-        "Content-Disposition": "inline",
-        "Referrer-Policy": "no-referrer",
-      },
+    // Default Browser Fallback
+    return NextResponse.json({
+      fallbackWebSpeech: true,
+      text: storedResponse.text,
+      voiceName: "Maya (Browser voice fallback)",
     });
-
-    return res;
   } catch (error) {
     return NextResponse.json(
       { fallbackWebSpeech: true, error: "TTS generation failed" },

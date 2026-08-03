@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-const isProduction = process.env.NODE_ENV === "production";
-
 const envSchema = z.object({
   APP_URL: z.string().default("http://localhost:3000"),
   NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
@@ -16,6 +14,20 @@ const envSchema = z.object({
   DEMO_SESSION_SECRET: z.string().min(1, "DEMO_SESSION_SECRET is required"),
   IP_HASH_SECRET: z.string().min(1, "IP_HASH_SECRET is required"),
   DEMO_DATA_ENCRYPTION_KEY: z.string().optional(),
+
+  // Cloudflare Workers AI Configuration
+  CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
+  CLOUDFLARE_API_TOKEN: z.string().optional(),
+  CLOUDFLARE_AI_GATEWAY_ID: z.string().default("default"),
+  CLOUDFLARE_LLM_MODEL: z.string().default("@cf/moonshotai/kimi-k2.6"),
+  CLOUDFLARE_STT_MODEL: z.string().default("@cf/deepgram/flux"),
+  CLOUDFLARE_TTS_MODEL: z.string().default("@cf/deepgram/aura-2-en"),
+  CLOUDFLARE_LLM_TIMEOUT_MS: z.string().default("15000"),
+  CLOUDFLARE_MAX_OUTPUT_TOKENS: z.string().default("180"),
+  CLOUDFLARE_TEMPERATURE: z.string().default("0.35"),
+  CLOUDFLARE_MAX_STT_SECONDS_PER_SESSION: z.string().default("180"),
+  CLOUDFLARE_MAX_TTS_CHARACTERS_PER_SESSION: z.string().default("1800"),
+  CLOUDFLARE_AI_KILL_SWITCH: z.string().default("false"),
 
   OPENROUTER_API_KEY: z.string().optional(),
   OPENROUTER_MODEL: z.string().default("openai/gpt-4o-mini"),
@@ -76,7 +88,7 @@ function getEnv() {
 
   if (!parseResult.success) {
     console.error(
-      "[SECURITY ERROR] Missing environment variables:",
+      "[SECURITY ERROR] Invalid environment variables:",
       parseResult.error.format(),
     );
   }
