@@ -28,6 +28,8 @@ export interface TurnResponse {
   organizationProfile?: any;
   actionTaken: string;
   turnsRemaining: number;
+  shouldEnd?: boolean;
+  finalCallResult?: any;
   fallbackUsed?: boolean;
   providerLabel?: string;
   correlationId?: string;

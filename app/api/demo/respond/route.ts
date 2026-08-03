@@ -3,13 +3,15 @@ import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
 import { demoSessionStore } from "@/lib/demo/store";
 import { isCloudflareAIEnabled } from "@/lib/providers/cloudflare/client.server";
 import { generateCloudflareResponse } from "@/lib/providers/cloudflare/llm.server";
-import { getDeterministicRoutineAnswer } from "@/lib/conversation/knowledge/northstar-legal";
 import { generateAgentTurn } from "@/lib/providers/openrouter.server";
 import { checkAndRecordUsage, recordTurnUsage } from "@/lib/demo/usage-ledger";
 import { withSessionLock } from "@/lib/demo/request-lock";
 import { getOrganizationProfile } from "@/lib/organization/registry";
 import { executeBusinessAction } from "@/lib/conversation/action-engine";
 import { calculateLeadQualification } from "@/lib/conversation/qualification";
+import { validateStateTransition } from "@/lib/conversation/state-machine";
+import { VoiceAgentOutput } from "@/lib/conversation/schemas/voice-agent-output";
+import { persistFinalCallResult } from "@/lib/database/persistence";
 
 export async function POST(req: NextRequest) {
   const correlationId = `req_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
@@ -33,8 +35,7 @@ export async function POST(req: NextRequest) {
     if (!session) {
       return NextResponse.json(
         {
-          error:
-            "This short demo session ended. Start a new session to continue.",
+          error: "This demo session has expired. Please start a new call.",
           code: "SESSION_EXPIRED",
           correlationId,
           recoverable: false,
@@ -50,7 +51,6 @@ export async function POST(req: NextRequest) {
       body.clientTurnId ||
       `turn_${Date.now()}_${Math.random().toString(36).slice(2)}`
     ).slice(0, 64);
-    const presetKey = body.presetKey || session.presetKey || "LEGAL";
 
     if (!transcript) {
       return NextResponse.json(
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             success: true,
             duplicateTurn: true,
             code: "DUPLICATE_TURN",
-            message: "Turn ID already processed. Idempotent result returned.",
+            message: "Turn ID already processed.",
             correlationId,
           },
           { status: 409 },
@@ -102,136 +102,196 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // 3. Record Turn ID
       await demoSessionStore.recordTurnId(session.sessionId, clientTurnId);
 
+      // Load session source of truth
+      const presetKey = session.presetKey || "LEGAL";
+      const language = (session.language as any) || "en-US";
       const profile = getOrganizationProfile(presetKey);
-      let spokenReply = "";
-      let detectedIntent:
-        "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE" | "UNKNOWN" =
-        session.scenario;
-      let conversationState = session.state;
-      let extractedFields: Record<string, any> = {};
-      let providerLabel = "Deterministic Knowledge Engine";
+
+      let agentOutput: VoiceAgentOutput | null = null;
+      let providerLabel = "Deterministic Profile Knowledge Engine";
       let fallbackUsed = false;
-      let actionType = "NONE";
 
-      // 4. Check Routine Deterministic Matcher First
-      const routineMatch = getDeterministicRoutineAnswer(transcript);
-
-      if (routineMatch && session.scenario === "ROUTINE") {
-        spokenReply = routineMatch.spokenReply;
-        detectedIntent = "ROUTINE";
-        conversationState = "ANSWERING_ROUTINE_QUESTION";
-        providerLabel = "Approved Knowledge Engine";
-        actionType = "answerApprovedQuestion";
-      } else if (isCloudflareAIEnabled()) {
-        // 5. Cloudflare Workers AI Primary LLM Provider
+      // 3. Primary Cloudflare LLM Execution
+      if (isCloudflareAIEnabled()) {
         try {
-          const cfResult = await generateCloudflareResponse({
+          agentOutput = await generateCloudflareResponse({
             userMessage: transcript,
-            scenario: session.scenario,
+            scenario: session.scenario as any,
             currentState: session.state,
             history: session.history || [],
+            extractedFields: (session as any).accumulatedFields || {},
+            presetKey,
+            language,
           });
-
-          spokenReply = cfResult.spokenReply;
-          detectedIntent = cfResult.intent;
-          conversationState = cfResult.suggestedState || session.state;
-          extractedFields = cfResult.extractedFields || {};
           providerLabel = "Cloudflare Workers AI (@cf/moonshotai/kimi-k2.6)";
-          actionType = cfResult.suggestedAction || "scoreLead";
-        } catch (cfError) {
-          console.warn("[CLOUDFLARE LLM FALLBACK]:", cfError);
+        } catch (cfErr) {
+          console.warn("[CLOUDFLARE LLM ROUTE FALLBACK]:", cfErr);
           fallbackUsed = true;
         }
       }
 
-      // 6. Secondary OpenRouter or Deterministic Fallback if Cloudflare not used or failed
-      if (!spokenReply) {
-        const turnResult = await generateAgentTurn(
-          session.scenario,
+      // 4. Secondary OpenRouter or Profile Deterministic Fallback
+      if (!agentOutput) {
+        const turnRes = await generateAgentTurn(
+          session.scenario as any,
           transcript,
           session.history || [],
+          { presetKey, language },
         );
-
-        spokenReply = turnResult.data.spokenReply;
-        detectedIntent = turnResult.data.detectedIntent as any;
-        conversationState = turnResult.data.conversationState;
-        extractedFields = turnResult.data.extractedFields || {};
-        fallbackUsed = true;
-        providerLabel = turnResult.fallbackUsed
-          ? "Deterministic conversation fallback"
+        agentOutput = turnRes.data;
+        fallbackUsed = turnRes.fallbackUsed;
+        providerLabel = turnRes.fallbackUsed
+          ? "Deterministic Profile Knowledge Engine"
           : "OpenRouter LLM";
-        actionType = turnResult.data.suggestedAction || "scoreLead";
       }
 
-      // 7. Execute Deterministic Business Action
-      const actionResult = await executeBusinessAction({
-        actionType:
-          actionType === "CONFIRM_DEMO_APPOINTMENT" ||
-          actionType === "CHECK_DEMO_CALENDAR"
-            ? "reserveAppointment"
-            : actionType === "PREPARE_HANDOFF"
-              ? "prepareHandoff"
-              : "createLead",
-        presetKey,
-        sessionId: session.sessionId,
-        transcriptText: transcript,
-        extractedFields,
-      });
+      // 5. Multi-Turn Field Accumulation (Section 8)
+      const prevAccumulated = (session as any).accumulatedFields || {};
+      const newExtracted = agentOutput.extractedFields || {};
+      const mergedFields: Record<string, any> = { ...prevAccumulated };
 
-      // 8. Calculate Dynamic Lead Qualification Result
+      for (const [k, v] of Object.entries(newExtracted)) {
+        if (v !== null && v !== undefined && v !== "") {
+          mergedFields[k] = v;
+        }
+      }
+
+      // 6. Server-Side State Machine Transition Validation (Section 9)
+      const validatedState = validateStateTransition(
+        session.state as any,
+        agentOutput.suggestedState as any,
+      );
+
+      // 7. Dynamic Lead Qualification Scoring
       const qualificationResult = calculateLeadQualification(
         {
           serviceInterest:
-            extractedFields?.serviceInterest ||
-            extractedFields?.service ||
+            mergedFields.serviceInterest ||
+            mergedFields.legalCategory ||
+            mergedFields.issueCategory ||
             profile.services[0]?.name,
-          budgetRange: extractedFields?.budgetRange || extractedFields?.budget,
-          timeline: extractedFields?.timeline,
-          authority: extractedFields?.authority,
-          urgency: extractedFields?.urgencyLevel || extractedFields?.urgency,
-          extractedFields,
+          budgetRange:
+            mergedFields.budgetRange ||
+            mergedFields.priceBudget ||
+            mergedFields.estimatedBudget,
+          timeline: mergedFields.timeline || mergedFields.buyingTimeline,
+          authority: mergedFields.authority || mergedFields.financingStatus,
+          urgency: mergedFields.urgencyLevel || mergedFields.isEmergency,
+          extractedFields: mergedFields,
         },
         profile,
       );
 
-      // 9. Store Response ID Voucher for TTS
+      // 8. Deterministic Business Action Engine Execution
+      const actionResult = await executeBusinessAction({
+        actionType: agentOutput.suggestedAction as any,
+        presetKey,
+        sessionId: session.sessionId,
+        transcriptText: transcript,
+        extractedFields: mergedFields,
+        userConfirmed: body.userConfirmed || false,
+      });
+
+      // 9. Evaluate Section 4 Call Termination Conditions
+      const turnsUsedNext = session.turnsUsed + 1;
+      const isMaxTurnsReached = turnsUsedNext >= session.maxTurns;
+      const isCriticalEscalation =
+        agentOutput.urgency === "critical" ||
+        actionResult.actionType === "PREPARE_HANDOFF";
+      const shouldEndCall =
+        agentOutput.shouldEnd || isMaxTurnsReached || isCriticalEscalation;
+
+      // 10. Store TTS Response Voucher
       const storedResponse = await demoSessionStore.storeResponseId(
         session.sessionId,
-        spokenReply,
+        agentOutput.spokenReply,
       );
 
-      // 10. Record Usage Ledger
+      // 11. Record Usage Ledger
       await recordTurnUsage(
         session.sessionId,
         transcript.length,
-        spokenReply.length,
+        agentOutput.spokenReply.length,
         40,
         80,
       );
 
-      // 11. Update Session History & State
+      // 12. Update Session History & Accumulated Fields
       const updatedHistory = [
         ...(session.history || []),
         { role: "CALLER" as const, text: transcript },
-        { role: "AGENT" as const, text: spokenReply },
+        { role: "AGENT" as const, text: agentOutput.spokenReply },
       ].slice(-10);
 
       await demoSessionStore.updateSession(session.sessionId, {
-        state: conversationState,
-        turnsUsed: session.turnsUsed + 1,
+        state: validatedState,
+        turnsUsed: turnsUsedNext,
         history: updatedHistory,
-      });
+        accumulatedFields: mergedFields,
+      } as any);
+
+      // 13. If call ends, persist transactional record graph to database
+      let finalResultData: any = null;
+      if (shouldEndCall) {
+        const fullResult = {
+          sessionId: session.sessionId,
+          organization: {
+            id: profile.id,
+            name: profile.name,
+            industry: profile.industry,
+          },
+          language,
+          scenario: session.scenario as any,
+          startedAt: new Date(session.createdAt).toISOString(),
+          endedAt: new Date().toISOString(),
+          durationSeconds: Math.round((Date.now() - session.createdAt) / 1000),
+          turnsCompleted: turnsUsedNext,
+          transcript: updatedHistory,
+          accumulatedFields: mergedFields,
+          summary: agentOutput.spokenReply,
+          qualification: qualificationResult,
+          businessActions: [actionResult],
+          persistedRecords: {},
+          providersUsed: {
+            stt: {
+              provider: "BROWSER",
+              language,
+              success: true,
+              fallbackUsed: false,
+            },
+            llm: {
+              provider: fallbackUsed ? "DETERMINISTIC" : "CLOUDFLARE",
+              language,
+              success: true,
+              fallbackUsed,
+            },
+            tts: {
+              provider: "DETERMINISTIC",
+              language,
+              success: true,
+              fallbackUsed: false,
+            },
+          },
+          degradedMode: fallbackUsed,
+          warnings: [],
+        };
+
+        const dbRes = await persistFinalCallResult(fullResult as any);
+        fullResult.persistedRecords = dbRes.recordIds;
+        finalResultData = fullResult;
+      }
 
       return NextResponse.json({
         success: true,
         responseId: storedResponse.responseId,
-        spokenReply,
-        detectedIntent,
-        conversationState,
-        extractedFields,
+        spokenReply: agentOutput.spokenReply,
+        detectedLanguage: agentOutput.detectedLanguage,
+        intent: agentOutput.intent,
+        conversationState: validatedState,
+        extractedFields: mergedFields,
+        missingRequiredFields: agentOutput.missingRequiredFields,
         qualificationResult,
         businessAction: actionResult,
         organizationProfile: {
@@ -240,10 +300,11 @@ export async function POST(req: NextRequest) {
           industry: profile.industry,
           voiceIdentity: profile.voiceIdentity,
         },
-        shouldEnd: session.turnsUsed + 1 >= session.maxTurns,
+        shouldEnd: shouldEndCall,
+        finalCallResult: finalResultData,
         fallbackUsed,
         providerLabel,
-        turnsRemaining: Math.max(0, session.maxTurns - (session.turnsUsed + 1)),
+        turnsRemaining: Math.max(0, session.maxTurns - turnsUsedNext),
         actionTaken: actionResult.statusMessage,
         correlationId,
       });
@@ -254,8 +315,7 @@ export async function POST(req: NextRequest) {
     if (error.message?.includes("CONCURRENT_REQUEST_BLOCKED")) {
       return NextResponse.json(
         {
-          error:
-            "Concurrent request blocked for session. Please wait a moment.",
+          error: "Concurrent request blocked for session.",
           code: "CONCURRENT_REQUEST",
           correlationId,
           recoverable: true,

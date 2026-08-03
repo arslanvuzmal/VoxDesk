@@ -8,18 +8,17 @@ export async function GET(
   try {
     const { id } = await params;
 
-    let call: any = null;
+    let appointment: any = null;
     try {
-      call = await prisma.call.findUnique({
+      appointment = await prisma.appointment.findUnique({
         where: { id },
         include: {
-          summary: true,
-          transcriptSegments: {
-            orderBy: { startMs: "asc" },
+          call: {
+            include: {
+              summary: true,
+              lead: true,
+            },
           },
-          lead: true,
-          appointment: true,
-          events: true,
         },
       });
     } catch {
@@ -27,18 +26,18 @@ export async function GET(
         {
           success: false,
           code: "DATABASE_UNAVAILABLE",
-          message: "Call detail data is temporarily unavailable.",
+          message: "Appointment detail data is temporarily unavailable.",
         },
         { status: 503 },
       );
     }
 
-    if (!call) {
+    if (!appointment) {
       return NextResponse.json(
         {
           success: false,
-          code: "CALL_NOT_FOUND",
-          message: `Call record '${id}' was not found.`,
+          code: "APPOINTMENT_NOT_FOUND",
+          message: `Appointment record '${id}' was not found.`,
         },
         { status: 404 },
       );
@@ -46,14 +45,14 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      call,
+      appointment,
     });
   } catch (error: any) {
     return NextResponse.json(
       {
         success: false,
         code: "INTERNAL_ERROR",
-        message: error?.message || "Failed to fetch call detail",
+        message: error?.message || "Failed to fetch appointment detail",
       },
       { status: 500 },
     );
