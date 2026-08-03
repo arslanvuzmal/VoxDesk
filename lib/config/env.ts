@@ -46,7 +46,7 @@ const envSchema = z.object({
   DEMO_MAX_TURNS: z.string().default("6"),
   DEMO_MAX_USER_CHARACTERS_PER_TURN: z.string().default("600"),
   DEMO_MAX_AGENT_CHARACTERS_PER_TURN: z.string().default("350"),
-  DEMO_MAX_TTS_CHARACTERS_PER_SESSION: z.string().default("1600"),
+  DEMO_MAX_TTS_CHARACTERS_PER_SESSION: z.string().default("1800"),
   DEMO_MAX_STT_SECONDS_PER_SESSION: z.string().default("180"),
   DEMO_SESSIONS_PER_IP_PER_DAY: z.string().default("3"),
   DEMO_SESSION_COOLDOWN_SECONDS: z.string().default("60"),
@@ -82,6 +82,16 @@ function getEnv() {
     INTERNAL_API_SECRET: defaultInternalSecret,
     DEMO_SESSION_SECRET: defaultDemoSessionSecret,
     IP_HASH_SECRET: defaultIpHashSecret,
+    UPSTASH_REDIS_REST_URL:
+      process.env.UPSTASH_REDIS_REST_URL ||
+      process.env.KV_REST_API_URL ||
+      process.env.REDIS_URL ||
+      undefined,
+    UPSTASH_REDIS_REST_TOKEN:
+      process.env.UPSTASH_REDIS_REST_TOKEN ||
+      process.env.KV_REST_API_TOKEN ||
+      process.env.KV_REST_API_READ_ONLY_TOKEN ||
+      undefined,
   };
 
   const parseResult = envSchema.safeParse(rawEnv);
