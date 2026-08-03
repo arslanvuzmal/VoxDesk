@@ -15,28 +15,30 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-      const calls = await prisma.call.findMany({
+      const appointments = await prisma.appointment.findMany({
         where: whereClause,
-        orderBy: { createdAt: "desc" },
+        orderBy: { startTime: "asc" },
         take: 50,
         include: {
-          summary: true,
-          lead: true,
-          appointment: true,
+          call: {
+            include: {
+              lead: true,
+            },
+          },
         },
       });
 
       return NextResponse.json({
         success: true,
-        count: calls.length,
-        calls,
+        count: appointments.length,
+        appointments,
       });
     } catch {
       return NextResponse.json(
         {
           success: false,
           code: "DATABASE_UNAVAILABLE",
-          message: "Calls data is temporarily unavailable.",
+          message: "Appointments data is temporarily unavailable.",
         },
         { status: 503 },
       );
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest) {
       {
         success: false,
         code: "INTERNAL_ERROR",
-        message: error?.message || "Failed to fetch calls",
+        message: error?.message || "Failed to fetch appointments",
       },
       { status: 500 },
     );

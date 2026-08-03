@@ -247,8 +247,9 @@ export function RealVoiceConsole({
       setThinking(false);
 
       if (data.spokenReply) {
-        if (onCallEnded) {
-          onCallEnded(data);
+        if (data.shouldEnd && onCallEnded) {
+          setCallEnded(true);
+          onCallEnded(data.finalCallResult || data);
         }
         setTranscript((prev) => [
           ...prev,

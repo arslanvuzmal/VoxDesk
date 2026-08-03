@@ -1,212 +1,205 @@
 import "server-only";
-import { z } from "zod";
 import { env } from "@/lib/config/env";
+import {
+  VoiceAgentOutput,
+  VoiceAgentOutputSchema,
+  SupportedLanguage,
+  DemoIntent,
+} from "@/lib/conversation/schemas/voice-agent-output";
+import { buildVoiceAgentSystemPrompt } from "@/lib/conversation/prompts/voice-agent-system";
+import { getOrganizationProfile } from "@/lib/organization/registry";
+import { searchProfileKnowledge } from "@/lib/conversation/knowledge/profile-knowledge";
 
-export const OPENROUTER_ALLOWED_MODELS = [
-  "openai/gpt-4o-mini",
-  "openai/gpt-3.5-turbo",
-  "anthropic/claude-3-haiku",
-  "google/gemini-flash-1.5",
-] as const;
+export interface VoiceAgentTurnInput {
+  userMessage: string;
+  scenario: DemoIntent;
+  currentState: string;
+  history: Array<{ role: "CALLER" | "AGENT"; text: string }>;
+  accumulatedFields?: Record<string, any>;
+  presetKey?: string;
+  language?: SupportedLanguage;
+}
 
-export const StructuredModelResponseSchema = z.object({
-  spokenReply: z.string().max(350),
-  detectedIntent: z.string().max(100),
-  conversationState: z.enum([
-    "READY",
-    "GREETING",
-    "IDENTIFYING_INTENT",
-    "ANSWERING_APPROVED_QUESTION",
-    "COLLECTING_CONTACT",
-    "COLLECTING_REQUIREMENTS",
-    "CHECKING_AVAILABILITY",
-    "OFFERING_SLOTS",
-    "AWAITING_BOOKING_CONFIRMATION",
-    "QUALIFYING_LEAD",
-    "PREPARING_ESCALATION",
-    "CLOSING",
-    "COMPLETED",
-    "FAILED",
-  ]),
-  extractedFields: z.record(z.any()).default({}),
-  shouldEnd: z.boolean().default(false),
-  suggestedAction: z
-    .enum(["NONE", "CONFIRM_APPOINTMENT", "QUALIFY_LEAD", "ESCALATE_HUMAN"])
-    .default("NONE"),
-});
-
-export type StructuredModelResponse = z.infer<
-  typeof StructuredModelResponseSchema
->;
+export interface OpenRouterTurnResult {
+  success: boolean;
+  data: VoiceAgentOutput;
+  fallbackUsed: boolean;
+  model: string;
+  latencyMs: number;
+}
 
 export async function generateAgentTurn(
-  scenario: string,
+  scenario: DemoIntent,
   userTranscript: string,
-  history: Array<{ role: string; text: string }> = [],
-): Promise<{
-  data: StructuredModelResponse;
-  fallbackUsed: boolean;
-  usage?: { inputTokens: number; outputTokens: number };
-}> {
-  // Check global kill switch
-  if (
-    env.DEMO_LIVE_PROVIDER_KILL_SWITCH === "true" ||
-    !env.OPENROUTER_API_KEY
-  ) {
+  history: Array<{ role: "CALLER" | "AGENT"; text: string }> = [],
+  options?: { presetKey?: string; language?: SupportedLanguage },
+): Promise<OpenRouterTurnResult> {
+  const startTime = Date.now();
+  const apiKey = env.OPENROUTER_API_KEY;
+  const model = env.OPENROUTER_MODEL || "google/gemini-2.5-flash";
+
+  const presetKey = options?.presetKey || "LEGAL";
+  const language = options?.language || "en-US";
+  const profile = getOrganizationProfile(presetKey);
+
+  // If no API key configured, use profile-aware deterministic fallback
+  if (!apiKey || apiKey.includes("your-") || apiKey.includes("placeholder")) {
+    const fallbackData = getDeterministicFallback(
+      userTranscript,
+      scenario,
+      profile,
+      language,
+    );
     return {
-      data: getDeterministicFallback(scenario, userTranscript),
+      success: true,
+      data: fallbackData,
       fallbackUsed: true,
+      model: "deterministic-profile-engine",
+      latencyMs: Date.now() - startTime,
     };
   }
 
-  const model = OPENROUTER_ALLOWED_MODELS.includes(env.OPENROUTER_MODEL as any)
-    ? env.OPENROUTER_MODEL
-    : "openai/gpt-4o-mini";
+  const systemPrompt = buildVoiceAgentSystemPrompt(profile, language);
+  const boundedHistory = history.slice(-4);
 
-  const systemPrompt = `You are Maya, an AI voice receptionist for Northstar Legal Consultations.
-Target Scenario: ${scenario}.
-Keep spoken reply concise, natural, professional, under 30 words (max 350 chars).
-Return structured JSON with keys: spokenReply, detectedIntent, conversationState, extractedFields, shouldEnd, suggestedAction.`;
+  const messages = [
+    { role: "system", content: systemPrompt },
+    {
+      role: "system",
+      content: `CURRENT SCENARIO: ${scenario}\nORGANIZATION: ${profile.name}`,
+    },
+    ...boundedHistory.map((h) => ({
+      role: h.role === "CALLER" ? "user" : "assistant",
+      content: h.text,
+    })),
+    { role: "user", content: userTranscript },
+  ];
 
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      parseInt(env.OPENROUTER_TIMEOUT_MS, 10) || 12000,
-    );
-
-    const response = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": env.APP_URL,
-          "X-Title": "VoxDesk AI Receptionist",
-        },
-        body: JSON.stringify({
-          model: model,
-          temperature: parseFloat(env.OPENROUTER_TEMPERATURE) || 0.2,
-          max_tokens: parseInt(env.OPENROUTER_MAX_OUTPUT_TOKENS, 10) || 160,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...history.slice(-4).map((h) => ({
-              role: h.role === "CALLER" ? "user" : "assistant",
-              content: h.text,
-            })),
-            { role: "user", content: userTranscript.slice(0, 600) },
-          ],
-        }),
-        signal: controller.signal,
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://voxdesk-ai.vercel.app",
+        "X-Title": "VoxDesk AI Voice Receptionist",
       },
-    );
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 0.3,
+        max_tokens: 220,
+      }),
+    });
 
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      return {
-        data: getDeterministicFallback(scenario, userTranscript),
-        fallbackUsed: true,
-      };
+    if (!res.ok) {
+      throw new Error(`OpenRouter HTTP ${res.status}`);
     }
 
-    const resJson = await response.json();
-    const rawContent = resJson.choices?.[0]?.message?.content || "";
-    const parsedJson = JSON.parse(rawContent);
-    const validated = StructuredModelResponseSchema.parse(parsedJson);
+    const json = await res.json();
+    const content = json.choices?.[0]?.message?.content || "";
+    const parsed = parseStructuredOutput(content, language);
 
-    return {
-      data: validated,
-      fallbackUsed: false,
-      usage: {
-        inputTokens: resJson.usage?.prompt_tokens || 40,
-        outputTokens: resJson.usage?.completion_tokens || 80,
-      },
-    };
+    if (parsed) {
+      return {
+        success: true,
+        data: parsed,
+        fallbackUsed: false,
+        model,
+        latencyMs: Date.now() - startTime,
+      };
+    }
   } catch (error) {
-    return {
-      data: getDeterministicFallback(scenario, userTranscript),
-      fallbackUsed: true,
-    };
+    console.warn(
+      "[OPENROUTER LLM FALLBACK]:",
+      error instanceof Error ? error.message : error,
+    );
   }
+
+  const fallbackData = getDeterministicFallback(
+    userTranscript,
+    scenario,
+    profile,
+    language,
+  );
+  return {
+    success: true,
+    data: fallbackData,
+    fallbackUsed: true,
+    model: "deterministic-profile-engine",
+    latencyMs: Date.now() - startTime,
+  };
+}
+
+function parseStructuredOutput(
+  raw: string,
+  language: SupportedLanguage,
+): VoiceAgentOutput | null {
+  try {
+    let str = raw;
+    const jsonMatch = str.match(/\{[\s\S]*\}/);
+    if (jsonMatch) str = jsonMatch[0];
+
+    const jsonObj = JSON.parse(str);
+    const validated = VoiceAgentOutputSchema.safeParse(jsonObj);
+    if (validated.success) {
+      return validated.data;
+    }
+  } catch {}
+
+  return null;
 }
 
 export function getDeterministicFallback(
-  scenario: string,
-  userTranscript: string,
-): StructuredModelResponse {
-  const text = userTranscript.toLowerCase();
+  userQuery: string,
+  scenario: DemoIntent,
+  profile: any,
+  language: SupportedLanguage,
+): VoiceAgentOutput {
+  const knowledgeMatch = searchProfileKnowledge(userQuery, profile, language);
 
-  if (scenario === "BOOKING") {
-    if (
-      text.includes("yes") ||
-      text.includes("confirm") ||
-      text.includes("book") ||
-      text.includes("tuesday")
-    ) {
-      return {
-        spokenReply:
-          "Excellent! I have reserved Tuesday at 10:00 AM for your consultation. A confirmation email has been dispatched.",
-        detectedIntent: "Appointment Confirmed",
-        conversationState: "CLOSING",
-        extractedFields: {
-          slot: "Tuesday 10:00 AM",
-          callerName: "Sarah Miller",
-        },
-        shouldEnd: true,
-        suggestedAction: "CONFIRM_APPOINTMENT",
-      };
-    }
+  if (knowledgeMatch.matched) {
     return {
-      spokenReply:
-        "I have openings available next Tuesday at 10:00 AM or 2:30 PM. Would either of those times work for your legal consultation?",
-      detectedIntent: "Appointment Scheduling",
-      conversationState: "OFFERING_SLOTS",
-      extractedFields: {
-        availableSlots: ["Tuesday 10:00 AM", "Tuesday 2:30 PM"],
-      },
+      spokenReply: knowledgeMatch.answer,
+      detectedLanguage: language,
+      intent: "ROUTINE",
+      secondaryIntent: null,
+      suggestedState: "ANSWERING_ROUTINE",
+      sentiment: "neutral",
+      urgency: knowledgeMatch.isEmergencyEscalation ? "critical" : "low",
+      confidence: knowledgeMatch.confidence,
+      extractedFields: {},
+      missingRequiredFields: [],
+      suggestedAction: knowledgeMatch.isEmergencyEscalation
+        ? "PREPARE_HANDOFF"
+        : "ANSWER_APPROVED_QUESTION",
+      requiresHumanReview: knowledgeMatch.isEmergencyEscalation || false,
+      handoffReason: knowledgeMatch.escalationReason || null,
+      knowledgeReferences: knowledgeMatch.citation
+        ? [knowledgeMatch.citation]
+        : [],
+      nextBestQuestion: null,
       shouldEnd: false,
-      suggestedAction: "NONE",
     };
   }
 
-  if (scenario === "QUALIFICATION") {
-    return {
-      spokenReply:
-        "Thank you for providing those details. Based on your timeline and budget, I have scored this as a high-priority commercial inquiry.",
-      detectedIntent: "Lead Qualification Intake",
-      conversationState: "CLOSING",
-      extractedFields: {
-        budgetRange: "$10k-$25k",
-        timeline: "Immediate",
-        category: "HOT",
-      },
-      shouldEnd: true,
-      suggestedAction: "QUALIFY_LEAD",
-    };
-  }
-
-  if (scenario === "ESCALATION") {
-    return {
-      spokenReply:
-        "I understand this is urgent regarding contract litigation. I am preparing a priority Transfer Brief for Senior Counsel right away.",
-      detectedIntent: "Urgent Partner Escalation",
-      conversationState: "PREPARING_ESCALATION",
-      extractedFields: { urgency: "HIGH", partner: "Arslan Vuzmal Lone" },
-      shouldEnd: true,
-      suggestedAction: "ESCALATE_HUMAN",
-    };
-  }
-
+  const greeting = profile.greetings[language] || profile.greetings["en-US"];
   return {
-    spokenReply:
-      "Northstar Legal is open Monday through Friday from 9:00 AM to 6:00 PM. Is there anything else I can help answer for you?",
-    detectedIntent: "Approved Business Hours Q&A",
-    conversationState: "CLOSING",
-    extractedFields: { hours: "9:00 AM - 6:00 PM EST" },
-    shouldEnd: true,
+    spokenReply: greeting,
+    detectedLanguage: language,
+    intent: scenario,
+    secondaryIntent: null,
+    suggestedState: "IDENTIFYING_INTENT",
+    sentiment: "neutral",
+    urgency: "medium",
+    confidence: 0.85,
+    extractedFields: {},
+    missingRequiredFields: [],
     suggestedAction: "NONE",
+    requiresHumanReview: false,
+    handoffReason: null,
+    knowledgeReferences: [],
+    nextBestQuestion: null,
+    shouldEnd: false,
   };
 }

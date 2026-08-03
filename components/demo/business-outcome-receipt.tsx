@@ -55,9 +55,9 @@ export interface BusinessOutcomeReceiptProps {
     appointmentId?: string;
   };
   providersUsed?: {
-    stt: string;
-    llm: string;
-    tts: string;
+    stt?: { provider: string; fallbackUsed: boolean };
+    llm?: { provider: string; fallbackUsed: boolean };
+    tts?: { provider: string; fallbackUsed: boolean };
   };
 }
 
@@ -70,16 +70,15 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
     language,
     scenario,
     summaryText,
-    extractedFields,
     qualificationResult,
-    appointmentOutcome,
-    handoffStatus,
     crmRecordIds,
     providersUsed,
   } = props;
 
-  const score = qualificationResult?.score || 85;
-  const category = qualificationResult?.category || "HOT";
+  const isRoutine = scenario === "ROUTINE";
+  const hasLeadScore = Boolean(qualificationResult && !isRoutine);
+  const score = qualificationResult?.score || 0;
+  const category = qualificationResult?.category || "COLD";
 
   const categoryColor =
     category === "HOT"
@@ -88,6 +87,8 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
         : "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30";
 
+  const isPersisted = Boolean(crmRecordIds?.callId || crmRecordIds?.leadId);
+
   return (
     <div className="bg-[#13171C] border border-[#272D35] rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
       {/* HEADER */}
@@ -95,7 +96,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-xs font-mono text-[#2DD4BF] mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Business Call Outcome Receipt</span>
+            <span>Truthful Call Outcome Receipt</span>
           </div>
           <h2 className="text-2xl font-bold text-white">{organizationName}</h2>
           <p className="text-xs text-[#8B949E] font-mono">
@@ -103,16 +104,25 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div
-            className={`px-4 py-2 rounded-xl border text-center ${categoryColor}`}
-          >
-            <div className="text-2xl font-black">{score}/100</div>
-            <div className="text-[10px] font-mono uppercase tracking-wider font-bold">
-              {category} LEAD
+        {hasLeadScore ? (
+          <div className="flex items-center gap-3">
+            <div
+              className={`px-4 py-2 rounded-xl border text-center ${categoryColor}`}
+            >
+              <div className="text-2xl font-black">{score}/100</div>
+              <div className="text-[10px] font-mono uppercase tracking-wider font-bold">
+                {category} LEAD
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="px-4 py-2 rounded-xl border border-[#272D35] bg-[#0F1216] text-center">
+            <div className="text-xs font-mono text-[#8B949E]">INQUIRY TYPE</div>
+            <div className="text-sm font-bold text-white uppercase">
+              {scenario}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* CALL SUMMARY & INTENT */}
@@ -132,19 +142,61 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
             Caller Objective
           </span>
           <p className="font-semibold text-white text-sm">{scenario}</p>
-          <p className="text-[#2DD4BF] font-mono">BANT Score Analyzed</p>
+          <p className="text-[#2DD4BF] font-mono">
+            {isRoutine ? "FAQ Answering Mode" : "Profile Lead Scored"}
+          </p>
         </div>
 
         <div className="p-4 rounded-xl bg-[#0B0D10] border border-[#272D35] space-y-1">
           <span className="text-[#8B949E] uppercase font-mono text-[10px]">
-            CRM Sync Status
+            Database Persistence
           </span>
-          <p className="font-semibold text-[#2DD4BF] text-sm flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4" /> Persisted to Database
-          </p>
-          <p className="text-[#8B949E]">
-            Lead ID: {crmRecordIds?.leadId || "lead_demo_01"}
-          </p>
+          {isPersisted ? (
+            <>
+              <p className="font-semibold text-[#2DD4BF] text-sm flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" /> Persisted to Database
+              </p>
+              <p className="text-[#8B949E]">
+                Call ID: {crmRecordIds?.callId || "N/A"}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold text-[#F59E0B] text-sm flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" /> Demo Sandbox Mode
+              </p>
+              <p className="text-[#8B949E]">No database write executed</p>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* PROVIDERS EXECUTED */}
+      <div className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] space-y-2">
+        <h4 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold">
+          Executed Provider Pipeline
+        </h4>
+        <div className="grid grid-cols-3 gap-3 text-xs font-mono">
+          <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
+            <span className="text-[10px] text-[#8B949E] block">STT Layer</span>
+            <span className="text-white font-semibold">
+              {providersUsed?.stt?.provider || "BROWSER_SPEECH"}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
+            <span className="text-[10px] text-[#8B949E] block">
+              LLM Reasoning
+            </span>
+            <span className="text-white font-semibold">
+              {providersUsed?.llm?.provider || "CLOUDFLARE_LLM"}
+            </span>
+          </div>
+          <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
+            <span className="text-[10px] text-[#8B949E] block">TTS Voice</span>
+            <span className="text-white font-semibold">
+              {providersUsed?.tts?.provider || "ELEVENLABS_TTS"}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -155,16 +207,16 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         </h4>
         <p className="text-sm text-[#D4D4D8] leading-relaxed">
           {summaryText ||
-            "Caller discussed commercial consultation needs, provided contact details, and agreed to schedule a formal strategy session with the assigned team owner."}
+            "Caller discussed intake requirements with the VoxDesk AI voice receptionist."}
         </p>
       </div>
 
       {/* SCORE BREAKDOWN */}
-      {qualificationResult?.breakdown && (
+      {hasLeadScore && qualificationResult?.breakdown && (
         <div className="space-y-3">
           <h4 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#2DD4BF]" /> BANT Lead Score
-            Explanation
+            <TrendingUp className="w-4 h-4 text-[#2DD4BF]" /> Profile Lead Score
+            Breakdown
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -190,30 +242,32 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         </div>
       )}
 
-      {/* RECOMMENDED NEXT ACTION & ACTIONS */}
+      {/* RECOMMENDED ACTION */}
       <div className="p-4 rounded-xl bg-[#2DD4BF]/5 border border-[#2DD4BF]/20 space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-mono text-[#2DD4BF] uppercase font-bold tracking-wider">
-            Recommended Business Action
+            Recommended Next Business Action
           </span>
           <span className="text-[10px] font-mono text-[#8B949E]">
-            Priority: {qualificationResult?.followUpPriority || "IMMEDIATE"}
+            Priority: {qualificationResult?.followUpPriority || "MEDIUM"}
           </span>
         </div>
         <p className="text-sm font-medium text-white">
           {qualificationResult?.recommendedAction ||
-            "Assign to senior account executive for immediate calendar consultation."}
+            "Store in CRM database and place in standard nurture sequence."}
         </p>
 
-        <div className="pt-2 flex flex-wrap gap-3">
-          <Link
-            href={`/dashboard/leads/${crmRecordIds?.leadId || "lead_demo_101"}`}
-            className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-xs px-5 py-2.5 rounded-lg inline-flex items-center gap-2 transition-colors"
-          >
-            <span>View Lead Record in VoxDesk CRM</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
+        {isPersisted && (
+          <div className="pt-2 flex flex-wrap gap-3">
+            <Link
+              href={`/dashboard/leads/${crmRecordIds?.leadId || ""}`}
+              className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-xs px-5 py-2.5 rounded-lg inline-flex items-center gap-2 transition-colors"
+            >
+              <span>View Lead Record in VoxDesk CRM</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,106 +1,124 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PhoneCall, Clock, CheckCircle2, ArrowRight } from "lucide-react";
+import {
+  Phone,
+  Search,
+  RefreshCw,
+  ArrowRight,
+  Clock,
+  FileText,
+  CheckCircle2,
+} from "lucide-react";
 
 export default function CallsPage() {
-  const calls = [
-    {
-      id: "call-demo-001",
-      agent: "Maya — Reception",
-      caller: "Sarah Miller",
-      number: "+1 (555) 019-2834",
-      duration: "2m 00s",
-      outcome: "APPOINTMENT_SCHEDULED",
-      category: "HOT",
-      score: 85,
-      date: "2026-08-03 12:10 PM",
-    },
-    {
-      id: "call-demo-002",
-      agent: "Alex — Lead Qual",
-      caller: "Daniel Brooks",
-      number: "+1 (555) 014-9921",
-      duration: "1m 35s",
-      outcome: "APPOINTMENT_RESCHEDULED",
-      category: "WARM",
-      score: 65,
-      date: "2026-08-03 11:15 AM",
-    },
-    {
-      id: "call-demo-003",
-      agent: "Maya — Reception",
-      caller: "Priya Shah",
-      number: "+1 (555) 018-4490",
-      duration: "2m 30s",
-      outcome: "LEAD_QUALIFIED",
-      category: "HOT",
-      score: 92,
-      date: "2026-08-03 10:00 AM",
-    },
-    {
-      id: "call-demo-004",
-      agent: "Maya — Reception",
-      caller: "Michael Chen",
-      number: "+1 (555) 012-7788",
-      duration: "0m 45s",
-      outcome: "ESCALATED_HUMAN",
-      category: "REVIEW",
-      score: 40,
-      date: "2026-08-03 08:30 AM",
-    },
-  ];
+  const [calls, setCalls] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCalls = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/calls");
+      const data = await res.json();
+      if (data.calls) {
+        setCalls(data.calls);
+      }
+    } catch {
+      // Handled
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCalls();
+  }, []);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Call History</h1>
-        <p className="text-sm text-gray-400">
-          Complete log of all inbound call sessions, transcripts, and outcomes.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-white">
+            Call Log & Operations
+          </h1>
+          <p className="text-sm text-[#8B949E]">
+            Real-time transcript logs, outcomes, and execution data for all
+            inbound voice calls.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={fetchCalls}
+          className="px-4 py-2 rounded-xl bg-[#13171C] border border-[#272D35] text-xs text-[#F4F4F5] hover:border-[#8B949E] flex items-center gap-2"
+        >
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+          />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
-        <div className="space-y-3">
-          {calls.map((c) => (
-            <div
-              key={c.id}
-              className="p-4 rounded-xl bg-gray-950 border border-gray-900 flex items-center justify-between text-xs"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-teal-950 border border-teal-800 flex items-center justify-center text-teal-400">
-                  <PhoneCall className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">
-                    {c.caller}{" "}
-                    <span className="text-xs font-normal text-gray-400">
-                      ({c.number})
+      <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-4">
+        {loading ? (
+          <div className="py-12 text-center space-y-2">
+            <RefreshCw className="w-6 h-6 text-[#2DD4BF] animate-spin mx-auto" />
+            <p className="text-xs text-[#8B949E]">
+              Loading call records from database...
+            </p>
+          </div>
+        ) : calls.length === 0 ? (
+          <div className="py-12 text-center space-y-2">
+            <Phone className="w-8 h-8 text-[#8B949E] mx-auto" />
+            <p className="text-sm font-semibold text-white">
+              No call records found in database.
+            </p>
+            <p className="text-xs text-[#8B949E]">
+              Run a live demo call to generate database call logs.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {calls.map((c) => (
+              <div
+                key={c.id}
+                className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] flex items-center justify-between text-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-white text-sm">
+                      {c.callerName || "Anonymous Caller"}
                     </span>
-                  </h4>
-                  <p className="text-gray-400 mt-0.5">
-                    {c.date} • Agent:{" "}
-                    <strong className="text-white">{c.agent}</strong> •
-                    Duration: {c.duration}
+                    <span className="text-[#8B949E]">
+                      ({c.callerNumberMasked})
+                    </span>
+                    <span className="px-2 py-0.5 rounded bg-[#13171C] border border-[#272D35] text-[10px] text-[#2DD4BF]">
+                      {c.outcome}
+                    </span>
+                  </div>
+                  <p className="text-[#8B949E]">
+                    Started: {new Date(c.startedAt).toLocaleString()} •
+                    Duration: {c.durationSeconds}s
                   </p>
+                  {c.summary?.summary && (
+                    <p className="text-xs text-[#D4D4D8] line-clamp-1 font-mono pt-0.5">
+                      &quot;{c.summary.summary}&quot;
+                    </p>
+                  )}
                 </div>
-              </div>
 
-              <div className="flex items-center gap-4">
-                <span
-                  className={`px-2.5 py-1 rounded font-bold font-mono ${c.category === "HOT" ? "bg-emerald-950 text-emerald-400 border border-emerald-800" : "bg-teal-950 text-teal-300 border border-teal-800"}`}
-                >
-                  {c.category} ({c.score}/100)
-                </span>
                 <Link
                   href={`/dashboard/calls/${c.id}`}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-3 py-2 rounded-lg font-semibold border border-gray-800 flex items-center gap-1"
+                  className="px-3.5 py-2 rounded-lg bg-[#2DD4BF] text-[#0B0D10] font-bold text-xs flex items-center gap-1 hover:bg-[#26b8a5]"
                 >
-                  <span>View Details</span>
+                  <span>View Call</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

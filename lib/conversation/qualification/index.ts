@@ -203,6 +203,7 @@ export function calculateLeadQualification(
       collected: true,
     });
   } else {
+    missingFields.push("budgetRange");
     missingFields.push("Budget Range");
     breakdown.push({
       criterion: "Budget Range",
