@@ -48,10 +48,10 @@ const envSchema = z.object({
   DEMO_MAX_AGENT_CHARACTERS_PER_TURN: z.string().default("350"),
   DEMO_MAX_TTS_CHARACTERS_PER_SESSION: z.string().default("1800"),
   DEMO_MAX_STT_SECONDS_PER_SESSION: z.string().default("180"),
-  DEMO_SESSIONS_PER_IP_PER_DAY: z.string().default("3"),
-  DEMO_SESSION_COOLDOWN_SECONDS: z.string().default("60"),
-  DEMO_MAX_CONCURRENT_SESSIONS_GLOBAL: z.string().default("5"),
-  DEMO_GLOBAL_DAILY_SESSION_LIMIT: z.string().default("75"),
+  DEMO_SESSIONS_PER_IP_PER_DAY: z.string().default("50"),
+  DEMO_SESSION_COOLDOWN_SECONDS: z.string().default("3"),
+  DEMO_MAX_CONCURRENT_SESSIONS_GLOBAL: z.string().default("50"),
+  DEMO_GLOBAL_DAILY_SESSION_LIMIT: z.string().default("1000"),
 
   DEMO_LIVE_PROVIDER_KILL_SWITCH: z.string().default("false"),
 
