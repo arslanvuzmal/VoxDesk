@@ -1,47 +1,89 @@
+import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
-import { Activity, CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircle2, Shield, Info, ArrowLeft } from "lucide-react";
 
-export default function StatusPage() {
-  const providers = [
-    { name: "Deterministic Demo Voice Provider", type: "VOICE", status: "DEMO OPERATIONAL", latency: "12ms" },
-    { name: "Twilio Telephony Provider", type: "TELEPHONY", status: "CONFIGURED", latency: "140ms" },
-    { name: "Vapi AI Voice Agent Provider", type: "VOICE", status: "CONFIGURED", latency: "180ms" },
-    { name: "Retell AI Voice Agent Provider", type: "VOICE", status: "CONFIGURED", latency: "150ms" },
-    { name: "LiveKit WebRTC Media Server", type: "WEBRTC", status: "CONFIGURED", latency: "110ms" },
-    { name: "Google Calendar API v3 Adapter", type: "CALENDAR", status: "OPERATIONAL", latency: "85ms" },
-    { name: "HubSpot CRM v3 API Adapter", type: "CRM", status: "OPERATIONAL", latency: "95ms" },
-  ];
-
+export default function SystemStatusPage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
       <Navbar />
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-8 w-full">
-        <div>
-          <span className="px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono text-xs font-semibold flex items-center gap-1.5 w-fit mb-3">
-            <Activity className="w-3.5 h-3.5 animate-pulse" />
-            ALL SYSTEMS & PROVIDER ADAPTERS READY
-          </span>
-          <h1 className="text-3xl font-extrabold text-white">Provider & System Health Status</h1>
+
+      <main className="flex-1 max-w-4xl w-full mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between border-b border-[#272D35] pb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">System Status & Environment Health</h1>
+            <p className="text-xs text-[#8B949E]">Current operational state of system components and provider connections.</p>
+          </div>
+
+          <Link href="/dashboard" className="text-xs text-[#2DD4BF] hover:underline flex items-center gap-1">
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
+          </Link>
         </div>
 
-        <div className="space-y-3">
-          {providers.map((p, idx) => (
-            <div key={idx} className="glass-panel p-4 rounded-xl border border-gray-800 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <div>
-                  <h4 className="text-sm font-bold text-white">{p.name}</h4>
-                  <span className="text-xs text-gray-400 font-mono">{p.type}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-mono">
-                <span className="text-gray-400">Latency: <strong className="text-teal-300">{p.latency}</strong></span>
-                <span className="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-800 font-bold">{p.status}</span>
-              </div>
+        {/* Current Environment Banner */}
+        <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-[#60A5FA]"></div>
+            <div>
+              <span className="text-sm font-bold text-white">Environment Mode: Demo Sandbox</span>
+              <p className="text-xs text-[#8B949E]">Operating with deterministic Demo Voice Provider & fictional business data.</p>
             </div>
-          ))}
+          </div>
+          <span className="px-2.5 py-1 rounded bg-[#171C22] text-[#60A5FA] text-xs font-mono border border-[#272D35]">
+            Demo Active
+          </span>
         </div>
-      </div>
+
+        {/* System Components Table */}
+        <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-4">
+          <h2 className="text-sm font-bold text-white">Component Health Checks</h2>
+
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
+              <div>
+                <span className="font-semibold text-white block">16-State Conversation Engine</span>
+                <span className="text-[#8B949E] text-[11px]">Server-enforced state machine & Zod summary validation</span>
+              </div>
+              <span className="text-[#34D399] font-mono flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Healthy
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
+              <div>
+                <span className="font-semibold text-white block">Demo Telephony Adapter</span>
+                <span className="text-[#8B949E] text-[11px]">Deterministic browser/server call simulation</span>
+              </div>
+              <span className="text-[#34D399] font-mono flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Healthy
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
+              <div>
+                <span className="font-semibold text-white block">Prisma PostgreSQL Database</span>
+                <span className="text-[#8B949E] text-[11px]">22 relational schema models & workspace scoping</span>
+              </div>
+              <span className="text-[#34D399] font-mono flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4" /> Healthy
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
+              <div>
+                <span className="font-semibold text-white block">Twilio / Vapi / LiveKit Adapters</span>
+                <span className="text-[#8B949E] text-[11px]">Live PSTN telephony connections</span>
+              </div>
+              <span className="text-[#8B949E] font-mono">
+                Not Configured (Demo Mode)
+              </span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="py-6 px-6 border-t border-[#272D35] bg-[#0F1216] mt-auto text-xs text-[#8B949E] text-center">
+        © 2026 VoxDesk AI. Operations workspace managed by Arslan Vuzmal Lone.
+      </footer>
     </div>
   );
 }

@@ -9,22 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          950: "#060A12",
-          900: "#0A0F1D",
-          800: "#111827",
-          700: "#1F2937",
-          600: "#374151",
+        bg: {
+          dark: "#0B0D10",
+          sidebar: "#0F1216",
+          surface: "#13171C",
+          raised: "#171C22",
+          border: "#272D35",
         },
-        teal: {
-          500: "#14B8A6",
-          600: "#0D9488",
-          700: "#0F766E",
+        accent: {
+          teal: "#2DD4BF",
+          blue: "#60A5FA",
+          green: "#34D399",
+          amber: "#FBBF24",
+          rose: "#FB7185",
         },
-        electric: {
-          500: "#3B82F6",
-          600: "#2563EB",
+        txt: {
+          strong: "#F4F4F5",
+          normal: "#D4D4D8",
+          muted: "#8B949E",
         },
+      },
+      borderRadius: {
+        lg: "8px",
+        xl: "10px",
+        "2xl": "12px",
       },
     },
   },

@@ -2,10 +2,26 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VoxDesk AI — Configurable AI Voice Receptionist & Call Automation SaaS",
+  metadataBase: new URL("https://voxdesk-ai.vercel.app"),
+  title: "VoxDesk AI — Voice Operations & Call Automation",
   description:
-    "Production-oriented AI voice receptionist SaaS with appointment booking, lead qualification, human escalation, speaker-separated transcripts, and provider-ready telephony integrations.",
+    "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
   authors: [{ name: "Arslan Vuzmal Lone" }],
+  openGraph: {
+    title: "VoxDesk AI — Voice Operations & Call Automation",
+    description:
+      "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
+    url: "https://voxdesk-ai.vercel.app",
+    siteName: "VoxDesk AI",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VoxDesk AI — Voice Operations & Call Automation",
+    description:
+      "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
+  },
 };
 
 export default function RootLayout({
@@ -15,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="antialiased min-h-screen bg-navy-950 text-gray-100 selection:bg-teal-500 selection:text-white">
+      <body className="antialiased min-h-screen bg-[#0B0D10] text-[#F4F4F5] selection:bg-[#2DD4BF] selection:text-[#0B0D10]">
         {children}
       </body>
     </html>
