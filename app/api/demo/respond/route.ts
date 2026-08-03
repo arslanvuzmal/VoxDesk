@@ -7,6 +7,9 @@ import { getDeterministicRoutineAnswer } from "@/lib/conversation/knowledge/nort
 import { generateAgentTurn } from "@/lib/providers/openrouter.server";
 import { checkAndRecordUsage, recordTurnUsage } from "@/lib/demo/usage-ledger";
 import { withSessionLock } from "@/lib/demo/request-lock";
+import { getOrganizationProfile } from "@/lib/organization/registry";
+import { executeBusinessAction } from "@/lib/conversation/action-engine";
+import { calculateLeadQualification } from "@/lib/conversation/qualification";
 
 export async function POST(req: NextRequest) {
   const correlationId = `req_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
@@ -47,6 +50,7 @@ export async function POST(req: NextRequest) {
       body.clientTurnId ||
       `turn_${Date.now()}_${Math.random().toString(36).slice(2)}`
     ).slice(0, 64);
+    const presetKey = body.presetKey || session.presetKey || "LEGAL";
 
     if (!transcript) {
       return NextResponse.json(
@@ -101,6 +105,7 @@ export async function POST(req: NextRequest) {
       // 3. Record Turn ID
       await demoSessionStore.recordTurnId(session.sessionId, clientTurnId);
 
+      const profile = getOrganizationProfile(presetKey);
       let spokenReply = "";
       let detectedIntent:
         "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE" | "UNKNOWN" =
@@ -109,7 +114,7 @@ export async function POST(req: NextRequest) {
       let extractedFields: Record<string, any> = {};
       let providerLabel = "Deterministic Knowledge Engine";
       let fallbackUsed = false;
-      let actionTakenNotice: string | null = null;
+      let actionType = "NONE";
 
       // 4. Check Routine Deterministic Matcher First
       const routineMatch = getDeterministicRoutineAnswer(transcript);
@@ -119,6 +124,7 @@ export async function POST(req: NextRequest) {
         detectedIntent = "ROUTINE";
         conversationState = "ANSWERING_ROUTINE_QUESTION";
         providerLabel = "Approved Knowledge Engine";
+        actionType = "answerApprovedQuestion";
       } else if (isCloudflareAIEnabled()) {
         // 5. Cloudflare Workers AI Primary LLM Provider
         try {
@@ -134,17 +140,7 @@ export async function POST(req: NextRequest) {
           conversationState = cfResult.suggestedState || session.state;
           extractedFields = cfResult.extractedFields || {};
           providerLabel = "Cloudflare Workers AI (@cf/moonshotai/kimi-k2.6)";
-
-          if (cfResult.suggestedAction === "CONFIRM_DEMO_APPOINTMENT") {
-            actionTakenNotice =
-              "Fictional demo appointment reserved for Tuesday 10:00 AM in demo workspace.";
-          } else if (cfResult.suggestedAction === "SCORE_LEAD") {
-            actionTakenNotice =
-              "BANT lead qualification evaluated. Category assigned: HOT.";
-          } else if (cfResult.suggestedAction === "PREPARE_HANDOFF") {
-            actionTakenNotice =
-              "Urgent human handoff Transfer Brief generated for duty attorney.";
-          }
+          actionType = cfResult.suggestedAction || "scoreLead";
         } catch (cfError) {
           console.warn("[CLOUDFLARE LLM FALLBACK]:", cfError);
           fallbackUsed = true;
@@ -167,15 +163,47 @@ export async function POST(req: NextRequest) {
         providerLabel = turnResult.fallbackUsed
           ? "Deterministic conversation fallback"
           : "OpenRouter LLM";
+        actionType = turnResult.data.suggestedAction || "scoreLead";
       }
 
-      // 7. Store Response ID Voucher for TTS
+      // 7. Execute Deterministic Business Action
+      const actionResult = await executeBusinessAction({
+        actionType:
+          actionType === "CONFIRM_DEMO_APPOINTMENT" ||
+          actionType === "CHECK_DEMO_CALENDAR"
+            ? "reserveAppointment"
+            : actionType === "PREPARE_HANDOFF"
+              ? "prepareHandoff"
+              : "createLead",
+        presetKey,
+        sessionId: session.sessionId,
+        transcriptText: transcript,
+        extractedFields,
+      });
+
+      // 8. Calculate Dynamic Lead Qualification Result
+      const qualificationResult = calculateLeadQualification(
+        {
+          serviceInterest:
+            extractedFields?.serviceInterest ||
+            extractedFields?.service ||
+            profile.services[0]?.name,
+          budgetRange: extractedFields?.budgetRange || extractedFields?.budget,
+          timeline: extractedFields?.timeline,
+          authority: extractedFields?.authority,
+          urgency: extractedFields?.urgencyLevel || extractedFields?.urgency,
+          extractedFields,
+        },
+        profile,
+      );
+
+      // 9. Store Response ID Voucher for TTS
       const storedResponse = await demoSessionStore.storeResponseId(
         session.sessionId,
         spokenReply,
       );
 
-      // 8. Record Usage Ledger
+      // 10. Record Usage Ledger
       await recordTurnUsage(
         session.sessionId,
         transcript.length,
@@ -184,7 +212,7 @@ export async function POST(req: NextRequest) {
         80,
       );
 
-      // 9. Update Session History & State
+      // 11. Update Session History & State
       const updatedHistory = [
         ...(session.history || []),
         { role: "CALLER" as const, text: transcript },
@@ -204,11 +232,19 @@ export async function POST(req: NextRequest) {
         detectedIntent,
         conversationState,
         extractedFields,
+        qualificationResult,
+        businessAction: actionResult,
+        organizationProfile: {
+          id: profile.id,
+          name: profile.name,
+          industry: profile.industry,
+          voiceIdentity: profile.voiceIdentity,
+        },
         shouldEnd: session.turnsUsed + 1 >= session.maxTurns,
         fallbackUsed,
         providerLabel,
         turnsRemaining: Math.max(0, session.maxTurns - (session.turnsUsed + 1)),
-        actionTaken: actionTakenNotice,
+        actionTaken: actionResult.statusMessage,
         correlationId,
       });
     });

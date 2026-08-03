@@ -5,7 +5,7 @@ import {
   CloudflareStructuredOutput,
   CloudflareStructuredOutputSchema,
 } from "./schemas";
-import { VOICE_AGENT_SYSTEM_PROMPT } from "@/lib/conversation/prompts/voice-agent-system";
+import { buildVoiceAgentSystemPrompt } from "@/lib/conversation/prompts/voice-agent-system";
 import { FEW_SHOT_EXAMPLES } from "@/lib/conversation/prompts/few-shot-examples";
 
 export interface CloudflareLLMRequest {
@@ -14,6 +14,8 @@ export interface CloudflareLLMRequest {
   currentState: string;
   history: Array<{ role: "CALLER" | "AGENT"; text: string }>;
   extractedFields?: Record<string, any>;
+  presetKey?: string;
+  language?: string;
 }
 
 export async function generateCloudflareResponse(
@@ -26,9 +28,13 @@ export async function generateCloudflareResponse(
 
   // Bound history to last 4 turns max
   const boundedHistory = input.history.slice(-4);
+  const systemPrompt = buildVoiceAgentSystemPrompt(
+    undefined,
+    (input.language as any) || "en-US",
+  );
 
   const messages: Array<{ role: string; content: string }> = [
-    { role: "system", content: VOICE_AGENT_SYSTEM_PROMPT },
+    { role: "system", content: systemPrompt },
     {
       role: "system",
       content: `CURRENT SCENARIO: ${input.scenario}\nCURRENT CONVERSATION STATE: ${input.currentState}\nCURRENT EXTRACTED FIELDS: ${JSON.stringify(input.extractedFields || {})}`,
@@ -143,16 +149,16 @@ function getFallbackStructuredOutput(
     BOOKING:
       "I can assist with scheduling your consultation. What date and time works best for your schedule?",
     QUALIFICATION:
-      "Thanks for sharing your legal requirements. What is your estimated timeline for completing this work?",
+      "Thanks for sharing your requirements. What is your estimated timeline for completing this work?",
     ESCALATION:
-      "I understand your matter is time-sensitive. I will log a priority escalation brief for our legal partners.",
+      "I understand your matter is time-sensitive. I will log a priority escalation brief for our partners.",
     ROUTINE:
-      "Our fictional demo office is open Monday through Friday from 9:00 AM to 5:00 PM EST. Would you like to schedule a call?",
+      "Our office is open Monday through Friday from 8:30 AM to 6:00 PM EST. Would you like to schedule a call?",
   };
 
   const spokenReply =
     fallbackReplies[input.scenario] ||
-    "Thank you for contacting Northstar Legal Consultations. How may I guide your enquiry today?";
+    "Thank you for contacting our office. How may I guide your enquiry today?";
 
   return {
     spokenReply,

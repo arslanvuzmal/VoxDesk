@@ -38,6 +38,7 @@ export async function createDemoSession(
   scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
   reqIp: string,
   reqUserAgent: string,
+  options?: { presetKey?: string; language?: string },
 ): Promise<{ token: string; session: DemoSessionData }> {
   const ipHash = generateIPHash(reqIp);
   const uaHash = generateUserAgentHash(reqUserAgent);
@@ -46,6 +47,8 @@ export async function createDemoSession(
     scenario,
     ipHash,
     uaHash,
+    options?.presetKey || "LEGAL",
+    options?.language || "en-US",
   );
   const token = signOpaqueSessionId(session.sessionId);
 
@@ -57,5 +60,6 @@ export async function getDemoSessionFromCookieToken(
 ): Promise<DemoSessionData | null> {
   const sessionId = verifyOpaqueSessionToken(token);
   if (!sessionId) return null;
-  return await demoSessionStore.getSession(sessionId);
+
+  return demoSessionStore.getSession(sessionId);
 }

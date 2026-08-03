@@ -1,3 +1,5 @@
+import { OrganizationProfile } from "@/lib/organization/types";
+
 export type LeadCategory = "HOT" | "WARM" | "REVIEW" | "COLD";
 
 export interface LeadQualificationInput {
@@ -6,11 +8,12 @@ export interface LeadQualificationInput {
   timeline?: string;
   authority?: string;
   urgency?: string;
+  extractedFields?: Record<string, any>;
 }
 
 export interface QualificationCriterionScore {
   criterion: string;
-  score: number; // 0 to 20
+  score: number;
   weight: number;
   evidence: string;
   collected: boolean;
@@ -22,15 +25,156 @@ export interface QualificationResult {
   breakdown: QualificationCriterionScore[];
   missingFields: string[];
   recommendedAction: string;
+  followUpPriority: "IMMEDIATE" | "HIGH" | "MEDIUM" | "LOW";
+  requiresHumanReview: boolean;
 }
 
 export function calculateLeadQualification(
   input: LeadQualificationInput,
+  profile?: OrganizationProfile,
 ): QualificationResult {
   const breakdown: QualificationCriterionScore[] = [];
   const missingFields: string[] = [];
+  const fields = input.extractedFields || {};
 
-  // 1. Service Fit (Weight 25)
+  // If Organization Profile provides custom rules, evaluate against profile rules
+  if (profile?.qualificationRules) {
+    const rules = profile.qualificationRules;
+    const thresholds = rules.scoreThresholds;
+
+    for (const crit of rules.criteria) {
+      let collected = false;
+      let score = 0;
+      let evidence = "Not discussed in call";
+
+      // Match criteria against collected fields
+      const lowerName = crit.name.toLowerCase();
+      if (
+        lowerName.includes("budget") ||
+        lowerName.includes("price") ||
+        lowerName.includes("retainer")
+      ) {
+        const val =
+          input.budgetRange ||
+          fields.budgetRange ||
+          fields.estimatedBudget ||
+          fields.priceBudget;
+        if (val) {
+          collected = true;
+          score = crit.weight;
+          evidence = `Stated budget/price: ${val}`;
+        }
+      } else if (
+        lowerName.includes("service") ||
+        lowerName.includes("substance") ||
+        lowerName.includes("need") ||
+        lowerName.includes("symptom")
+      ) {
+        const val =
+          input.serviceInterest ||
+          fields.legalCategory ||
+          fields.primarySymptom ||
+          fields.intentType ||
+          fields.issueCategory;
+        if (val) {
+          collected = true;
+          score = crit.weight;
+          evidence = `Stated interest/need: ${val}`;
+        }
+      } else if (
+        lowerName.includes("timeline") ||
+        lowerName.includes("deadline") ||
+        lowerName.includes("urgency") ||
+        lowerName.includes("pain")
+      ) {
+        const val =
+          input.timeline ||
+          input.urgency ||
+          fields.urgencyLevel ||
+          fields.isEmergency ||
+          fields.buyingTimeline;
+        if (val) {
+          collected = true;
+          score = crit.weight;
+          evidence = `Stated timeline/urgency: ${val}`;
+        }
+      } else if (
+        lowerName.includes("authority") ||
+        lowerName.includes("owner") ||
+        lowerName.includes("role") ||
+        lowerName.includes("preapproved")
+      ) {
+        const val =
+          input.authority ||
+          fields.financingStatus ||
+          fields.teamSize ||
+          fields.authority;
+        if (val) {
+          collected = true;
+          score = crit.weight;
+          evidence = `Stated status/authority: ${val}`;
+        }
+      } else {
+        // General credit if caller provided details
+        if (Object.keys(fields).length > 2) {
+          collected = true;
+          score = Math.round(crit.weight * 0.75);
+          evidence = `Relevant qualification signal captured for ${crit.name}`;
+        }
+      }
+
+      if (!collected) {
+        missingFields.push(crit.name);
+      }
+
+      breakdown.push({
+        criterion: crit.name,
+        score,
+        weight: crit.weight,
+        evidence,
+        collected,
+      });
+    }
+
+    const totalScore = Math.min(
+      100,
+      breakdown.reduce((acc, b) => acc + b.score, 0),
+    );
+
+    let category: LeadCategory = "COLD";
+    let priority: "IMMEDIATE" | "HIGH" | "MEDIUM" | "LOW" = "LOW";
+    let recommendedAction =
+      "Store in CRM database and place in standard nurture sequence.";
+    let requiresHumanReview = false;
+
+    if (totalScore >= thresholds.hot) {
+      category = "HOT";
+      priority = "IMMEDIATE";
+      recommendedAction = `Immediate priority callback or calendar consultation dispatch for ${profile.name}`;
+    } else if (totalScore >= thresholds.warm) {
+      category = "WARM";
+      priority = "HIGH";
+      recommendedAction = `Schedule follow-up consultation and send ${profile.name} service summary`;
+    } else if (totalScore >= thresholds.review) {
+      category = "REVIEW";
+      priority = "MEDIUM";
+      requiresHumanReview = true;
+      recommendedAction =
+        "Route to human receptionist queue for qualification review";
+    }
+
+    return {
+      score: totalScore,
+      category,
+      breakdown,
+      missingFields,
+      recommendedAction,
+      followUpPriority: priority,
+      requiresHumanReview,
+    };
+  }
+
+  // Standard Fallback Qualification Algorithm
   if (input.serviceInterest && input.serviceInterest.trim().length > 0) {
     breakdown.push({
       criterion: "Service Fit",
@@ -40,7 +184,7 @@ export function calculateLeadQualification(
       collected: true,
     });
   } else {
-    missingFields.push("serviceInterest");
+    missingFields.push("Service Interest");
     breakdown.push({
       criterion: "Service Fit",
       score: 0,
@@ -50,28 +194,16 @@ export function calculateLeadQualification(
     });
   }
 
-  // 2. Budget (Weight 20)
   if (input.budgetRange) {
-    const text = input.budgetRange.toLowerCase();
-    const isHigh =
-      text.includes("10,000") ||
-      text.includes("25,000") ||
-      text.includes("10k") ||
-      text.includes("high") ||
-      text.includes("above") ||
-      text.includes(">");
-    const isMedium =
-      text.includes("5,000") || text.includes("5k") || text.includes("medium");
-    const score = isHigh ? 20 : isMedium ? 15 : 10;
     breakdown.push({
       criterion: "Budget Range",
-      score,
+      score: 20,
       weight: 20,
       evidence: `Stated budget: ${input.budgetRange}`,
       collected: true,
     });
   } else {
-    missingFields.push("budgetRange");
+    missingFields.push("Budget Range");
     breakdown.push({
       criterion: "Budget Range",
       score: 0,
@@ -81,24 +213,16 @@ export function calculateLeadQualification(
     });
   }
 
-  // 3. Timeline (Weight 20)
   if (input.timeline) {
-    const text = input.timeline.toLowerCase();
-    const isImmediate =
-      text.includes("immediate") ||
-      text.includes("this week") ||
-      text.includes("today") ||
-      text.includes("now");
-    const score = isImmediate ? 20 : 12;
     breakdown.push({
       criterion: "Timeline",
-      score,
+      score: 20,
       weight: 20,
       evidence: `Desired timeline: ${input.timeline}`,
       collected: true,
     });
   } else {
-    missingFields.push("timeline");
+    missingFields.push("Timeline");
     breakdown.push({
       criterion: "Timeline",
       score: 0,
@@ -108,25 +232,16 @@ export function calculateLeadQualification(
     });
   }
 
-  // 4. Decision Authority (Weight 15)
   if (input.authority) {
-    const text = input.authority.toLowerCase();
-    const isDecisionMaker =
-      text.includes("owner") ||
-      text.includes("decision") ||
-      text.includes("director") ||
-      text.includes("self") ||
-      text.includes("partner");
-    const score = isDecisionMaker ? 15 : 8;
     breakdown.push({
       criterion: "Decision Authority",
-      score,
+      score: 15,
       weight: 15,
       evidence: `Authority role: ${input.authority}`,
       collected: true,
     });
   } else {
-    missingFields.push("authority");
+    missingFields.push("Decision Authority");
     breakdown.push({
       criterion: "Decision Authority",
       score: 0,
@@ -136,23 +251,16 @@ export function calculateLeadQualification(
     });
   }
 
-  // 5. Urgency (Weight 20)
   if (input.urgency) {
-    const text = input.urgency.toLowerCase();
-    const isHighUrgency =
-      text.includes("high") ||
-      text.includes("urgent") ||
-      text.includes("emergency");
-    const score = isHighUrgency ? 20 : 10;
     breakdown.push({
       criterion: "Urgency Level",
-      score,
+      score: 20,
       weight: 20,
       evidence: `Urgency signal: ${input.urgency}`,
       collected: true,
     });
   } else {
-    missingFields.push("urgency");
+    missingFields.push("Urgency Level");
     breakdown.push({
       criterion: "Urgency Level",
       score: 0,
@@ -167,17 +275,22 @@ export function calculateLeadQualification(
   let category: LeadCategory = "COLD";
   let recommendedAction =
     "Send general business brochure and follow-up in 30 days";
+  let priority: "IMMEDIATE" | "HIGH" | "MEDIUM" | "LOW" = "LOW";
+  let requiresHumanReview = false;
 
   if (totalScore >= 75) {
     category = "HOT";
+    priority = "IMMEDIATE";
     recommendedAction =
       "Assign to senior account executive for immediate calendar consultation";
   } else if (totalScore >= 50) {
     category = "WARM";
-    recommendedAction =
-      "Schedule consultation and trigger nurture email sequence";
+    priority = "HIGH";
+    recommendedAction = "Schedule consultation and trigger nurture sequence";
   } else if (totalScore >= 30) {
     category = "REVIEW";
+    priority = "MEDIUM";
+    requiresHumanReview = true;
     recommendedAction =
       "Route to operator queue for manual qualification review";
   }
@@ -188,5 +301,7 @@ export function calculateLeadQualification(
     breakdown,
     missingFields,
     recommendedAction,
+    followUpPriority: priority,
+    requiresHumanReview,
   };
 }

@@ -10,6 +10,8 @@ export interface DemoSessionStartResponse {
   success: boolean;
   sessionId: string;
   scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  presetKey?: string;
+  language?: string;
   expiresAt: number;
   maxTurns: number;
   correlationId?: string;
@@ -21,6 +23,9 @@ export interface TurnResponse {
   spokenReply: string;
   conversationState: string;
   extractedFields: Record<string, string>;
+  qualificationResult?: any;
+  businessAction?: any;
+  organizationProfile?: any;
   actionTaken: string;
   turnsRemaining: number;
   fallbackUsed?: boolean;
@@ -85,6 +90,7 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 
 export async function startDemoSession(
   scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
+  options?: { presetKey?: string; language?: string },
 ): Promise<DemoSessionStartResponse> {
   const response = await fetch("/api/demo/session/start", {
     method: "POST",
@@ -94,7 +100,11 @@ export async function startDemoSession(
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify({ scenario }),
+    body: JSON.stringify({
+      scenario,
+      presetKey: options?.presetKey || "LEGAL",
+      language: options?.language || "en-US",
+    }),
   });
 
   return handleJsonResponse<DemoSessionStartResponse>(response);
@@ -119,6 +129,8 @@ export async function getDemoSessionStatus(): Promise<{
 export async function submitDemoTurn(input: {
   clientTurnId: string;
   transcript: string;
+  presetKey?: string;
+  language?: string;
 }): Promise<TurnResponse> {
   const response = await fetch("/api/demo/respond", {
     method: "POST",

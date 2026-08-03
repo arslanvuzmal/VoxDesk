@@ -14,6 +14,8 @@ export interface StoredResponse {
 export interface DemoSessionData {
   sessionId: string;
   scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  presetKey?: string;
+  language?: string;
   state: string;
   createdAt: number;
   expiresAt: number;
@@ -43,6 +45,8 @@ export interface IDemoSessionStore {
     scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
     ipHash: string,
     userAgentHash: string,
+    presetKey?: string,
+    language?: string,
   ): Promise<DemoSessionData>;
   getSession(sessionId: string): Promise<DemoSessionData | null>;
   updateSession(
@@ -116,6 +120,8 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
     ipHash: string,
     userAgentHash: string,
+    presetKey: string = "LEGAL",
+    language: string = "en-US",
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
@@ -124,6 +130,8 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     const session: DemoSessionData = {
       sessionId,
       scenario,
+      presetKey,
+      language,
       state: "READY",
       createdAt: now,
       expiresAt,
@@ -343,6 +351,8 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
     ipHash: string,
     userAgentHash: string,
+    presetKey: string = "LEGAL",
+    language: string = "en-US",
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
@@ -351,6 +361,8 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     const session: DemoSessionData = {
       sessionId,
       scenario,
+      presetKey,
+      language,
       state: "READY",
       createdAt: now,
       expiresAt,

@@ -10,6 +10,8 @@ import { env } from "@/lib/config/env";
 
 const SessionStartSchema = z.object({
   scenario: z.enum(["BOOKING", "QUALIFICATION", "ESCALATION", "ROUTINE"]),
+  presetKey: z.string().optional(),
+  language: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -83,12 +85,20 @@ export async function POST(req: NextRequest) {
     }
 
     const scenario = parseResult.data.scenario;
-    const { token, session } = await createDemoSession(scenario, ip, ua);
+    const presetKey = parseResult.data.presetKey || "LEGAL";
+    const language = parseResult.data.language || "en-US";
+
+    const { token, session } = await createDemoSession(scenario, ip, ua, {
+      presetKey,
+      language,
+    });
 
     const response = NextResponse.json({
       success: true,
       sessionId: session.sessionId,
       scenario: session.scenario,
+      presetKey,
+      language,
       expiresAt: session.expiresAt,
       maxTurns: session.maxTurns,
       correlationId,

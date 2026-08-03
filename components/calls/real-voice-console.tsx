@@ -29,13 +29,15 @@ import {
 } from "lucide-react";
 
 interface RealVoiceConsoleProps {
-  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
-  onResetScenario: () => void;
+  scenario?: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  onResetScenario?: () => void;
+  onCallEnded?: (finalTurnData: any) => void;
 }
 
 export function RealVoiceConsole({
-  scenario,
+  scenario = "BOOKING",
   onResetScenario,
+  onCallEnded,
 }: RealVoiceConsoleProps) {
   const [listening, setListening] = useState(false);
   const [thinking, setThinking] = useState(false);
@@ -245,6 +247,9 @@ export function RealVoiceConsole({
       setThinking(false);
 
       if (data.spokenReply) {
+        if (onCallEnded) {
+          onCallEnded(data);
+        }
         setTranscript((prev) => [
           ...prev,
           {
@@ -401,7 +406,7 @@ export function RealVoiceConsole({
     try {
       await deleteDemoSession();
       alert("Demo data deleted successfully.");
-      onResetScenario();
+      onResetScenario?.();
     } catch {
       alert("Failed to delete demo data.");
     } finally {

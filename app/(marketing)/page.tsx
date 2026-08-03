@@ -6,10 +6,13 @@ import {
   Calendar,
   Users,
   PhoneForwarded,
-  CheckCircle2,
   ShieldCheck,
-  FileText,
+  Globe,
+  Briefcase,
   Layers,
+  Sparkles,
+  UserCheck,
+  CheckCircle2,
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -17,269 +20,268 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
       <Navbar />
 
-      {/* SECTION 1 — PRODUCT HERO */}
-      <section className="pt-16 pb-20 px-6 border-b border-[#272D35]">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-            Calls answered. Appointments booked. Context preserved.
+      {/* HERO SECTION — OUTCOME FIRST */}
+      <section className="pt-20 pb-24 px-6 border-b border-[#272D35] relative overflow-hidden bg-gradient-to-b from-[#0F1216] via-[#0B0D10] to-[#0B0D10]">
+        <div className="max-w-5xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13171C] border border-[#272D35] text-xs font-mono text-[#2DD4BF] mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Voice Receptionist & Voice-Operations Platform</span>
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            Never lose a valuable enquiry because nobody answered the phone.
           </h1>
 
-          <p className="text-lg text-[#D4D4D8] max-w-2xl mx-auto font-normal leading-relaxed">
-            VoxDesk helps service businesses handle inbound enquiries, qualify
-            opportunities, schedule appointments and prepare human handoffs from
-            one voice operations workspace.
+          <p className="text-lg sm:text-xl text-[#D4D4D8] max-w-3xl mx-auto font-normal leading-relaxed">
+            VoxDesk answers callers immediately, understands their needs,
+            qualifies sales opportunities, books appointments, and turns every
+            conversation into an action-ready CRM record.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
             <Link
               href="/demo"
-              className="w-full sm:w-auto bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-semibold text-sm px-6 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-sm px-8 py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-[#2DD4BF]/10 transition-all"
             >
-              <span>Explore the interactive demo</span>
+              <span>Try Interactive Voice Demo</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
 
             <Link
               href="/demo/story"
-              className="w-full sm:w-auto bg-[#13171C] hover:bg-[#171C22] text-[#F4F4F5] font-medium text-sm px-6 py-3 rounded-lg border border-[#272D35] flex items-center justify-center gap-2 transition-colors"
+              className="w-full sm:w-auto bg-[#13171C] hover:bg-[#171C22] text-[#F4F4F5] font-medium text-sm px-8 py-4 rounded-xl border border-[#272D35] flex items-center justify-center gap-2 transition-colors"
             >
-              <span>View how a call is handled</span>
+              <span>View Interactive Walkthrough</span>
             </Link>
           </div>
 
-          <p className="text-xs text-[#8B949E] font-mono pt-1">
-            Interactive demo using fictional business and caller data.
-          </p>
+          <div className="pt-6 flex flex-wrap items-center justify-center gap-6 text-xs text-[#8B949E] font-mono">
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF]" /> 24/7
+              Inbound Answering
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF]" /> English,
+              Urdu & Spanish
+            </span>
+            <span className="flex items-center gap-1.5">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#2DD4BF]" /> Automated
+              Lead Inbox
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* SECTION 2 — COMPLETE CALL JOURNEY SEQUENCE */}
-      <section className="py-16 px-6 border-b border-[#272D35] bg-[#0F1216]">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2 text-center sm:text-left">
-            <h2 className="text-2xl font-bold text-white tracking-tight">
-              The Complete Inbound Call Journey
+      {/* SECTION 2 — THE PROBLEM VS VOXDESK SOLUTION */}
+      <section className="py-20 px-6 border-b border-[#272D35] bg-[#0F1216]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              Why Service Businesses Lose Revenue On Unanswered Calls
             </h2>
-            <p className="text-sm text-[#8B949E]">
-              How VoxDesk processes inbound calls from initial ring to CRM
-              entry.
+            <p className="text-sm text-[#8B949E] max-w-2xl mx-auto">
+              Comparing traditional reception bottlenecks with VoxDesk automated
+              voice operations.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-mono">
-            <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <span className="text-[#2DD4BF] font-bold block">
-                1. INBOUND CALL
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Traditional Problem */}
+            <div className="p-6 rounded-2xl bg-[#13171C]/80 border border-[#991B1B]/40 space-y-4">
+              <span className="text-xs font-mono text-[#EF4444] uppercase tracking-wider font-semibold">
+                Without VoxDesk (Traditional)
               </span>
-              <p className="text-[#D4D4D8] font-sans text-xs">
-                Caller connects. Verified webhook routes call to designated
-                voice agent.
-              </p>
+              <ul className="space-y-3 text-sm text-[#D4D4D8]">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#EF4444] font-bold">✕</span>
+                  <span>
+                    After-hours calls go to voicemail; 80% of callers hang up
+                    and call competitors.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#EF4444] font-bold">✕</span>
+                  <span>
+                    Staff waste 15+ hours/week answering repetitive FAQs about
+                    hours, location, and basic pricing.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#EF4444] font-bold">✕</span>
+                  <span>
+                    Inconsistent lead intake missing essential contact info,
+                    budget, and urgency signals.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#EF4444] font-bold">✕</span>
+                  <span>
+                    Scattered notes require manual data entry into CRM hours or
+                    days after the call.
+                  </span>
+                </li>
+              </ul>
             </div>
-            <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <span className="text-[#2DD4BF] font-bold block">
-                2. INTENT & INTAKE
+
+            {/* VoxDesk Solution */}
+            <div className="p-6 rounded-2xl bg-[#13171C]/80 border border-[#2DD4BF]/40 space-y-4">
+              <span className="text-xs font-mono text-[#2DD4BF] uppercase tracking-wider font-semibold">
+                With VoxDesk AI Voice Operations
               </span>
-              <p className="text-[#D4D4D8] font-sans text-xs">
-                Agent understands intent, answers approved questions, and
-                collects contact data.
-              </p>
-            </div>
-            <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <span className="text-[#2DD4BF] font-bold block">
-                3. CALENDAR CHECK
-              </span>
-              <p className="text-[#D4D4D8] font-sans text-xs">
-                Checks real-time availability and confirms appointment slot with
-                caller.
-              </p>
-            </div>
-            <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <span className="text-[#2DD4BF] font-bold block">
-                4. RECORD & SYNC
-              </span>
-              <p className="text-[#D4D4D8] font-sans text-xs">
-                Generates transcript, Zod-validated summary, BANT lead score,
-                and CRM activity.
-              </p>
+              <ul className="space-y-3 text-sm text-[#D4D4D8]">
+                <li className="flex items-start gap-2">
+                  <span className="text-[#2DD4BF] font-bold">✓</span>
+                  <span>
+                    24/7 Immediate Answering — Zero missed calls, zero voicemail
+                    dropoff.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#2DD4BF] font-bold">✓</span>
+                  <span>
+                    Approved Organizational Knowledge — Answers questions safely
+                    without inventing facts.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#2DD4BF] font-bold">✓</span>
+                  <span>
+                    Dynamic BANT Lead Scoring — Automatically rates leads HOT,
+                    WARM, REVIEW, or COLD.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#2DD4BF] font-bold">✓</span>
+                  <span>
+                    Instant CRM Lead Inbox — Complete transcript, summary, and
+                    follow-up priority ready immediately.
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 — OPERATIONAL OUTCOMES */}
-      <section className="py-16 px-6 border-b border-[#272D35]">
-        <div className="max-w-6xl mx-auto space-y-10">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">
-              Core Operations Capabilities
+      {/* SECTION 3 — 5 INDUSTRY PRESETS */}
+      <section className="py-20 px-6 border-b border-[#272D35]">
+        <div className="max-w-6xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <h2 className="text-3xl font-bold text-white tracking-tight">
+              Configured For Your Industry Workflow
             </h2>
-            <p className="text-sm text-[#8B949E]">
-              Four key outcomes managed automatically by VoxDesk voice
-              receptionists.
+            <p className="text-sm text-[#8B949E] max-w-2xl mx-auto">
+              VoxDesk adapts intake rules, compliance disclaimers, and
+              qualification thresholds per industry profile.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 rounded-lg bg-[#13171C] border border-[#272D35] space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-[#171C22] border border-[#272D35] flex items-center justify-center text-[#2DD4BF]">
-                <Calendar className="w-5 h-5" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  Legal Consultation Firm
+                </h3>
+                <Briefcase className="w-5 h-5 text-[#2DD4BF]" />
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Appointment Scheduling
-              </h3>
-              <p className="text-sm text-[#D4D4D8] leading-relaxed">
-                Connects with Google Calendar, Cal.com, or custom scheduling
-                endpoints. Presents valid openings, prevents double booking, and
-                requests caller confirmation before booking.
+              <p className="text-xs text-[#8B949E]">
+                Northstar Legal — Conflict intake, retainer budget
+                qualification, and senior partner calendar booking. Zero legal
+                advice compliance guarantee.
               </p>
             </div>
 
-            <div className="p-6 rounded-lg bg-[#13171C] border border-[#272D35] space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-[#171C22] border border-[#272D35] flex items-center justify-center text-[#34D399]">
-                <Users className="w-5 h-5" />
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  Medical & Dental Clinic
+                </h3>
+                <Users className="w-5 h-5 text-[#2DD4BF]" />
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Lead Qualification & Scoring
-              </h3>
-              <p className="text-sm text-[#D4D4D8] leading-relaxed">
-                Evaluates service requirements, estimated budget, desired
-                timeline, and decision authority to categorize inbound
-                opportunities as Hot, Warm, Review, or Cold.
+              <p className="text-xs text-[#8B949E]">
+                Apex Dental — Patient hygiene scheduling, insurance PPO
+                verification, and acute pain triage escalation with 911
+                redirection safety.
               </p>
             </div>
 
-            <div className="p-6 rounded-lg bg-[#13171C] border border-[#272D35] space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-[#171C22] border border-[#272D35] flex items-center justify-center text-[#FBBF24]">
-                <PhoneForwarded className="w-5 h-5" />
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  Real-Estate Brokerage
+                </h3>
+                <PhoneForwarded className="w-5 h-5 text-[#2DD4BF]" />
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Human Escalation & Transfer Briefing
-              </h3>
-              <p className="text-sm text-[#D4D4D8] leading-relaxed">
-                Detects caller dissatisfaction or emergency phrases. Pauses
-                automated handling and generates a structured Transfer Briefing
-                for human staff.
+              <p className="text-xs text-[#8B949E]">
+                Vanguard Realty — Private showing tour scheduling, pre-approval
+                letter verification, and luxury listing seller qualification.
               </p>
             </div>
 
-            <div className="p-6 rounded-lg bg-[#13171C] border border-[#272D35] space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-[#171C22] border border-[#272D35] flex items-center justify-center text-[#60A5FA]">
-                <FileText className="w-5 h-5" />
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  Home Services & HVAC
+                </h3>
+                <Phone className="w-5 h-5 text-[#2DD4BF]" />
               </div>
-              <h3 className="text-lg font-bold text-white">
-                Call Records & CRM Synchronization
-              </h3>
-              <p className="text-sm text-[#D4D4D8] leading-relaxed">
-                Every call produces a speaker-separated transcript, structured
-                summary, sentiment assessment, and action item checklist synced
-                directly to your CRM.
+              <p className="text-xs text-[#8B949E]">
+                ProCraft HVAC & Plumbing — Emergency leak/outage dispatch,
+                upfront diagnostic fee explanation, and 24/7 technician arrival
+                window booking.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  B2B Enterprise Software
+                </h3>
+                <Layers className="w-5 h-5 text-[#2DD4BF]" />
+              </div>
+              <p className="text-xs text-[#8B949E]">
+                Nexus Global SaaS — Enterprise MQL qualification, SOC2 security
+                compliance Q&A, and AE technical discovery demo scheduling.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold text-white">
+                  Multilingual Receptionist
+                </h3>
+                <Globe className="w-5 h-5 text-[#2DD4BF]" />
+              </div>
+              <p className="text-xs text-[#8B949E]">
+                Seamless multi-language conversations in English, Urdu, and
+                Spanish with language-aware STT, LLM reasoning, and TTS voices.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 4 — CONTROLS AND SAFEGUARDS */}
-      <section className="py-16 px-6 border-b border-[#272D35] bg-[#0F1216]">
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-white tracking-tight">
-              Built-in Controls & Security Safeguards
-            </h2>
-            <p className="text-sm text-[#8B949E]">
-              Server-enforced guardrails that keep your voice receptionists
-              accurate and compliant.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-            <div className="p-5 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <h4 className="font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#2DD4BF]" />
-                Approved Knowledge Rules
-              </h4>
-              <p className="text-xs text-[#8B949E]">
-                Agents only answer questions from approved Q&A entries,
-                preventing inaccurate pricing or false commitments.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <h4 className="font-bold text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#34D399]" />
-                AES-256 Credential Encryption
-              </h4>
-              <p className="text-xs text-[#8B949E]">
-                Provider credentials and sensitive customer information are
-                encrypted at rest and never sent to client bundles.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-lg bg-[#13171C] border border-[#272D35] space-y-2">
-              <h4 className="font-bold text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-[#60A5FA]" />
-                Pluggable Provider Adapters
-              </h4>
-              <p className="text-xs text-[#8B949E]">
-                Switch seamlessly between Demo Mode and live telephony providers
-                (Twilio, Vapi, Retell) when ready.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5 — FINAL ACTION */}
-      <section className="py-16 px-6 text-center">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <h2 className="text-3xl font-extrabold text-white tracking-tight">
-            Explore the complete call workflow
+      {/* SECTION 4 — CALL-TO-ACTION */}
+      <section className="py-20 px-6 text-center bg-[#0F1216]">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <h2 className="text-3xl font-bold text-white tracking-tight">
+            Ready to experience an interactive voice agent in action?
           </h2>
-          <p className="text-sm text-[#D4D4D8]">
-            Test live call handling, appointment booking, and lead qualification
-            in the interactive sandbox environment.
+          <p className="text-sm text-[#8B949E]">
+            Test natural speech recognition, dynamic lead qualification, and
+            instant CRM record creation right in your browser.
           </p>
-
-          <div className="flex items-center justify-center gap-3">
+          <div className="pt-2">
             <Link
               href="/demo"
-              className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-semibold text-sm px-6 py-3 rounded-lg flex items-center gap-2 transition-colors"
+              className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-sm px-8 py-4 rounded-xl inline-flex items-center gap-2 transition-all shadow-lg shadow-[#2DD4BF]/10"
             >
-              <span>Open interactive demo</span>
+              <span>Launch VoxDesk Live Demo</span>
               <ArrowRight className="w-4 h-4" />
-            </Link>
-
-            <Link
-              href="/architecture"
-              className="bg-[#13171C] hover:bg-[#171C22] text-[#F4F4F5] font-medium text-sm px-6 py-3 rounded-lg border border-[#272D35] transition-colors"
-            >
-              <span>Technical architecture</span>
             </Link>
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-8 px-6 border-t border-[#272D35] bg-[#0F1216] mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8B949E]">
-          <p>© 2026 VoxDesk AI. Developed by Arslan Vuzmal Lone.</p>
-          <div className="flex items-center gap-6">
-            <Link href="/privacy" className="hover:text-white">
-              Privacy
-            </Link>
-            <Link href="/terms" className="hover:text-white">
-              Terms
-            </Link>
-            <Link href="/docs" className="hover:text-white">
-              API Reference
-            </Link>
-            <Link href="/status" className="hover:text-white">
-              Status
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
