@@ -29,13 +29,19 @@ import {
 } from "lucide-react";
 
 interface RealVoiceConsoleProps {
-  scenario?: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  presetKey?: string;
+  language?: "en-US" | "ur-PK" | "es-ES";
+  organizationProfile?: any;
   onResetScenario?: () => void;
   onCallEnded?: (finalTurnData: any) => void;
 }
 
 export function RealVoiceConsole({
   scenario = "BOOKING",
+  presetKey = "LEGAL",
+  language = "en-US",
+  organizationProfile,
   onResetScenario,
   onCallEnded,
 }: RealVoiceConsoleProps) {
@@ -96,6 +102,7 @@ export function RealVoiceConsole({
         (window as any).SpeechRecognition ||
         (window as any).webkitSpeechRecognition;
       const rec = new SpeechRecognition();
+      rec.lang = language;
       rec.continuous = false;
       rec.interimResults = true;
 
@@ -161,13 +168,9 @@ export function RealVoiceConsole({
 
     // 4. Scenario Greeting
     const initialGreeting =
-      scenario === "BOOKING"
-        ? "Hello! Thank you for calling Northstar Legal Consultations. My name is Maya. How may I assist with your consultation appointment today?"
-        : scenario === "QUALIFICATION"
-          ? "Hello! Welcome to Northstar Legal. My name is Maya. What type of legal services or support are you inquiring about?"
-          : scenario === "ESCALATION"
-            ? "Northstar Legal Consultations, Maya speaking. How can I help you with your legal matter today?"
-            : "Hello! Thank you for calling Northstar Legal. How can I assist you with our business hours or consultation services?";
+      organizationProfile?.greetings?.[language] ||
+      organizationProfile?.greetings?.["en-US"] ||
+      `Hello! Thank you for calling ${organizationProfile?.name || "VoxDesk AI"}. How may I assist you today?`;
 
     setTranscript([
       {
@@ -393,7 +396,22 @@ export function RealVoiceConsole({
       if (data.summary) {
         setSummaryData(data.summary);
       }
-    } catch {}
+      if (onCallEnded) {
+        onCallEnded(data.finalCallResult || data.summary || data);
+      }
+    } catch {
+      if (onCallEnded) {
+        onCallEnded({
+          sessionId: "ended_session",
+          organization: {
+            name: organizationProfile?.name || "VoxDesk AI",
+            industry: organizationProfile?.industry || "General",
+          },
+          language,
+          scenario,
+        } as any);
+      }
+    }
   };
 
   const handleDeleteDemoData = async () => {

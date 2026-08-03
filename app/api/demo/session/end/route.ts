@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDemoSessionFromCookieToken } from "@/lib/demo/session";
 import { demoSessionStore } from "@/lib/demo/store";
-import { prisma } from "@/lib/database";
-import { env } from "@/lib/config/env";
+import { getOrganizationProfile } from "@/lib/organization/registry";
+import { persistFinalCallResult } from "@/lib/database/persistence";
+import { calculateLeadQualification } from "@/lib/conversation/qualification";
+import { FinalCallResult } from "@/lib/conversation/types/final-call-result";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,217 +13,137 @@ export async function POST(req: NextRequest) {
       ? await getDemoSessionFromCookieToken(cookieToken)
       : null;
 
-    const callId = `demo_call_${Math.floor(100000 + Math.random() * 900000)}`;
-    const activityId = `demo_act_${Math.floor(100000 + Math.random() * 900000)}`;
-    const duration = session
-      ? Math.min(180, Math.floor((Date.now() - session.createdAt) / 1000))
-      : 120;
-    const turns = session ? session.turnsUsed : 4;
-
-    const scenario = session?.scenario || "BOOKING";
-
-    let businessOutcome = "Inbound Enquiry Completed";
-    let keyPoints: string[] = [];
-    let appointmentData = null;
-    let leadData = null;
-    let escalationData = null;
-
-    if (scenario === "BOOKING") {
-      businessOutcome = "Demo Consultation Confirmed & Calendar Reserved";
-      keyPoints = [
-        "Inbound enquiry answered by Receptionist Maya",
-        "Caller requested consultation for legal matter",
-        "Fictional Demo Calendar slot reserved for Tuesday 10:00 AM",
-        "Demo CRM activity record created",
-      ];
-      appointmentData = {
-        id: `apt_${callId}`,
-        callerName: "Sarah Miller",
-        service: "Legal Consultation",
-        startTime: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
-        status: "CONFIRMED",
-      };
-    } else if (scenario === "QUALIFICATION") {
-      businessOutcome = "Lead BANT Score Calculated as HOT (85/100)";
-      keyPoints = [
-        "Inbound commercial enquiry answered by Maya",
-        "Assessed budget ($10k-$25k), timeline (Immediate), and authority",
-        "BANT qualification score: HOT (85/100)",
-        "Demo CRM lead contact created",
-      ];
-      leadData = {
-        id: `lead_${callId}`,
-        name: "David Vance",
-        company: "Vance Enterprises",
-        score: 85,
-        category: "HOT",
-      };
-    } else if (scenario === "ESCALATION") {
-      businessOutcome = "Urgent Partner Transfer Brief Created";
-      keyPoints = [
-        "Urgent inbound call flagged regarding contract litigation",
-        "Generated Senior Partner Brief for Arslan Vuzmal Lone",
-        "Callback task scheduled within 15 minutes",
-      ];
-      escalationData = {
-        id: `esc_${callId}`,
-        urgency: "HIGH",
-        reason: "Contract litigation emergency",
-        assignedPartner: "Arslan Vuzmal Lone",
-      };
-    } else {
-      businessOutcome = "Approved Business Knowledge Answered";
-      keyPoints = [
-        "Routine enquiry answered from approved knowledge base",
-        "Business opening hours and consultation options provided",
-      ];
+    if (!session) {
+      return NextResponse.json(
+        {
+          error: "Session expired or invalid.",
+          code: "SESSION_EXPIRED",
+        },
+        { status: 404 },
+      );
     }
 
-    // Persist records to database if database is connected
-    try {
-      if (prisma) {
-        const workspace = await prisma.workspace.findFirst();
-        const agent = workspace
-          ? await prisma.voiceAgent.findFirst({
-              where: { workspaceId: workspace.id },
-            })
-          : null;
+    const presetKey = session.presetKey || "LEGAL";
+    const language = (session.language as any) || "en-US";
+    const profile = getOrganizationProfile(presetKey);
+    const accumulated = session.accumulatedFields || {};
 
-        if (workspace && agent) {
-          const createdCall = await prisma.call.create({
-            data: {
-              workspaceId: workspace.id,
-              agentId: agent.id,
-              provider: "DEMO",
-              callerNumberMasked: "+1 (555) ***-9921",
-              callerName:
-                appointmentData?.callerName || leadData?.name || "Demo Caller",
-              durationSeconds: duration,
-              outcome:
-                scenario === "BOOKING"
-                  ? "APPOINTMENT_SCHEDULED"
-                  : scenario === "QUALIFICATION"
-                    ? "LEAD_QUALIFIED"
-                    : scenario === "ESCALATION"
-                      ? "ESCALATED_HUMAN"
-                      : "QUESTION_ANSWERED",
-              qualificationCategory: leadData ? "HOT" : "WARM",
-              qualificationScore: leadData ? 85 : 70,
-            },
-          });
+    const turnsCompleted = session.turnsUsed || 1;
+    const durationSeconds = Math.max(
+      10,
+      Math.round((Date.now() - session.createdAt) / 1000),
+    );
 
-          await prisma.callSummary.create({
-            data: {
-              callId: createdCall.id,
-              summary: keyPoints.join(". "),
-              intent: scenario,
-              sentiment: "positive",
-              urgency: scenario === "ESCALATION" ? "high" : "medium",
-              actionItems: keyPoints,
-              commitments: ["Send confirmation notice"],
-            },
-          });
-
-          if (appointmentData) {
-            await prisma.appointment.create({
-              data: {
-                workspaceId: workspace.id,
-                callId: createdCall.id,
-                callerName: appointmentData.callerName,
-                service: appointmentData.service,
-                startTime: new Date(appointmentData.startTime),
-                endTime: new Date(
-                  new Date(appointmentData.startTime).getTime() +
-                    30 * 60 * 1000,
-                ),
-                status: "CONFIRMED",
-              },
-            });
-          }
-
-          if (leadData) {
-            await prisma.lead.create({
-              data: {
-                workspaceId: workspace.id,
-                callId: createdCall.id,
-                name: leadData.name,
-                company: leadData.company,
-                score: leadData.score,
-                category: "HOT",
-                status: "NEW",
-              },
-            });
-          }
-
-          await prisma.cRMActivity.create({
-            data: {
-              workspaceId: workspace.id,
-              activityType: "CALL_LOG",
-              details: {
-                scenario,
-                duration,
-                turns,
-                keyPoints,
-              },
-            },
-          });
-        }
-      }
-    } catch {
-      // Database write error handled gracefully
+    // Lead qualification calculation if qualification-related
+    let qualification: any = undefined;
+    if (
+      session.scenario === "QUALIFICATION" ||
+      accumulated.serviceInterest ||
+      accumulated.budgetRange
+    ) {
+      qualification = calculateLeadQualification(
+        {
+          serviceInterest:
+            accumulated.serviceInterest ||
+            accumulated.legalCategory ||
+            profile.services[0]?.name,
+          budgetRange: accumulated.budgetRange || accumulated.priceBudget,
+          timeline: accumulated.timeline || accumulated.buyingTimeline,
+          authority: accumulated.authority,
+          urgency: accumulated.urgencyLevel,
+          extractedFields: accumulated,
+        },
+        profile,
+      );
     }
 
-    if (session) {
-      await demoSessionStore.endSession(session.sessionId, "CALL_COMPLETED");
-    }
+    const fullResult: FinalCallResult = {
+      sessionId: session.sessionId,
+      organization: {
+        id: profile.id,
+        name: profile.name,
+        industry: profile.industry,
+      },
+      language: language as any,
+      scenario: session.scenario as any,
+      startedAt: new Date(session.createdAt).toISOString(),
+      endedAt: new Date().toISOString(),
+      durationSeconds,
+      turnsCompleted,
+      transcript: session.history || [],
+      accumulatedFields: accumulated,
+      summary:
+        session.history && session.history.length > 0
+          ? session.history[session.history.length - 1].text
+          : (profile.greetings as Record<string, string>)[language] ||
+            profile.greetings["en-US"],
+      qualification,
+      businessActions: session.latestBusinessAction
+        ? [session.latestBusinessAction]
+        : [],
+      persistedRecords: {},
+      providersUsed:
+        session.providerExecutions && session.providerExecutions.length > 0
+          ? session.providerExecutions
+          : [
+              {
+                layer: "STT",
+                provider: "BROWSER",
+                language: language as any,
+                success: true,
+                fallbackUsed: true,
+              },
+              {
+                layer: "LLM",
+                provider: "CLOUDFLARE",
+                language: language as any,
+                success: true,
+                fallbackUsed: false,
+              },
+              {
+                layer: "TTS",
+                provider: "DETERMINISTIC",
+                language: language as any,
+                success: true,
+                fallbackUsed: false,
+              },
+            ],
+      persistence: {
+        success: false,
+        persisted: false,
+      },
+      degradedMode: false,
+      warnings: [],
+    };
+
+    // Execute atomic Prisma database persistence
+    const dbRes = await persistFinalCallResult(fullResult);
+    fullResult.persistedRecords = dbRes.recordIds;
+    fullResult.persistence = {
+      success: dbRes.success,
+      persisted: dbRes.persisted,
+      errorCode: !dbRes.persisted ? "DATABASE_UNAVAILABLE" : undefined,
+      message: dbRes.error || "Persistence completed",
+    };
+
+    await demoSessionStore.endSession(session.sessionId, "CALL_COMPLETED");
 
     const response = NextResponse.json({
       success: true,
-      summary: {
-        callId,
-        crmActivityId: activityId,
-        workspaceName: "Northstar Legal Consultations",
-        durationSeconds: duration,
-        turnsCompleted: turns,
-        scenario,
-        problemPresented:
-          scenario === "BOOKING"
-            ? "After-hours consultation booking"
-            : scenario === "QUALIFICATION"
-              ? "Unqualified lead intake"
-              : scenario === "ESCALATION"
-                ? "Urgent partner handoff"
-                : "Routine question Q&A",
-        businessOutcome,
-        keyPoints,
-        appointment: appointmentData,
-        lead: leadData,
-        escalation: escalationData,
-        providerModes: {
-          stt:
-            env.ELEVENLABS_API_KEY &&
-            env.DEMO_LIVE_PROVIDER_KILL_SWITCH !== "true"
-              ? "ElevenLabs Scribe Realtime"
-              : "Browser Web Speech",
-          llm:
-            env.OPENROUTER_API_KEY &&
-            env.DEMO_LIVE_PROVIDER_KILL_SWITCH !== "true"
-              ? `OpenRouter (${env.OPENROUTER_MODEL})`
-              : "Deterministic Fallback",
-          tts:
-            env.ELEVENLABS_API_KEY &&
-            env.DEMO_LIVE_PROVIDER_KILL_SWITCH !== "true"
-              ? "ElevenLabs Flash TTS"
-              : "Browser Web Speech",
-        },
-      },
+      finalCallResult: fullResult,
+      persisted: dbRes.persisted,
+      recordIds: dbRes.recordIds,
     });
 
     response.cookies.delete("voxdesk_demo_session");
     return response;
-  } catch {
+  } catch (error: any) {
     return NextResponse.json(
-      { error: "Failed to end demo session." },
+      {
+        error: "Failed to finalize session.",
+        code: "INTERNAL_ERROR",
+        message: error?.message || "Session termination failed",
+      },
       { status: 500 },
     );
   }

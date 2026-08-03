@@ -1,6 +1,7 @@
 import { SupportedLanguage, DemoIntent } from "../schemas/voice-agent-output";
 
 export interface ProviderExecutionResult {
+  layer: "STT" | "LLM" | "TTS";
   provider:
     "CLOUDFLARE" | "OPENROUTER" | "ELEVENLABS" | "BROWSER" | "DETERMINISTIC";
   model?: string;
@@ -53,11 +54,14 @@ export interface FinalCallResult {
     leadId?: string;
     appointmentId?: string;
     crmActivityId?: string;
+    auditLogId?: string;
   };
-  providersUsed: {
-    stt: ProviderExecutionResult;
-    llm: ProviderExecutionResult;
-    tts: ProviderExecutionResult;
+  providersUsed: ProviderExecutionResult[];
+  persistence: {
+    success: boolean;
+    persisted: boolean;
+    errorCode?: string;
+    message?: string;
   };
   degradedMode: boolean;
   warnings: string[];

@@ -45,6 +45,7 @@ export default function LeadsPage() {
 
   useEffect(() => {
     fetchLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, urgencyFilter]);
 
   const hotCount = leads.filter((l) => l.category === "HOT").length;

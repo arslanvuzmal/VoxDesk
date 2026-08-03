@@ -3,9 +3,25 @@ import { env } from "@/lib/config/env";
 
 const ALGORITHM = "aes-256-gcm";
 
+export class EncryptionError extends Error {
+  constructor(message: string) {
+    super(`[PII_ENCRYPTION_FAILURE]: ${message}`);
+    this.name = "EncryptionError";
+  }
+}
+
+export class DecryptionError extends Error {
+  constructor(message: string) {
+    super(`[PII_DECRYPTION_FAILURE]: ${message}`);
+    this.name = "DecryptionError";
+  }
+}
+
 function getSecretKey(): Buffer {
   const secret =
-    env.DEMO_SESSION_SECRET || "default_voxdesk_secure_key_32_bytes_long!!";
+    process.env.PII_ENCRYPTION_KEY ||
+    env.DEMO_SESSION_SECRET ||
+    "default_voxdesk_pii_secure_key_32_bytes_long!!";
   return crypto.createHash("sha256").update(secret).digest();
 }
 
@@ -19,20 +35,37 @@ export function encryptSensitiveValue(value: string): string {
     encrypted += cipher.final("hex");
     const authTag = cipher.getAuthTag().toString("hex");
 
-    return `enc:${iv.toString("hex")}:${authTag}:${encrypted}`;
-  } catch {
-    return value;
+    return `enc:v1:${iv.toString("hex")}:${authTag}:${encrypted}`;
+  } catch (err: any) {
+    throw new EncryptionError(err?.message || "Failed to encrypt PII value");
   }
 }
 
 export function decryptSensitiveValue(encryptedValue: string): string {
-  if (!encryptedValue || !encryptedValue.startsWith("enc:"))
+  if (!encryptedValue) return "";
+  if (!encryptedValue.startsWith("enc:")) {
+    // If not encrypted, return as is (for legacy unencrypted fixtures)
     return encryptedValue;
+  }
+
   try {
     const parts = encryptedValue.split(":");
-    if (parts.length !== 4) return encryptedValue;
+    if (parts.length < 4) {
+      throw new Error("Invalid encrypted format token");
+    }
 
-    const [, ivHex, authTagHex, encryptedText] = parts;
+    let ivHex = "";
+    let authTagHex = "";
+    let encryptedText = "";
+
+    if (parts[1] === "v1" && parts.length === 5) {
+      [, , ivHex, authTagHex, encryptedText] = parts;
+    } else if (parts.length === 4) {
+      [, ivHex, authTagHex, encryptedText] = parts;
+    } else {
+      throw new Error("Malformed encrypted version payload");
+    }
+
     const iv = Buffer.from(ivHex, "hex");
     const authTag = Buffer.from(authTagHex, "hex");
     const key = getSecretKey();
@@ -43,8 +76,8 @@ export function decryptSensitiveValue(encryptedValue: string): string {
     decrypted += decipher.final("utf8");
 
     return decrypted;
-  } catch {
-    return encryptedValue;
+  } catch (err: any) {
+    throw new DecryptionError(err?.message || "Failed to decrypt PII value");
   }
 }
 

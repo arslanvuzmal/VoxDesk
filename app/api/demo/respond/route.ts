@@ -305,7 +305,7 @@ export async function POST(req: NextRequest) {
         fallbackUsed,
         providerLabel,
         turnsRemaining: Math.max(0, session.maxTurns - turnsUsedNext),
-        actionTaken: actionResult.statusMessage,
+        actionTaken: actionResult.message,
         correlationId,
       });
     });

@@ -34,3 +34,5 @@ yarn-error.log*
 Thumbs.db
 
 .vercel
+*.tsbuildinfo
+tsconfig.tsbuildinfo

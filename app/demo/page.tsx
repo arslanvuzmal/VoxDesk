@@ -365,6 +365,10 @@ export default function DemoPage() {
             </div>
 
             <RealVoiceConsole
+              scenario={selectedScenario}
+              presetKey={selectedPresetKey}
+              language={selectedLanguage as any}
+              organizationProfile={activeProfile}
               onCallEnded={(finalTurnData) => {
                 setCallEndedResult(finalTurnData);
                 setActiveSession(false);

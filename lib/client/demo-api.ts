@@ -207,6 +207,7 @@ export async function requestTTS(responseId: string): Promise<TTSResponse> {
 export async function endDemoSession(): Promise<{
   success: boolean;
   summary: any;
+  finalCallResult?: any;
 }> {
   const response = await fetch("/api/demo/session/end", {
     method: "POST",

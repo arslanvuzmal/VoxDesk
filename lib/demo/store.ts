@@ -34,6 +34,13 @@ export interface DemoSessionData {
   processedTurnIds: string[];
   history: Array<{ role: "CALLER" | "AGENT"; text: string }>;
   storedResponses: Record<string, StoredResponse>;
+  accumulatedFields: Record<string, any>;
+  missingRequiredFields: string[];
+  latestQualification?: any;
+  latestBusinessAction?: any;
+  pendingConfirmation?: any;
+  executedActionKeys: string[];
+  providerExecutions: any[];
   ipHash: string;
   userAgentHash: string;
   completed: boolean;
@@ -149,6 +156,10 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
       processedTurnIds: [],
       history: [],
       storedResponses: {},
+      accumulatedFields: {},
+      missingRequiredFields: [],
+      executedActionKeys: [],
+      providerExecutions: [],
       ipHash,
       userAgentHash,
       completed: false,
@@ -380,6 +391,10 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
       processedTurnIds: [],
       history: [],
       storedResponses: {},
+      accumulatedFields: {},
+      missingRequiredFields: [],
+      executedActionKeys: [],
+      providerExecutions: [],
       ipHash,
       userAgentHash,
       completed: false,
