@@ -30,6 +30,7 @@ export interface DemoSessionData {
   activeSTTConnection: boolean;
   sttTokenIssuedAt?: number;
   processedTurnIds: string[];
+  history: Array<{ role: "CALLER" | "AGENT"; text: string }>;
   storedResponses: Record<string, StoredResponse>;
   ipHash: string;
   userAgentHash: string;
@@ -71,7 +72,7 @@ export interface IDemoSessionStore {
   ): Promise<{ allowed: boolean; secondsRemaining: number }>;
 }
 
-// Memory Store for Development
+// Memory Store for Development Only
 class MemoryDemoSessionStore implements IDemoSessionStore {
   private sessions = new Map<string, DemoSessionData>();
   private ipSessionCount = new Map<string, { count: number; date: string }>();
@@ -114,6 +115,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
       activeRequest: false,
       activeSTTConnection: false,
       processedTurnIds: [],
+      history: [],
       storedResponses: {},
       ipHash,
       userAgentHash,
@@ -122,7 +124,6 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
 
     this.sessions.set(sessionId, session);
 
-    // Update IP counter
     const today = this.getTodayStr();
     const currentIp = this.ipSessionCount.get(ipHash);
     if (!currentIp || currentIp.date !== today) {
@@ -136,7 +137,6 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
 
     this.ipLastSession.set(ipHash, now);
 
-    // Update Global Counter
     if (this.globalDailySessions.date !== today) {
       this.globalDailySessions = { count: 1, date: today };
     } else {
@@ -304,7 +304,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
 }
 
 // Upstash Redis Store for Production
-class RedisDemoSessionStore implements IDemoSessionStore {
+export class RedisDemoSessionStore implements IDemoSessionStore {
   private redis: Redis;
 
   constructor(url: string, token: string) {
@@ -342,6 +342,7 @@ class RedisDemoSessionStore implements IDemoSessionStore {
       activeRequest: false,
       activeSTTConnection: false,
       processedTurnIds: [],
+      history: [],
       storedResponses: {},
       ipHash,
       userAgentHash,
@@ -534,13 +535,58 @@ class RedisDemoSessionStore implements IDemoSessionStore {
   }
 }
 
+export function getDemoSessionStoreStatus(): {
+  provider: "redis" | "memory" | "unavailable";
+  ready: boolean;
+} {
+  const isProduction = process.env.NODE_ENV === "production";
+  const hasRedis = !!(
+    env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+  );
+
+  if (isProduction) {
+    if (hasRedis) return { provider: "redis", ready: true };
+    return { provider: "unavailable", ready: false };
+  }
+
+  if (hasRedis) return { provider: "redis", ready: true };
+  return { provider: "memory", ready: true };
+}
+
 function createSessionStore(): IDemoSessionStore {
-  if (env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN) {
+  const isProduction = process.env.NODE_ENV === "production";
+  const hasRedis = !!(
+    env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
+  );
+
+  if (isProduction) {
+    if (!hasRedis) {
+      // Return proxy store that throws on use to prevent non-persistent session operations
+      return new Proxy({} as IDemoSessionStore, {
+        get(_target, prop) {
+          if (prop === "then") return undefined;
+          throw new Error(
+            "DEMO_SESSION_STORE_UNAVAILABLE: Managed Redis persistence is not configured on this serverless environment.",
+          );
+        },
+      });
+    }
     return new RedisDemoSessionStore(
-      env.UPSTASH_REDIS_REST_URL,
-      env.UPSTASH_REDIS_REST_TOKEN,
+      env.UPSTASH_REDIS_REST_URL!,
+      env.UPSTASH_REDIS_REST_TOKEN!,
     );
   }
+
+  if (hasRedis) {
+    return new RedisDemoSessionStore(
+      env.UPSTASH_REDIS_REST_URL!,
+      env.UPSTASH_REDIS_REST_TOKEN!,
+    );
+  }
+
+  console.warn(
+    "[DEV WARN] Using in-memory session store. This store will reset on server restart and is not shared across serverless functions.",
+  );
   return new MemoryDemoSessionStore();
 }
 

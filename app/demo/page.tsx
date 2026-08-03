@@ -4,36 +4,61 @@ import { useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
 import { RealVoiceConsole } from "@/components/calls/real-voice-console";
+import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import {
   Mic,
-  ArrowRight,
   Calendar,
   Users,
   PhoneForwarded,
   HelpCircle,
-  CheckCircle2,
   ShieldCheck,
+  AlertTriangle,
+  RotateCcw,
+  BookOpen,
 } from "lucide-react";
 
 export default function DemoPage() {
   const [selectedScenario, setSelectedScenario] = useState<
     "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE"
   >("BOOKING");
-  const [demoMode, setDemoMode] = useState<"VOICE" | "GUIDED">("VOICE");
   const [hasConsented, setHasConsented] = useState(false);
   const [activeSession, setActiveSession] = useState(false);
+  const [isStartingSession, setIsStartingSession] = useState(false);
+  const [sessionStartError, setSessionStartError] = useState<{
+    message: string;
+    code?: string;
+    guidedDemoUrl?: string;
+  } | null>(null);
 
-  const startDemoSession = async () => {
-    if (!hasConsented) return;
+  const handleStartSession = async () => {
+    if (!hasConsented || isStartingSession) return;
+    setIsStartingSession(true);
+    setSessionStartError(null);
+
     try {
-      await fetch("/api/demo/session/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario: selectedScenario }),
-      });
-      setActiveSession(true);
-    } catch {
-      setActiveSession(true);
+      const res = await startDemoSession(selectedScenario);
+      if (res.success && res.sessionId) {
+        setActiveSession(true);
+      } else {
+        setSessionStartError({
+          message: "Could not initialize voice session.",
+        });
+      }
+    } catch (err: any) {
+      if (err instanceof DemoApiError) {
+        setSessionStartError({
+          message: err.message,
+          code: err.code,
+          guidedDemoUrl: err.guidedDemoUrl,
+        });
+      } else {
+        setSessionStartError({
+          message: "Connection error: Unable to start live demo session.",
+        });
+      }
+      setActiveSession(false);
+    } finally {
+      setIsStartingSession(false);
     }
   };
 
@@ -58,6 +83,42 @@ export default function DemoPage() {
                 human handoff.
               </p>
             </div>
+
+            {/* Error Banner */}
+            {sessionStartError && (
+              <div className="p-4 rounded-lg bg-red-950/50 border border-red-800/80 space-y-3 text-xs">
+                <div className="flex items-start gap-3 text-red-200 font-semibold">
+                  <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p>{sessionStartError.message}</p>
+                    {sessionStartError.code && (
+                      <p className="font-mono text-[11px] text-red-400">
+                        Error Code: {sessionStartError.code}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-1">
+                  <button
+                    onClick={handleStartSession}
+                    disabled={isStartingSession}
+                    className="px-3 py-1.5 rounded bg-red-900 hover:bg-red-800 text-white font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Retry Session Start</span>
+                  </button>
+
+                  <Link
+                    href={sessionStartError.guidedDemoUrl || "/demo/story"}
+                    className="px-3 py-1.5 rounded bg-[#171C22] hover:bg-[#202730] text-gray-300 font-medium border border-[#272D35] flex items-center gap-1.5"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                    <span>Open Guided Walkthrough</span>
+                  </Link>
+                </div>
+              </div>
+            )}
 
             {/* 4 Scenario Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -223,12 +284,16 @@ export default function DemoPage() {
             {/* Start Button */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <button
-                disabled={!hasConsented}
-                onClick={startDemoSession}
+                disabled={!hasConsented || isStartingSession}
+                onClick={handleStartSession}
                 className="w-full sm:w-auto bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-sm px-8 py-3.5 rounded-lg flex items-center justify-center gap-2 disabled:opacity-40 transition-colors"
               >
                 <Mic className="w-4 h-4" />
-                <span>Start Short Voice Demo</span>
+                <span>
+                  {isStartingSession
+                    ? "Initializing Session..."
+                    : "Start Short Voice Demo"}
+                </span>
               </button>
 
               <Link

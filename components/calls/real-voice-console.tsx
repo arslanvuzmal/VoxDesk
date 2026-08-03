@@ -3,9 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
+  submitDemoTurn,
+  requestSTTToken,
+  requestTTS,
+  endDemoSession,
+  deleteDemoSession,
+  disconnectSTTConnection,
+  DemoApiError,
+} from "@/lib/client/demo-api";
+import {
   Mic,
   MicOff,
-  Volume2,
   PhoneOff,
   Calendar,
   Users,
@@ -13,8 +21,11 @@ import {
   ArrowRight,
   RefreshCw,
   CheckCircle2,
-  ShieldCheck,
   Trash2,
+  Send,
+  RotateCcw,
+  BookOpen,
+  Volume2,
 } from "lucide-react";
 
 interface RealVoiceConsoleProps {
@@ -36,6 +47,7 @@ export function RealVoiceConsole({
     Array<{ role: string; text: string; timestamp: string }>
   >([]);
   const [currentSpeechInput, setCurrentSpeechInput] = useState("");
+  const [manualInput, setManualInput] = useState("");
   const [currentState, setCurrentState] = useState("GREETING");
   const [currentIntent, setCurrentIntent] = useState("Initial Intake");
   const [turnsRemaining, setTurnsRemaining] = useState(6);
@@ -44,23 +56,36 @@ export function RealVoiceConsole({
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<any>(null);
   const [sttProviderMode, setSttProviderMode] = useState<string>(
-    "ElevenLabs Scribe Realtime",
+    "Connecting to ElevenLabs...",
   );
+  const [lastAudioBlob, setLastAudioBlob] = useState<Blob | null>(null);
+
+  // Error state
+  const [conversationError, setConversationError] = useState<{
+    message: string;
+    code?: string;
+    status?: number;
+    canRetry?: boolean;
+  } | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [lastFailedInput, setLastFailedInput] = useState<string | null>(null);
 
   const recognitionRef = useRef<any>(null);
+  const finalTranscriptRef = useRef<string>("");
+  const interimTranscriptRef = useRef<string>("");
 
-  // Initialize Web Speech Recognition fallback or Scribe STT token
+  // Initialize Speech Recognition fallback & ElevenLabs token check
   useEffect(() => {
-    // Attempt single-use ElevenLabs STT token fetch
-    fetch("/api/demo/stt-token", { method: "POST" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.fallbackWebSpeech) {
-          setSttProviderMode("Browser Web Speech (Fallback)");
-        }
+    // 1. STT Token Check
+    requestSTTToken()
+      .then(() => {
+        setSttProviderMode("ElevenLabs Scribe Realtime");
       })
-      .catch(() => setSttProviderMode("Browser Web Speech (Fallback)"));
+      .catch(() => {
+        setSttProviderMode("Browser transcription fallback");
+      });
 
+    // 2. Browser Web Speech Fallback Setup
     if (
       typeof window !== "undefined" &&
       ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
@@ -73,43 +98,74 @@ export function RealVoiceConsole({
       rec.interimResults = true;
 
       rec.onresult = (event: any) => {
-        let currentText = "";
+        let finalStr = "";
+        let interimStr = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          currentText += event.results[i][0].transcript;
+          const trans = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalStr += trans;
+          } else {
+            interimStr += trans;
+          }
         }
-        setCurrentSpeechInput(currentText);
+        if (finalStr) {
+          finalTranscriptRef.current = (
+            finalTranscriptRef.current +
+            " " +
+            finalStr
+          ).trim();
+        }
+        interimTranscriptRef.current = interimStr;
+        setCurrentSpeechInput(
+          (finalTranscriptRef.current + " " + interimStr).trim(),
+        );
+      };
+
+      rec.onerror = (event: any) => {
+        console.warn("[SPEECH RECOGNITION ERROR]:", event.error);
+        setListening(false);
+        if (event.error === "not-allowed") {
+          setSttProviderMode("Text input mode (Mic permission denied)");
+        }
       };
 
       rec.onend = () => {
         setListening(false);
-        if (currentSpeechInput.trim()) {
-          handleUserSpeechSubmit(currentSpeechInput.trim());
+        const finalText = finalTranscriptRef.current.trim();
+        if (finalText) {
+          handleUserSpeechSubmit(finalText);
         }
+        finalTranscriptRef.current = "";
+        interimTranscriptRef.current = "";
+        setCurrentSpeechInput("");
+        disconnectSTTConnection().catch(() => {});
       };
 
       recognitionRef.current = rec;
+    } else {
+      setSttProviderMode("Text input mode (Browser unsupported)");
     }
 
-    // Timer countdown interval
+    // 3. Call Duration Countdown Timer
     const interval = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          endDemoCall();
+          handleEndDemoCall();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    // Initial greeting message
+    // 4. Scenario Greeting
     const initialGreeting =
       scenario === "BOOKING"
-        ? "Hello! Thank you for calling Northstar Legal Consultations. My name is Maya. How may I assist with your appointment today?"
+        ? "Hello! Thank you for calling Northstar Legal Consultations. My name is Maya. How may I assist with your consultation appointment today?"
         : scenario === "QUALIFICATION"
-          ? "Hello! Welcome to Northstar Legal. My name is Maya. What type of commercial legal services are you inquiring about?"
+          ? "Hello! Welcome to Northstar Legal. My name is Maya. What type of legal services or support are you inquiring about?"
           : scenario === "ESCALATION"
-            ? "Northstar Legal Consultations, Maya speaking. How can I help you today?"
-            : "Hello! Thank you for calling Northstar Legal. How can I assist you with our business hours or services?";
+            ? "Northstar Legal Consultations, Maya speaking. How can I help you with your legal matter today?"
+            : "Hello! Thank you for calling Northstar Legal. How can I assist you with our business hours or consultation services?";
 
     setTranscript([
       {
@@ -123,16 +179,26 @@ export function RealVoiceConsole({
       },
     ]);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      disconnectSTTConnection().catch(() => {});
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scenario]);
 
   const toggleMicrophone = () => {
+    if (sessionExpired || callEnded) return;
+
     if (listening) {
       if (recognitionRef.current) recognitionRef.current.stop();
       setListening(false);
+      disconnectSTTConnection().catch(() => {});
     } else {
+      finalTranscriptRef.current = "";
+      interimTranscriptRef.current = "";
       setCurrentSpeechInput("");
+      setConversationError(null);
+
       if (recognitionRef.current) {
         try {
           recognitionRef.current.start();
@@ -147,29 +213,35 @@ export function RealVoiceConsole({
   };
 
   const handleUserSpeechSubmit = async (userText: string) => {
-    if (!userText || thinking || callEnded) return;
+    if (!userText || thinking || callEnded || sessionExpired) return;
 
-    const turnUuid = `turn_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const turnUuid =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `turn_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+
     const timeStr = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
     });
+
     setTranscript((prev) => [
       ...prev,
       { role: "CALLER", text: userText, timestamp: timeStr },
     ]);
+    setManualInput("");
     setCurrentSpeechInput("");
     setThinking(true);
+    setConversationError(null);
+    setLastFailedInput(null);
 
     try {
-      const res = await fetch("/api/demo/respond", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: userText, clientTurnId: turnUuid }),
+      const data = await submitDemoTurn({
+        transcript: userText,
+        clientTurnId: turnUuid,
       });
 
-      const data = await res.json();
       setThinking(false);
 
       if (data.spokenReply) {
@@ -185,25 +257,70 @@ export function RealVoiceConsole({
             }),
           },
         ]);
-        setCurrentState(data.conversationState || "RESPONDING");
-        setCurrentIntent(data.detectedIntent || "General Inquiry");
-        setTurnsRemaining((prev) => Math.max(0, prev - 1));
 
-        if (data.action?.displayMessage) {
-          setActionNotice(data.action.displayMessage);
+        setCurrentState(data.conversationState || "RESPONDING");
+        setCurrentIntent(data.actionTaken || "General Inquiry");
+        setTurnsRemaining(
+          typeof data.turnsRemaining === "number" ? data.turnsRemaining : 5,
+        );
+
+        if (data.actionTaken) {
+          setActionNotice(data.actionTaken);
         }
 
         // Trigger TTS playback using responseId voucher
         if (data.responseId) {
           playAgentSpeechWithResponseId(data.responseId, data.spokenReply);
         }
-
-        if (data.shouldEnd) {
-          setTimeout(() => endDemoCall(), 3000);
-        }
       }
-    } catch {
+    } catch (err: any) {
       setThinking(false);
+      setLastFailedInput(userText);
+
+      if (err instanceof DemoApiError) {
+        if (
+          err.status === 401 ||
+          err.code === "SESSION_EXPIRED" ||
+          err.code === "SESSION_NOT_FOUND"
+        ) {
+          setSessionExpired(true);
+          setConversationError({
+            message:
+              "This short demo session ended. Start a new session to continue.",
+            code: err.code,
+            status: err.status,
+            canRetry: false,
+          });
+        } else if (err.status === 429) {
+          setConversationError({
+            message: err.message,
+            code: err.code,
+            status: err.status,
+            canRetry: false,
+          });
+        } else {
+          setConversationError({
+            message:
+              err.message || "The response service encountered an error.",
+            code: err.code,
+            status: err.status,
+            canRetry: true,
+          });
+        }
+      } else {
+        setConversationError({
+          message:
+            "Connection error: Could not reach VoxDesk AI response engine.",
+          code: "NETWORK_ERROR",
+          canRetry: true,
+        });
+      }
+    }
+  };
+
+  const handleRetryLastTurn = () => {
+    if (lastFailedInput) {
+      handleUserSpeechSubmit(lastFailedInput);
     }
   };
 
@@ -213,43 +330,60 @@ export function RealVoiceConsole({
   ) => {
     setSpeaking(true);
     try {
-      const ttsRes = await fetch("/api/demo/tts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ responseId }),
-      });
-
-      if (ttsRes.ok && ttsRes.headers.get("content-type")?.includes("audio")) {
-        const blob = await ttsRes.blob();
+      const ttsData = await requestTTS(responseId);
+      if (ttsData.audioBuffer) {
+        const blob = new Blob([ttsData.audioBuffer], {
+          type: ttsData.contentType,
+        });
+        setLastAudioBlob(blob);
         const audioUrl = URL.createObjectURL(blob);
         const audio = new Audio(audioUrl);
-        audio.onended = () => setSpeaking(false);
+        audio.onended = () => {
+          setSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+        };
+        audio.onerror = () => {
+          setSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+        };
         await audio.play().catch(() => setSpeaking(false));
       } else {
-        // Browser SpeechSynthesis fallback
-        if (typeof window !== "undefined" && "speechSynthesis" in window) {
-          const synth = window.speechSynthesis;
-          const utterance = new SpeechSynthesisUtterance(
-            replyFallbackText.slice(0, 350),
-          );
-          utterance.onend = () => setSpeaking(false);
-          synth.speak(utterance);
-        } else {
-          setSpeaking(false);
-        }
+        fallbackBrowserSpeech(replyFallbackText);
       }
     } catch {
+      fallbackBrowserSpeech(replyFallbackText);
+    }
+  };
+
+  const fallbackBrowserSpeech = (text: string) => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const synth = window.speechSynthesis;
+      const utterance = new SpeechSynthesisUtterance(text.slice(0, 350));
+      utterance.onend = () => setSpeaking(false);
+      utterance.onerror = () => setSpeaking(false);
+      synth.speak(utterance);
+    } else {
       setSpeaking(false);
     }
   };
 
-  const endDemoCall = async () => {
+  const replayLastSpeech = () => {
+    if (!lastAudioBlob) return;
+    setSpeaking(true);
+    const audioUrl = URL.createObjectURL(lastAudioBlob);
+    const audio = new Audio(audioUrl);
+    audio.onended = () => setSpeaking(false);
+    audio.onerror = () => setSpeaking(false);
+    audio.play().catch(() => setSpeaking(false));
+  };
+
+  const handleEndDemoCall = async () => {
     setCallEnded(true);
     if (listening && recognitionRef.current) recognitionRef.current.stop();
+    disconnectSTTConnection().catch(() => {});
 
     try {
-      const res = await fetch("/api/demo/session/end", { method: "POST" });
-      const data = await res.json();
+      const data = await endDemoSession();
       if (data.summary) {
         setSummaryData(data.summary);
       }
@@ -265,7 +399,7 @@ export function RealVoiceConsole({
       return;
     setIsDeleting(true);
     try {
-      await fetch("/api/demo/session/delete", { method: "POST" });
+      await deleteDemoSession();
       alert("Demo data deleted successfully.");
       onResetScenario();
     } catch {
@@ -274,6 +408,16 @@ export function RealVoiceConsole({
       setIsDeleting(false);
     }
   };
+
+  // Scenario-specific sample input messages
+  const sampleMessage =
+    scenario === "BOOKING"
+      ? "I need an initial consultation next Tuesday afternoon."
+      : scenario === "QUALIFICATION"
+        ? "We need commercial contract support this month and have a budget of around fifteen thousand dollars."
+        : scenario === "ESCALATION"
+          ? "This is urgent and I need to speak with a lawyer today."
+          : "What are your opening hours?";
 
   if (callEnded) {
     return (
@@ -311,21 +455,19 @@ export function RealVoiceConsole({
               <span className="text-[#8B949E] block">Problem Presented</span>
               <p className="font-semibold text-white">
                 {summaryData?.problemPresented ||
-                  "After-hours inbound consultation enquiry"}
+                  "Inbound legal service enquiry"}
               </p>
             </div>
             <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-1">
               <span className="text-[#8B949E] block">VoxDesk Action</span>
               <p className="font-semibold text-[#2DD4BF]">
                 {summaryData?.businessOutcome ||
-                  "Details gathered & calendar slot reserved"}
+                  "Details recorded & CRM activity logged"}
               </p>
             </div>
             <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-1">
               <span className="text-[#8B949E] block">Provider Modes Used</span>
-              <p className="font-semibold text-[#34D399]">
-                {summaryData?.providerModes?.stt || sttProviderMode}
-              </p>
+              <p className="font-semibold text-[#34D399]">{sttProviderMode}</p>
             </div>
           </div>
 
@@ -396,13 +538,69 @@ export function RealVoiceConsole({
             {(timeRemaining % 60).toString().padStart(2, "0")}
           </span>
           <button
-            onClick={endDemoCall}
+            onClick={handleEndDemoCall}
             className="bg-[#FB7185] hover:bg-[#e05669] text-white px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <PhoneOff className="w-3.5 h-3.5" /> End Call
           </button>
         </div>
       </div>
+
+      {/* Error / Expired Session Notice Banner */}
+      {conversationError && (
+        <div className="p-4 rounded-lg bg-red-950/60 border border-red-800 space-y-3 text-xs">
+          <div className="flex items-start gap-3 text-red-200 font-semibold">
+            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p>{conversationError.message}</p>
+              {conversationError.code && (
+                <p className="font-mono text-[11px] text-red-400">
+                  Code: {conversationError.code}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            {sessionExpired ? (
+              <>
+                <button
+                  onClick={onResetScenario}
+                  className="px-3.5 py-1.5 rounded bg-red-900 hover:bg-red-800 text-white font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Start New Session</span>
+                </button>
+
+                <Link
+                  href="/demo/story"
+                  className="px-3.5 py-1.5 rounded bg-[#171C22] hover:bg-[#202730] text-gray-300 font-medium border border-[#272D35] flex items-center gap-1.5"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                  <span>Open Guided Walkthrough</span>
+                </Link>
+              </>
+            ) : conversationError.canRetry ? (
+              <button
+                onClick={handleRetryLastTurn}
+                disabled={thinking}
+                className="px-3 py-1.5 rounded bg-amber-900 hover:bg-amber-800 text-amber-100 font-bold flex items-center gap-1.5 transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Retry Turn</span>
+              </button>
+            ) : (
+              <Link
+                href="/demo/story"
+                className="px-3.5 py-1.5 rounded bg-[#171C22] hover:bg-[#202730] text-gray-300 font-medium border border-[#272D35] flex items-center gap-1.5"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#2DD4BF]" />
+                <span>Open Guided Walkthrough</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 3 Column Desktop Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -418,37 +616,45 @@ export function RealVoiceConsole({
               <span className="font-semibold text-white">{scenario}</span>
             </div>
             <div>
-              <span className="text-[#8B949E] block">Detected Intent</span>
+              <span className="text-[#8B949E] block">Detected Action</span>
               <span className="font-medium text-[#2DD4BF]">
                 {currentIntent}
               </span>
             </div>
             <div>
               <span className="text-[#8B949E] block">STT Mode</span>
-              <span className="text-[10px] text-[#8B949E] block pt-0.5">
+              <span className="text-[10px] text-[#8B949E] block pt-0.5 font-mono">
                 {sttProviderMode}
               </span>
             </div>
           </div>
 
+          {lastAudioBlob && (
+            <button
+              onClick={replayLastSpeech}
+              disabled={speaking}
+              className="w-full py-2 px-3 rounded bg-[#171C22] hover:bg-[#202730] border border-[#272D35] text-[#2DD4BF] font-semibold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+            >
+              <Volume2 className="w-3.5 h-3.5" /> Replay Agent Voice
+            </button>
+          )}
+
           <hr className="border-[#272D35]" />
 
-          {/* Portfolio Scope Side Message Panel */}
+          {/* Portfolio Scope Panel */}
           <div className="p-3 rounded bg-[#171C22] border border-[#272D35] space-y-2">
             <span className="font-bold text-white text-[11px] block">
-              Short Portfolio Demonstration
+              Portfolio Verification Rules
             </span>
             <p className="text-[10px] text-[#8B949E] leading-relaxed">
-              This experience is intentionally limited to a short conversation.
-              A production voice agent can support longer calls, custom scripts,
-              live phone numbers, calendar and CRM integrations, multilingual
-              voices, call routing and human transfer.
+              Demonstration calls are rate-limited to 6 turns and 3 minutes per
+              session. All actions use persistent demo providers.
             </p>
           </div>
         </div>
 
         {/* CENTER COLUMN: LIVE TRANSCRIPT & CONTROLS */}
-        <div className="lg:col-span-2 p-4 rounded-lg bg-[#13171C] border border-[#272D35] flex flex-col h-[520px]">
+        <div className="lg:col-span-2 p-4 rounded-lg bg-[#13171C] border border-[#272D35] flex flex-col h-[560px]">
           <div className="flex items-center justify-between border-b border-[#272D35] pb-2 mb-3">
             <h2 className="font-bold text-white text-xs">
               Real-Time Conversation Stream
@@ -500,12 +706,13 @@ export function RealVoiceConsole({
             )}
           </div>
 
-          {/* Microphone & Text Controls */}
-          <div className="pt-3 border-t border-[#272D35] space-y-2">
+          {/* Microphone, Sample Input & Manual Text Controls */}
+          <div className="pt-3 border-t border-[#272D35] space-y-2.5">
             <div className="flex items-center gap-2">
               <button
+                disabled={thinking || sessionExpired || callEnded}
                 onClick={toggleMicrophone}
-                className={`flex-1 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors ${
+                className={`flex-1 py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-40 ${
                   listening
                     ? "bg-[#FB7185] hover:bg-[#e05669] text-white"
                     : "bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10]"
@@ -523,56 +730,114 @@ export function RealVoiceConsole({
               </button>
 
               <button
-                onClick={() =>
-                  handleUserSpeechSubmit(
-                    "I would like to confirm my consultation for next Tuesday.",
-                  )
-                }
-                className="bg-[#171C22] hover:bg-[#1f242c] text-[#D4D4D8] border border-[#272D35] px-3 py-2.5 rounded-lg text-xs font-medium"
+                disabled={thinking || sessionExpired || callEnded}
+                onClick={() => handleUserSpeechSubmit(sampleMessage)}
+                className="bg-[#171C22] hover:bg-[#1f242c] text-[#D4D4D8] border border-[#272D35] px-3.5 py-2.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-40 shrink-0"
               >
                 Quick Sample Input
               </button>
             </div>
+
+            {/* Manual Text Input */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (manualInput.trim() && !thinking && !sessionExpired) {
+                  handleUserSpeechSubmit(manualInput.trim());
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={manualInput}
+                maxLength={600}
+                disabled={thinking || sessionExpired || callEnded}
+                onChange={(e) => setManualInput(e.target.value)}
+                placeholder="Type what the caller would say…"
+                className="flex-1 bg-[#0F1216] border border-[#272D35] rounded-lg px-3 py-2 text-xs text-white placeholder-[#8B949E] focus:outline-none focus:border-[#2DD4BF] disabled:opacity-40"
+              />
+              <button
+                type="submit"
+                disabled={
+                  !manualInput.trim() || thinking || sessionExpired || callEnded
+                }
+                className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center disabled:opacity-40 transition-colors shrink-0"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </form>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: BUSINESS ACTION */}
+        {/* RIGHT COLUMN: DYNAMIC BUSINESS ACTION */}
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-4 text-xs">
           <h2 className="font-bold text-white uppercase tracking-wider text-[11px] text-[#8B949E]">
-            Business Action
+            Dynamic Business Actions
           </h2>
 
-          {actionNotice && (
+          {actionNotice ? (
             <div className="p-3 rounded bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 text-[11px] text-[#2DD4BF] space-y-1">
-              <span className="font-bold block">Action Verified:</span>
+              <span className="font-bold block">Verified Action:</span>
               <p>{actionNotice}</p>
+            </div>
+          ) : (
+            <div className="p-3 rounded bg-[#171C22] border border-[#272D35] text-[11px] text-[#8B949E]">
+              Waiting for caller input to trigger dynamic business action...
             </div>
           )}
 
-          <div className="p-3 rounded bg-[#171C22] border border-[#272D35] space-y-2">
+          {/* Scenario-Specific Dynamic Cards */}
+          {scenario === "BOOKING" && (
+            <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-2">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Calendar className="w-4 h-4 text-[#2DD4BF]" />
+                <span>Demo Calendar Status</span>
+              </div>
+              <p className="text-[#8B949E] text-[11px]">
+                {currentState === "CONFIRMED" ||
+                actionNotice?.includes("confirmed")
+                  ? "Appointment slot confirmed in demo database."
+                  : "Checking initial consultation availability..."}
+              </p>
+            </div>
+          )}
+
+          {scenario === "QUALIFICATION" && (
+            <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-2">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <Users className="w-4 h-4 text-[#34D399]" />
+                <span>BANT Lead Qualification</span>
+              </div>
+              <p className="text-[#8B949E] text-[11px]">
+                {actionNotice?.includes("HOT")
+                  ? "Scored: HOT Lead (High commercial intent)"
+                  : "Evaluating budget, authority & timeline requirements..."}
+              </p>
+            </div>
+          )}
+
+          {scenario === "ESCALATION" && (
+            <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-2">
+              <div className="flex items-center gap-2 text-white font-semibold">
+                <PhoneOff className="w-4 h-4 text-[#FBBF24]" />
+                <span>Urgent Handoff Brief</span>
+              </div>
+              <p className="text-[#8B949E] text-[11px]">
+                {actionNotice?.includes("Brief") ||
+                actionNotice?.includes("escalat")
+                  ? "Transfer brief created for duty attorney."
+                  : "Monitoring conversation for urgency triggers..."}
+              </p>
+            </div>
+          )}
+
+          <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-2">
             <span className="font-semibold text-white block">
-              Fictional Demo Calendar
+              Demo CRM Integration
             </span>
             <p className="text-[#8B949E] text-[11px]">
-              Tuesday 10:00 AM slot reserved in demo database.
-            </p>
-          </div>
-
-          <div className="p-3 rounded bg-[#171C22] border border-[#272D35] space-y-2">
-            <span className="font-semibold text-white block">
-              BANT Lead Score
-            </span>
-            <span className="font-bold text-[#34D399] font-mono text-[11px] block">
-              HOT (85/100)
-            </span>
-          </div>
-
-          <div className="p-3 rounded bg-[#171C22] border border-[#272D35] space-y-2">
-            <span className="font-semibold text-white block">
-              Demo CRM Activity
-            </span>
-            <p className="text-[#8B949E] text-[11px]">
-              Contact & Call activity logged in demo workspace.
+              Fictional contact and call activities recorded in demo database.
             </p>
           </div>
         </div>
