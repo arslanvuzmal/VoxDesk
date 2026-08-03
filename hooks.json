@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "beforeFileWrite": [
+      {
+        "name": "prevent-outside-write",
+        "description": "Prevent modifying files outside project root C:\\Users\\laptopzone\\Desktop\\VoxDesk AI"
+      },
+      {
+        "name": "prevent-secret-overwrite",
+        "description": "Prevent writing real API secrets into repository source code"
+      }
+    ],
+    "afterFileWrite": [
+      {
+        "name": "format-typescript",
+        "description": "Run Prettier/ESLint formatting on changed TypeScript files"
+      }
+    ],
+    "beforeGitCommit": [
+      {
+        "name": "secret-scanner",
+        "command": "powershell -Command \"git diff --cached | Select-String -Pattern 'AKIA[0-9A-Z]{16}|sk-[a-zA-Z0-9]{32}'\""
+      },
+      {
+        "name": "forbidden-attribution-scanner",
+        "command": "powershell -Command \"git diff --cached | Select-String -Pattern 'Co-Authored-By|Generated-By|Antigravity|Gemini|Claude'\""
+      },
+      {
+        "name": "verify-git-identity",
+        "command": "powershell -Command \"if ((git config user.name) -ne 'Arslan Vuzmal Lone') { exit 1 }\""
+      },
+      {
+        "name": "git-diff-check",
+        "command": "git diff --check"
+      }
+    ],
+    "afterTestFailure": [
+      {
+        "name": "capture-failure-log",
+        "description": "Store failed test outputs without looping"
+      }
+    ],
+    "beforeDeployment": [
+      {
+        "name": "production-build-check",
+        "command": "npm run build"
+      },
+      {
+        "name": "verify-no-secret-in-demo",
+        "command": "npm run verify"
+      }
+    ],
+    "afterDeployment": [
+      {
+        "name": "browser-live-verification",
+        "description": "Run live browser verification journeys and capture screenshot evidence"
+      }
+    ]
+  }
+}

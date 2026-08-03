@@ -1,0 +1,577 @@
+// VoxDesk AI Prisma Database Schema
+// Owner: Arslan Vuzmal Lone
+// Database: PostgreSQL (Supabase Compatible)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum SystemRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  OPERATOR
+  ANALYST
+  VIEWER
+}
+
+enum WorkspacePlan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  INITIATED
+  RINGING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  BUSY
+  NO_ANSWER
+  TRANSFERRED
+}
+
+enum CallOutcome {
+  APPOINTMENT_SCHEDULED
+  APPOINTMENT_RESCHEDULED
+  APPOINTMENT_CANCELLED
+  LEAD_QUALIFIED
+  LEAD_REJECTED
+  QUESTION_ANSWERED
+  ESCALATED_HUMAN
+  CALLBACK_REQUESTED
+  CALLER_DISCONNECTED
+  UNRESOLVED
+}
+
+enum LeadCategory {
+  HOT
+  WARM
+  REVIEW
+  COLD
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  RESCHEDULED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum ProviderType {
+  DEMO
+  TWILIO
+  VAPI
+  RETELL
+  LIVEKIT
+  DEEPGRAM
+  ELEVENLABS
+  OPENAI
+  ANTHROPIC
+  GEMINI
+  OPENROUTER
+  GOOGLE_CALENDAR
+  CALCOM
+  HUBSPOT
+  GENERIC_WEBHOOK
+}
+
+model User {
+  id           String            @id @default(cuid())
+  name         String
+  email        String            @unique
+  passwordHash String
+  status       String            @default("ACTIVE")
+  systemRole   SystemRole        @default(USER)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  sessions     Session[]
+  memberships  WorkspaceMember[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Workspace {
+  id                   String               @id @default(cuid())
+  name                 String
+  slug                 String               @unique
+  industry             String               @default("general")
+  timezone             String               @default("America/New_York")
+  plan                 WorkspacePlan        @default(FREE)
+  status               String               @default("ACTIVE")
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  members              WorkspaceMember[]
+  invitations          Invitation[]
+  businessProfile      BusinessProfile?
+  agents               VoiceAgent[]
+  phoneNumbers         PhoneNumber[]
+  providerConnections ProviderConnection[]
+  knowledgeItems       KnowledgeItem[]
+  qualificationRules   QualificationRule[]
+  escalationPolicies   EscalationPolicy[]
+  calls                Call[]
+  leads                Lead[]
+  calendarConnections  CalendarConnection[]
+  appointments         Appointment[]
+  crmConnections       CRMConnection[]
+  crmActivities        CRMActivity[]
+  notifications        Notification[]
+  webhookEndpoints     WebhookEndpoint[]
+  auditLogs            AuditLog[]
+
+  @@map("workspaces")
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        WorkspaceRole @default(OPERATOR)
+  joinedAt    DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@map("workspace_members")
+}
+
+model Invitation {
+  id          String        @id @default(cuid())
+  workspaceId String
+  email       String
+  role        WorkspaceRole @default(OPERATOR)
+  tokenHash   String        @unique
+  expiresAt   DateTime
+  createdAt   DateTime      @default(now())
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("invitations")
+}
+
+model BusinessProfile {
+  id                          String    @id @default(cuid())
+  workspaceId                 String    @unique
+  businessName                String
+  description                 String?
+  timezone                    String    @default("America/New_York")
+  openingHours                Json?
+  holidayRules                Json?
+  defaultLanguage             String    @default("en-US")
+  escalationNumberEncrypted  String?
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  workspace                   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("business_profiles")
+}
+
+model VoiceAgent {
+  id                     String             @id @default(cuid())
+  workspaceId            String
+  businessProfileId      String?
+  name                   String
+  description            String?
+  status                 String             @default("ACTIVE")
+  voiceProvider          ProviderType       @default(DEMO)
+  voiceId                String             @default("demo-voice-maya")
+  language               String             @default("en-US")
+  greeting               String
+  systemInstructions     String
+  calendarConnectionId   String?
+  crmConnectionId        String?
+  qualificationRuleId    String?
+  escalationPolicyId     String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  workspace              Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  versions               AgentVersion[]
+  calls                  Call[]
+  phoneNumbers           PhoneNumber[]
+  calendarConnection     CalendarConnection? @relation(fields: [calendarConnectionId], references: [id], onDelete: SetNull)
+  crmConnection          CRMConnection?      @relation(fields: [crmConnectionId], references: [id], onDelete: SetNull)
+  qualificationRule      QualificationRule?  @relation(fields: [qualificationRuleId], references: [id], onDelete: SetNull)
+  escalationPolicy      EscalationPolicy?   @relation(fields: [escalationPolicyId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@map("voice_agents")
+}
+
+model AgentVersion {
+  id                 String     @id @default(cuid())
+  agentId            String
+  versionNumber      Int
+  greeting           String
+  systemInstructions String
+  voiceId            String
+  createdAt          DateTime   @default(now())
+  agent              VoiceAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@unique([agentId, versionNumber])
+  @@map("agent_versions")
+}
+
+model PhoneNumber {
+  id           String      @id @default(cuid())
+  workspaceId  String
+  agentId      String?
+  numberMasked String
+  provider     ProviderType @default(DEMO)
+  providerId   String?
+  status       String       @default("ACTIVE")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agent        VoiceAgent?  @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@map("phone_numbers")
+}
+
+model ProviderConnection {
+  id                  String       @id @default(cuid())
+  workspaceId         String
+  providerType        ProviderType
+  displayName         String
+  encryptedCredential String
+  status              String       @default("ACTIVE")
+  lastHealthCheck     DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  workspace           Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("provider_connections")
+}
+
+model KnowledgeItem {
+  id          String    @id @default(cuid())
+  workspaceId String
+  category    String    @default("general")
+  question    String
+  answer      String
+  tags        String[]  @default([])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("knowledge_items")
+}
+
+model QualificationRule {
+  id          String       @id @default(cuid())
+  workspaceId String
+  name        String
+  description String?
+  criteria    Json
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agents      VoiceAgent[]
+
+  @@index([workspaceId])
+  @@map("qualification_rules")
+}
+
+model EscalationPolicy {
+  id             String       @id @default(cuid())
+  workspaceId    String
+  name           String
+  targetPhoneEnc String?
+  triggers       Json
+  actionType     String       @default("TRANSFER")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  workspace      Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agents         VoiceAgent[]
+
+  @@index([workspaceId])
+  @@map("escalation_policies")
+}
+
+model Call {
+  id                    String              @id @default(cuid())
+  workspaceId           String
+  agentId               String
+  provider              ProviderType        @default(DEMO)
+  providerCallId        String?
+  direction             CallDirection       @default(INBOUND)
+  callerNumberMasked    String
+  callerName            String?
+  status                CallStatus          @default(COMPLETED)
+  startedAt             DateTime            @default(now())
+  answeredAt            DateTime?
+  endedAt               DateTime?
+  durationSeconds       Int                 @default(0)
+  recordingConsent      Boolean             @default(true)
+  outcome               CallOutcome         @default(QUESTION_ANSWERED)
+  qualificationCategory LeadCategory?
+  qualificationScore    Float?
+  appointmentId         String?             @unique
+  leadId                String?             @unique
+  escalationUsed        Boolean             @default(false)
+  estimatedCost         Float               @default(0.0)
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  workspace             Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agent                 VoiceAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  events                CallEvent[]
+  transcriptSegments    TranscriptSegment[]
+  summary               CallSummary?
+  appointment           Appointment?        @relation("CallToAppointment", fields: [appointmentId], references: [id], onDelete: SetNull)
+  lead                  Lead?               @relation("CallToLead", fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, createdAt])
+  @@map("calls")
+}
+
+model CallEvent {
+  id          String   @id @default(cuid())
+  callId      String
+  eventType   String
+  sequence    Int
+  occurredAt  DateTime @default(now())
+  safePayload Json
+  createdAt   DateTime @default(now())
+  call        Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_events")
+}
+
+model TranscriptSegment {
+  id         String   @id @default(cuid())
+  callId     String
+  speaker    String   // "agent" | "caller" | "system"
+  text       String
+  startMs    Int
+  endMs      Int
+  confidence Float    @default(1.0)
+  redacted   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  call       Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("transcript_segments")
+}
+
+model CallSummary {
+  id                     String   @id @default(cuid())
+  callId                 String   @unique
+  summary                String
+  intent                 String
+  sentiment              String   @default("neutral") // positive | neutral | negative
+  urgency                String   @default("medium")   // low | medium | high | critical
+  actionItems            Json
+  commitments            Json
+  followUpRecommendation String?
+  createdAt              DateTime @default(now())
+  call                   Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@map("call_summaries")
+}
+
+model Lead {
+  id               String       @id @default(cuid())
+  workspaceId      String
+  callId           String?      @unique
+  name             String
+  phoneEncrypted   String?
+  emailEncrypted   String?
+  company          String?
+  serviceInterest  String?
+  budgetRange      String?
+  timeline         String?
+  authority        String?
+  urgency          String?
+  score            Float        @default(0)
+  category         LeadCategory @default(WARM)
+  status           String       @default("NEW")
+  assignedTo       String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  workspace        Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  call             Call?        @relation("CallToLead")
+
+  @@index([workspaceId])
+  @@index([workspaceId, category])
+  @@map("leads")
+}
+
+model CalendarConnection {
+  id                  String        @id @default(cuid())
+  workspaceId         String
+  provider            ProviderType  @default(DEMO)
+  displayName         String
+  encryptedCredential String?
+  status              String        @default("ACTIVE")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  workspace           Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agents              VoiceAgent[]
+  appointments        Appointment[]
+
+  @@index([workspaceId])
+  @@map("calendar_connections")
+}
+
+model Appointment {
+  id                     String            @id @default(cuid())
+  workspaceId            String
+  callId                 String?           @unique
+  calendarConnectionId   String?
+  externalEventId        String?
+  callerName             String
+  callerContactEncrypted String?
+  service                String
+  startTime              DateTime
+  endTime                DateTime
+  timezone               String            @default("America/New_York")
+  status                 AppointmentStatus @default(CONFIRMED)
+  confirmationStatus     String            @default("CONFIRMED")
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  workspace              Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  calendarConnection     CalendarConnection? @relation(fields: [calendarConnectionId], references: [id], onDelete: SetNull)
+  call                   Call?             @relation("CallToAppointment")
+
+  @@index([workspaceId])
+  @@index([workspaceId, startTime])
+  @@map("appointments")
+}
+
+model CRMConnection {
+  id                  String        @id @default(cuid())
+  workspaceId         String
+  provider            ProviderType  @default(DEMO)
+  displayName         String
+  encryptedCredential String?
+  status              String        @default("ACTIVE")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  workspace           Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agents              VoiceAgent[]
+  activities          CRMActivity[]
+
+  @@index([workspaceId])
+  @@map("crm_connections")
+}
+
+model CRMActivity {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  crmConnectionId String?
+  activityType    String         // "CALL_LOG" | "CONTACT_CREATED" | "TASK_CREATED"
+  externalId      String?
+  details         Json
+  status          String         @default("SYNCED")
+  createdAt       DateTime       @default(now())
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  crmConnection   CRMConnection? @relation(fields: [crmConnectionId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@map("crm_activities")
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  workspaceId String
+  type        String    // "ESCALATION" | "APPOINTMENT" | "LEAD"
+  title       String
+  message     String
+  read        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("notifications")
+}
+
+model WebhookEndpoint {
+  id           String            @id @default(cuid())
+  workspaceId  String
+  url          String
+  description  String?
+  secret       String
+  events       String[]          @default(["call.completed", "appointment.created", "lead.qualified"])
+  status       String            @default("ACTIVE")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  workspace    Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([workspaceId])
+  @@map("webhook_endpoints")
+}
+
+model WebhookDelivery {
+  id                String          @id @default(cuid())
+  webhookEndpointId String
+  event             String
+  payload           Json
+  responseCode      Int?
+  status            String          @default("SUCCESS")
+  createdAt         DateTime        @default(now())
+  endpoint          WebhookEndpoint @relation(fields: [webhookEndpointId], references: [id], onDelete: Cascade)
+
+  @@index([webhookEndpointId])
+  @@map("webhook_deliveries")
+}
+
+model AuditLog {
+  id           String    @id @default(cuid())
+  workspaceId  String
+  userId       String?
+  action       String
+  entityType   String
+  entityId     String?
+  previousData Json?
+  newData      Json?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([workspaceId, createdAt])
+  @@map("audit_logs")
+}
