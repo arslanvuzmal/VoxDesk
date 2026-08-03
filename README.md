@@ -2,18 +2,19 @@
 
 **VoxDesk AI is a configurable voice receptionist platform that answers enquiries, qualifies leads, books appointments and gives operators a complete record of every conversation.**
 
-![Honest Badges](https://img.shields.io/badge/Status-100%25%20Functional%20SaaS-emerald?style=for-the-badge)
-![Demo Badge](https://img.shields.io/badge/Demo%20Mode-0%20Credentials%20Required-teal?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-100%25%20Deployed%20Production-emerald?style=for-the-badge)
+![Vercel](https://img.shields.io/badge/Vercel-Live-black?style=for-the-badge&logo=vercel)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 ![Author](https://img.shields.io/badge/Project%20Owner-Arslan%20Vuzmal%20Lone-navy?style=for-the-badge)
 
 ---
 
-## Live Demo & Guided Story
+## Live Production Deployment & Guided Story
 
-- **Live Production Application:** [https://voxdesk-ai.vercel.app](https://voxdesk-ai.vercel.app)
-- **Interactive Live Call Console:** [https://voxdesk-ai.vercel.app/demo](https://voxdesk-ai.vercel.app/demo)
-- **1-Minute Guided Client Story:** [https://voxdesk-ai.vercel.app/demo/story](https://voxdesk-ai.vercel.app/demo/story)
+- **Live Vercel Application:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app)
+- **Public GitHub Repository:** [https://github.com/arslanvuzmal/voxdesk-ai](https://github.com/arslanvuzmal/voxdesk-ai)
+- **Interactive Live Call Console:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo)
+- **1-Minute Guided Client Story:** [https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo/story](https://voxdesk-1unay2tva-arslan-vuzmal-lone.vercel.app/demo/story)
 
 ### Demo Credentials
 - **Owner Email:** `owner@northstarlegal.com`
@@ -69,11 +70,13 @@ VoxDesk AI deploys an intelligent, multi-tenant AI voice receptionist that:
 | Server-Enforced Rules |                              |  Voice / STT / TTS /  |
 +-----------------------+                              |  Calendar / CRM       |
            |                                           +-----------------------+
-           v                                                       |
-+------------------------------------------------------------------+
-|                   Prisma ORM & PostgreSQL                        |
-|            Multi-Tenant Isolation via workspaceId                |
-+------------------------------------------------------------------+
+           |                                                       |
+           +---------------------------+---------------------------+
+                                       v
+           +-------------------------------------------------------+
+           |                 Prisma ORM & PostgreSQL               |
+           |         Multi-Tenant Isolation via workspaceId        |
+           +-------------------------------------------------------+
 ```
 
 ### Stack Components
