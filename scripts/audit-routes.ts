@@ -1,7 +1,7 @@
 import http from "http";
 import https from "https";
 
-const BASE_URL = process.env.AUDIT_BASE_URL || "http://localhost:3000";
+const BASE_URL = process.env.AUDIT_BASE_URL || "https://voxdesk-ai.vercel.app";
 
 interface RouteCheck {
   path: string;
