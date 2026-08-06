@@ -31,6 +31,7 @@
     "demo:story": "tsx scripts/demo-story.ts",
     "demo:verify": "tsx scripts/demo-verify.ts",
     "elevenlabs:provision": "tsx scripts/provision-elevenlabs-agents.ts",
+    "elevenlabs:verify": "tsx scripts/provision-elevenlabs-agents.ts verify",
     "portfolio:capture": "tsx scripts/portfolio-capture.ts",
     "audit:routes": "tsx scripts/audit-routes.ts",
     "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:security && npx prisma validate && npm run audit:routes && npm run build && npm run test:e2e"

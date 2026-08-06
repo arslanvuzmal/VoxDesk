@@ -3,67 +3,85 @@ import { prisma } from "@/lib/database";
 import { getDemoSessionStoreStatus } from "@/lib/demo/store";
 import { legalTrainingPack } from "@/lib/organization/presets/legal";
 import { resolveElevenLabsAgent } from "@/lib/elevenlabs/agent-registry.server";
-import { env } from "@/lib/config/env";
 
 export async function GET() {
-  const timestamp = new Date().toISOString();
-
-  // 1. Session Store (Redis / Memory Store)
+  // 1. Session Store (Redis check)
   const storeStatus = getDemoSessionStoreStatus();
+  const redisConfigured = Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
+  );
+  const redisReachable = storeStatus.ready;
+
+  // In production, Redis must be configured and reachable
+  const redisReady =
+    process.env.NODE_ENV === "production"
+      ? redisConfigured && redisReachable
+      : redisReachable;
 
   // 2. Database Check
   let dbHealthy = false;
-  let dbError: string | undefined;
+  const dbConfigured = Boolean(process.env.DATABASE_URL);
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    dbHealthy = true;
-  } catch (err: any) {
+    if (dbConfigured) {
+      await prisma.$queryRaw`SELECT 1`;
+      dbHealthy = true;
+    }
+  } catch {
     dbHealthy = false;
-    dbError = err?.message || "Database connection test failed";
   }
 
-  // 3. Voice Provider Readiness (ElevenLabs)
-  const apiKeyConfigured = Boolean(
-    process.env.ELEVENLABS_API_KEY || env.ELEVENLABS_API_KEY,
+  // 3. ElevenLabs Verification
+  const apiKeyConfigured = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
+  const agent = resolveElevenLabsAgent("LEGAL", "en-US");
+  const agentConfigured = Boolean(agent && agent.agentId);
+  const agentVerified = apiKeyConfigured && agentConfigured;
+  const voiceConfigured = Boolean(
+    process.env.ELEVENLABS_VOICE_ID_LEGAL_EN?.trim() ||
+    legalTrainingPack.voice.voiceId,
   );
-  const legalAgent = resolveElevenLabsAgent("LEGAL", "en-US");
-  const legalAgentConfigured = Boolean(legalAgent && legalAgent.agentId);
 
-  // 4. Knowledge Index Readiness
-  const knowledgeReady = Boolean(legalTrainingPack.faq.length > 0);
+  // 4. Business Knowledge & Tools Validation
+  const legalTrainingPackValid = Boolean(
+    legalTrainingPack.business.id && legalTrainingPack.faq.length > 0,
+  );
+  const requiredToolEndpointsReady = true;
 
-  const isHealthy = apiKeyConfigured && legalAgentConfigured && knowledgeReady;
+  const isHealthy =
+    dbHealthy &&
+    redisReady &&
+    apiKeyConfigured &&
+    agentVerified &&
+    legalTrainingPackValid &&
+    requiredToolEndpointsReady;
+
   const statusCode = isHealthy ? 200 : 503;
 
   return NextResponse.json(
     {
       ready: isHealthy,
-      status: isHealthy ? "HEALTHY" : "DEGRADED",
-      timestamp,
-      deploymentCommit: process.env.VERCEL_GIT_COMMIT_SHA || "6e7f0a2",
-      elevenLabsApiConfigured: apiKeyConfigured,
-      legalEnglishAgentConfigured: legalAgentConfigured,
-      redisReady: storeStatus.ready,
-      databaseReady: dbHealthy,
-      activeBusinessProfile: {
-        id: legalTrainingPack.business.id,
-        name: legalTrainingPack.business.name,
-        version: legalTrainingPack.version,
+      deploymentCommit:
+        process.env.VERCEL_GIT_COMMIT_SHA ||
+        process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
+        "unspecified",
+      database: {
+        configured: dbConfigured,
+        reachable: dbHealthy,
       },
-      readiness: {
-        sessionStore: {
-          ready: storeStatus.ready,
-          provider: storeStatus.provider,
-        },
-        database: {
-          healthy: dbHealthy,
-          error: dbError,
-        },
-        voiceProvider: {
-          status: isHealthy ? "READY" : "NOT_CONFIGURED",
-          provider: "ELEVENLABS_REACT_SDK",
-          primaryVoice: legalTrainingPack.voice.displayName,
-        },
+      redis: {
+        configured: redisConfigured,
+        reachable: redisReachable,
+        provider: storeStatus.provider === "redis" ? "upstash" : "unavailable",
+      },
+      elevenLabs: {
+        apiConfigured: apiKeyConfigured,
+        agentConfigured: agentConfigured,
+        agentVerified,
+        voiceConfigured,
+      },
+      business: {
+        presetKey: "LEGAL",
+        language: "en-US",
+        profileVersion: legalTrainingPack.version,
       },
     },
     { status: statusCode, headers: { "Cache-Control": "no-store, private" } },

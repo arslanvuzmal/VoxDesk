@@ -1,3 +1,5 @@
+import "server-only";
+
 export type SupportedLanguage = "en-US" | "ur-PK" | "es-ES";
 
 export type VoxDeskPreset =
@@ -28,6 +30,19 @@ export function isElevenLabsConfigured(
 
   const envKey = `ELEVENLABS_AGENT_ID_${presetKey}_${language.slice(0, 2).toUpperCase()}`;
   const specificAgentId = process.env[envKey];
+  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  if (!apiKey) return false;
+
+  if (presetKey === "LEGAL" && language === "en-US") {
+    const agentId =
+      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() ||
+      process.env.ELEVENLABS_AGENT_ID?.trim();
+
+    return !!agentId;
+  }
+
+  const envKey = `ELEVENLABS_AGENT_ID_${presetKey}_${language.slice(0, 2).toUpperCase()}`;
+  const specificAgentId = process.env[envKey]?.trim();
 
   return !!specificAgentId;
 }
@@ -36,11 +51,18 @@ export function resolveElevenLabsAgent(
   presetKey: VoxDeskPreset,
   language: SupportedLanguage,
 ): AgentRegistration | null {
+  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  if (!apiKey) return null;
+
   if (presetKey === "LEGAL" && language === "en-US") {
     const agentId =
       process.env.ELEVENLABS_AGENT_ID_LEGAL_EN ||
       process.env.ELEVENLABS_AGENT_ID ||
       DEFAULT_FALLBACK_AGENT_ID;
+      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() ||
+      process.env.ELEVENLABS_AGENT_ID?.trim();
+
+    if (!agentId) return null;
 
     return {
       presetKey: "LEGAL",
@@ -48,11 +70,14 @@ export function resolveElevenLabsAgent(
       agentId,
       displayName: "Maya (Northstar Legal Receptionist)",
       voiceId: process.env.ELEVENLABS_VOICE_ID_LEGAL_EN || "21m00Tcm4TlvDq8ikWAM",
+      voiceId:
+        process.env.ELEVENLABS_VOICE_ID_LEGAL_EN?.trim() ||
+        "21m00Tcm4TlvDq8ikWAM",
     };
   }
 
   const envKey = `ELEVENLABS_AGENT_ID_${presetKey}_${language.slice(0, 2).toUpperCase()}`;
-  const specificAgentId = process.env[envKey];
+  const specificAgentId = process.env[envKey]?.trim();
 
   if (!specificAgentId) {
     return null;

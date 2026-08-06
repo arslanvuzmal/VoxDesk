@@ -373,6 +373,83 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   }
 }
 
+// Unavailable Production Store when Redis is missing in Production
+class UnavailableProductionStore implements IDemoSessionStore {
+  private fail(): never {
+    throw new Error(
+      "Production Redis session store is unavailable. UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be configured.",
+    );
+  }
+  createSession(): Promise<DemoSessionData> {
+    this.fail();
+  }
+  getSession(): Promise<DemoSessionData | null> {
+    this.fail();
+  }
+  updateSession(): Promise<DemoSessionData | null> {
+    this.fail();
+  }
+  endSession(): Promise<boolean> {
+    this.fail();
+  }
+  deleteSession(): Promise<boolean> {
+    this.fail();
+  }
+  clearAllSessions(): Promise<void> {
+    this.fail();
+  }
+  acquireRequestLock(): Promise<boolean> {
+    this.fail();
+  }
+  releaseRequestLock(): Promise<void> {
+    this.fail();
+  }
+  recordTurnId(): Promise<boolean> {
+    this.fail();
+  }
+  hasProcessedTurnId(): Promise<boolean> {
+    this.fail();
+  }
+  storeResponseId(): Promise<StoredResponse> {
+    this.fail();
+  }
+  getStoredResponse(): Promise<StoredResponse | null> {
+    this.fail();
+  }
+  consumeResponse(): Promise<StoredResponse | null> {
+    this.fail();
+  }
+  countActiveSessions(): Promise<number> {
+    this.fail();
+  }
+  getActiveSessionCount(): Promise<number> {
+    this.fail();
+  }
+  getIpDailySessionCount(): Promise<number> {
+    this.fail();
+  }
+  checkIpCooldown(): Promise<boolean> {
+    this.fail();
+  }
+  checkDailyIPLimit(): Promise<{
+    allowed: boolean;
+    current: number;
+    limit: number;
+  }> {
+    this.fail();
+  }
+  checkGlobalDailyLimit(): Promise<{
+    allowed: boolean;
+    current: number;
+    limit: number;
+  }> {
+    this.fail();
+  }
+  checkCooldown(): Promise<{ allowed: boolean; secondsRemaining: number }> {
+    this.fail();
+  }
+}
+
 // Upstash Redis Store for Production
 export class RedisDemoSessionStore implements IDemoSessionStore {
   private redis: Redis;
@@ -625,12 +702,17 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
 }
 
 export function getDemoSessionStoreStatus(): {
-  provider: "redis" | "memory";
+  provider: "redis" | "memory" | "unavailable";
   ready: boolean;
 } {
   const hasRedis = !!(
     env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
   );
+
+  if (process.env.NODE_ENV === "production") {
+    if (!hasRedis) return { provider: "unavailable", ready: false };
+    return { provider: "redis", ready: true };
+  }
 
   if (hasRedis) return { provider: "redis", ready: true };
   return { provider: "memory", ready: true };
@@ -640,6 +722,16 @@ function createSessionStore(): IDemoSessionStore {
   const hasRedis = !!(
     env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
   );
+
+  if (process.env.NODE_ENV === "production") {
+    if (!hasRedis) {
+      return new UnavailableProductionStore();
+    }
+    return new RedisDemoSessionStore(
+      env.UPSTASH_REDIS_REST_URL!,
+      env.UPSTASH_REDIS_REST_TOKEN!,
+    );
+  }
 
   if (hasRedis) {
     return new RedisDemoSessionStore(

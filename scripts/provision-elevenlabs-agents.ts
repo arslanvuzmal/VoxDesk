@@ -1,69 +1,104 @@
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
-import { legalTrainingPack } from "../lib/organization/presets/legal";
+import { buildNorthstarAgentConfiguration } from "../lib/voice-agent/build-agent-configuration.server";
 
-async function provisionElevenLabsAgents() {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+async function provisionOrVerifyAgent() {
+  const args = process.argv.slice(2);
+  const isVerifyOnly =
+    args.includes("verify") || process.argv[1].includes("verify");
+
+  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
   if (!apiKey) {
     console.error(
-      "[ERROR] ELEVENLABS_API_KEY environment variable is required to provision agents.",
+      "[ERROR] ELEVENLABS_API_KEY environment variable is required.",
     );
     process.exit(1);
   }
 
   const client = new ElevenLabsClient({ apiKey });
+  const config = buildNorthstarAgentConfiguration("en-US");
 
+  const configuredAgentId =
+    process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() ||
+    process.env.ELEVENLABS_AGENT_ID?.trim();
+
+  if (isVerifyOnly) {
+    console.log("[VERIFYING] Checking ElevenLabs agent configuration...");
+    if (!configuredAgentId) {
+      console.error(
+        "[VERIFICATION FAILED] No agent ID configured in ELEVENLABS_AGENT_ID_LEGAL_EN or ELEVENLABS_AGENT_ID.",
+      );
+      process.exit(1);
+    }
+
+    try {
+      const agent = await client.conversationalAi.agents.get(configuredAgentId);
+      if (!agent) {
+        console.error(
+          `[VERIFICATION FAILED] Agent ID '${configuredAgentId}' not found on ElevenLabs server.`,
+        );
+        process.exit(1);
+      }
+
+      console.log(
+        "[VERIFICATION SUCCESS] Agent exists and is active on ElevenLabs.",
+      );
+      console.log(`Agent ID: ${agent.agentId}`);
+      console.log(`Agent Name: ${agent.name}`);
+      process.exit(0);
+    } catch (err: any) {
+      console.error(
+        "[VERIFICATION FAILED] Could not retrieve agent from ElevenLabs API:",
+        err?.message || err,
+      );
+      process.exit(1);
+    }
+  }
+
+  // Idempotent Provisioning
   console.log(
-    `[PROVISIONING] Provisioning Northstar Legal Voice Receptionist (${legalTrainingPack.business.name})...`,
+    `[PROVISIONING] Checking existing agent or creating new ElevenLabs agent...`,
   );
 
-  const systemInstructions = `You are Maya, the voice receptionist for Northstar Legal Consultations.
+  let agentId = configuredAgentId;
+  let existingAgent = null;
 
-You provide administrative intake and appointment assistance.
-You are not a lawyer and must not provide substantive legal advice.
-
-Speak naturally and professionally.
-Keep most answers between 10 and 35 words.
-Ask only one primary question at a time.
-Do not read lists unless the caller asks for them.
-Do not repeat the caller’s complete statement.
-Remember information already provided.
-Handle corrections naturally.
-Confirm names, phone numbers and appointment times.
-Use only approved Northstar information.
-Never invent fees, opening hours, addresses, availability or legal outcomes.
-When approved information is unavailable, state that clearly and offer human follow-up.
-Never claim that an attorney-client relationship has been created.
-Never guarantee a legal result.`;
-
-  const voiceId =
-    process.env.ELEVENLABS_VOICE_ID_LEGAL_EN || "21m00Tcm4TlvDq8ikWAM";
+  if (agentId) {
+    try {
+      existingAgent = await client.conversationalAi.agents.get(agentId);
+    } catch {
+      existingAgent = null;
+    }
+  }
 
   try {
-    const agentResponse = await client.conversationalAi.agents.create({
-      name: "VoxDesk — Northstar Legal Receptionist",
-      conversationConfig: {
-        agent: {
-          prompt: {
-            prompt: systemInstructions,
-          },
-          firstMessage:
-            "Thank you for calling Northstar Legal Consultations. My name is Maya. How may I assist with your legal matter today?",
-          language: "en",
-        },
-        tts: {
-          voiceId,
-        },
-      },
-    });
+    if (existingAgent && agentId) {
+      console.log(
+        `[UPDATING] Updating existing ElevenLabs agent (${agentId})...`,
+      );
+      await client.conversationalAi.agents.update(agentId, {
+        name: config.name,
+        conversationConfig: config.conversationConfig as any,
+      });
+      console.log(`[SUCCESS] Agent ${agentId} updated successfully.`);
+    } else {
+      console.log(`[CREATING] Creating new ElevenLabs agent...`);
+      const newAgent = await client.conversationalAi.agents.create({
+        name: config.name,
+        conversationConfig: config.conversationConfig as any,
+      });
+      agentId = newAgent.agentId;
+      console.log(`[SUCCESS] New agent created successfully.`);
+    }
 
-    console.log("[PROVISIONING SUCCESS] Agent provisioned successfully!");
-    console.log(`Agent ID: ${agentResponse.agentId}`);
-    console.log("Add this agent ID to your .env file as:");
-    console.log(`ELEVENLABS_AGENT_ID_LEGAL_EN="${agentResponse.agentId}"`);
+    console.log("--------------------------------------------------");
+    console.log(`Agent ID: ${agentId}`);
+    console.log("Set this environment variable in your Vercel project:");
+    console.log(`ELEVENLABS_AGENT_ID_LEGAL_EN="${agentId}"`);
+    console.log("--------------------------------------------------");
   } catch (error: any) {
     console.error("[PROVISIONING ERROR]:", error?.message || error);
     process.exit(1);
   }
 }
 
-provisionElevenLabsAgents();
+provisionOrVerifyAgent();
