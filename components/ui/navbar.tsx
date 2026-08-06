@@ -1,78 +1,149 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Activity } from "lucide-react";
+import { ArrowRight, Menu, X, PhoneCall } from "lucide-react";
 
 export function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="sticky top-0 z-50 bg-[#0B0D10]/90 border-b border-[#272D35] px-6 py-3.5 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-white border-b border-[#E2E8F0] px-6 h-16 flex items-center justify-between shadow-sm">
+      <div className="max-w-7xl w-full mx-auto flex items-center justify-between">
+        {/* Brand Logo & Wordmark */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#2DD4BF] flex items-center justify-center font-bold text-[#0B0D10] text-sm">
+          <div className="w-8 h-8 rounded-lg bg-[#1D4ED8] flex items-center justify-center font-bold text-white text-sm shadow-sm">
             V
           </div>
           <div>
-            <span className="text-base font-bold text-[#F4F4F5] tracking-tight">
-              VoxDesk AI
+            <span className="text-base font-bold text-[#0F172A] tracking-tight">
+              VoxDesk
             </span>
-            <span className="text-[11px] text-[#8B949E] block -mt-1 font-medium">
-              Voice Operations Workspace
+            <span className="text-[11px] text-[#64748B] block -mt-1 font-medium">
+              Voice Operations Platform
             </span>
           </div>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-[#D4D4D8]">
+        {/* Primary Desktop Navigation (Max 5 items) */}
+        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#475569]">
           <Link
-            href="/features"
-            className="hover:text-[#2DD4BF] transition-colors"
+            href="/#product"
+            className="hover:text-[#1D4ED8] transition-colors"
           >
-            Features
+            Product
           </Link>
           <Link
-            href="/industries"
-            className="hover:text-[#2DD4BF] transition-colors"
+            href="/#solutions"
+            className="hover:text-[#1D4ED8] transition-colors"
           >
-            Industries
+            Solutions
           </Link>
           <Link
-            href="/architecture"
-            className="hover:text-[#2DD4BF] transition-colors"
+            href="/#integrations"
+            className="hover:text-[#1D4ED8] transition-colors"
           >
-            Architecture
+            Integrations
           </Link>
           <Link
-            href="/demo/story"
-            className="hover:text-[#2DD4BF] transition-colors"
+            href="/#enterprise"
+            className="hover:text-[#1D4ED8] transition-colors"
           >
-            Call Story
-          </Link>
-          <Link href="/docs" className="hover:text-[#2DD4BF] transition-colors">
-            Docs
+            Enterprise
           </Link>
           <Link
-            href="/status"
-            className="hover:text-[#2DD4BF] transition-colors text-xs font-mono text-[#8B949E]"
+            href="/demo"
+            className="hover:text-[#1D4ED8] transition-colors font-semibold text-[#1D4ED8]"
           >
-            System status
+            Demo
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
+        {/* Right-Side Actions */}
+        <div className="hidden md:flex items-center gap-4">
           <Link
             href="/login"
-            className="text-sm font-medium text-[#D4D4D8] hover:text-white px-3 py-1.5 transition-colors"
+            className="text-sm font-medium text-[#475569] hover:text-[#0F172A] px-3 py-1.5 transition-colors"
           >
             Sign in
           </Link>
           <Link
             href="/demo"
-            className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-semibold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors"
+            className="bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-semibold text-sm px-4 py-2 rounded-lg flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <span>Explore Demo</span>
-            <ArrowRight className="w-4 h-4" />
+            <PhoneCall className="w-4 h-4" />
+            <span>Try live demo</span>
           </Link>
         </div>
+
+        {/* Mobile Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2 rounded-md text-[#475569] hover:text-[#0F172A] hover:bg-[#F1F5F9]"
+        >
+          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </div>
+
+      {/* Mobile Drawer Navigation */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-[#E2E8F0] p-6 space-y-4 shadow-lg">
+          <nav className="flex flex-col space-y-3 text-sm font-medium text-[#475569]">
+            <Link
+              href="/#product"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-[#1D4ED8] py-1"
+            >
+              Product
+            </Link>
+            <Link
+              href="/#solutions"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-[#1D4ED8] py-1"
+            >
+              Solutions
+            </Link>
+            <Link
+              href="/#integrations"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-[#1D4ED8] py-1"
+            >
+              Integrations
+            </Link>
+            <Link
+              href="/#enterprise"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-[#1D4ED8] py-1"
+            >
+              Enterprise
+            </Link>
+            <Link
+              href="/demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:text-[#1D4ED8] py-1 font-semibold text-[#1D4ED8]"
+            >
+              Demo
+            </Link>
+          </nav>
+          <div className="pt-4 border-t border-[#E2E8F0] flex flex-col gap-2">
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2 text-sm font-medium text-[#475569]"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2.5 bg-[#1D4ED8] text-white font-semibold text-sm rounded-lg"
+            >
+              Try live demo
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

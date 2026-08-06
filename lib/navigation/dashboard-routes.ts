@@ -3,7 +3,7 @@ export interface DashboardRouteItem {
   href: string;
   permission?: string;
   iconName?: string;
-  category?: "CORE" | "MANAGEMENT" | "SYSTEM";
+  category?: "OPERATIONS" | "INTELLIGENCE" | "SYSTEM";
 }
 
 export const dashboardRoutes: DashboardRouteItem[] = [
@@ -11,84 +11,42 @@ export const dashboardRoutes: DashboardRouteItem[] = [
     label: "Overview",
     href: "/dashboard",
     permission: "VIEW_DASHBOARD",
-    category: "CORE",
+    category: "OPERATIONS",
   },
   {
-    label: "Live calls",
-    href: "/dashboard/live",
-    permission: "OPERATE_CALLS",
-    category: "CORE",
-  },
-  {
-    label: "Calls",
-    href: "/dashboard/calls",
+    label: "Conversations",
+    href: "/dashboard/conversations",
     permission: "VIEW_CALLS",
-    category: "CORE",
+    category: "OPERATIONS",
+  },
+  {
+    label: "Contacts",
+    href: "/dashboard/leads",
+    permission: "VIEW_LEADS",
+    category: "OPERATIONS",
   },
   {
     label: "Appointments",
     href: "/dashboard/appointments",
     permission: "VIEW_APPOINTMENTS",
-    category: "CORE",
-  },
-  {
-    label: "Leads",
-    href: "/dashboard/leads",
-    permission: "VIEW_LEADS",
-    category: "CORE",
-  },
-  {
-    label: "Agents",
-    href: "/dashboard/agents",
-    permission: "MANAGE_AGENTS",
-    category: "MANAGEMENT",
-  },
-  {
-    label: "Knowledge",
-    href: "/dashboard/knowledge",
-    permission: "MANAGE_KNOWLEDGE",
-    category: "MANAGEMENT",
-  },
-  {
-    label: "Escalations",
-    href: "/dashboard/escalations",
-    permission: "VIEW_ESCALATIONS",
-    category: "MANAGEMENT",
+    category: "OPERATIONS",
   },
   {
     label: "Analytics",
     href: "/dashboard/analytics",
     permission: "VIEW_ANALYTICS",
-    category: "MANAGEMENT",
+    category: "INTELLIGENCE",
   },
   {
-    label: "Providers",
-    href: "/dashboard/providers",
-    permission: "MANAGE_PROVIDERS",
-    category: "SYSTEM",
-  },
-  {
-    label: "Phone numbers",
-    href: "/dashboard/phone-numbers",
-    permission: "MANAGE_NUMBERS",
-    category: "SYSTEM",
+    label: "Agent Setup",
+    href: "/dashboard/agent",
+    permission: "MANAGE_AGENTS",
+    category: "INTELLIGENCE",
   },
   {
     label: "Integrations",
     href: "/dashboard/integrations",
     permission: "MANAGE_INTEGRATIONS",
-    category: "SYSTEM",
-  },
-  {
-    label: "Team",
-    href: "/dashboard/team",
-    permission: "MANAGE_TEAM",
-    category: "SYSTEM",
-  },
-  {
-    label: "Audit logs",
-    href: "/dashboard/audit",
-    permission: "VIEW_AUDIT",
     category: "SYSTEM",
   },
   {

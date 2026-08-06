@@ -3,33 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --bg-dark: #0B0D10;
-  --bg-sidebar: #0F1216;
-  --bg-surface: #13171C;
-  --bg-raised: #171C22;
-  --border-color: #272D35;
-  --text-strong: #F4F4F5;
-  --text-normal: #D4D4D8;
-  --text-muted: #8B949E;
-  --accent-teal: #2DD4BF;
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-subtle: #F1F5F9;
+  --surface-muted: #E2E8F0;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #64748B;
+  --border: #E2E8F0;
+  --border-strong: #CBD5E1;
+  --brand: #1D4ED8;
+  --brand-hover: #1E40AF;
+  --brand-subtle: #EFF6FF;
+  --success: #15803D;
+  --success-subtle: #F0FDF4;
+  --warning: #B45309;
+  --warning-subtle: #FFFBEB;
+  --danger: #B91C1C;
+  --danger-subtle: #FEF2F2;
 }
 
 body {
-  background-color: var(--bg-dark);
-  color: var(--text-normal);
+  background-color: var(--background);
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   overflow-x: hidden;
 }
 
-/* Operational Card Component Utility */
+/* Light Mode Card Utility Classes */
 .op-card {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
+  background-color: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 10px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
 .op-card-raised {
-  background-color: var(--bg-raised);
-  border: 1px solid var(--border-color);
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
 }

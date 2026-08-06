@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -40,56 +40,56 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-navy-950">
-      <div className="w-full max-w-md glass-panel p-8 rounded-2xl border border-gray-800 space-y-6">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC] text-[#0F172A]">
+      <div className="w-full max-w-md bg-white border border-[#E2E8F0] p-8 rounded-xl space-y-6 shadow-sm">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-electric-600 flex items-center justify-center mx-auto shadow-lg shadow-teal-500/20">
-            <Mic className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg bg-[#1D4ED8] text-white font-bold text-lg flex items-center justify-center mx-auto shadow-sm">
+            V
           </div>
-          <h1 className="text-2xl font-extrabold text-white">
-            Create VoxDesk AI Workspace
+          <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">
+            Create VoxDesk Workspace
           </h1>
-          <p className="text-xs text-gray-400">
-            Deploy your multi-tenant AI voice receptionist environment.
+          <p className="text-xs text-[#64748B]">
+            Deploy your voice operations environment for business call handling.
           </p>
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-red-950/60 border border-red-800 text-xs text-red-300">
+          <div className="p-3 rounded-lg bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#B91C1C]">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-medium text-gray-300 mb-1">
+            <label className="block font-semibold text-[#0F172A] mb-1">
               Full Name
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-3 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-none focus:border-teal-500"
+              className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">
+            <label className="block font-semibold text-[#0F172A] mb-1">
               Workspace Name
             </label>
             <input
               type="text"
               value={workspaceName}
               onChange={(e) => setWorkspaceName(e.target.value)}
-              placeholder="e.g. Apex Dental Practice"
-              className="w-full p-3 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-none focus:border-teal-500"
+              placeholder="e.g. Northstar Legal Consultations"
+              className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">
+            <label className="block font-semibold text-[#0F172A] mb-1">
               Work Email
             </label>
             <input
@@ -97,20 +97,20 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="arslan@example.com"
-              className="w-full p-3 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-none focus:border-teal-500"
+              className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
           </div>
 
           <div>
-            <label className="block font-medium text-gray-300 mb-1">
+            <label className="block font-semibold text-[#0F172A] mb-1">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-3 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-none focus:border-teal-500"
+              className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
           </div>
@@ -118,18 +118,18 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-teal-500 to-electric-600 hover:from-teal-600 hover:to-electric-700 text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
+            className="w-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
           >
             <span>{loading ? "Creating..." : "Create Workspace"}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        <p className="text-center text-xs text-gray-400">
+        <p className="text-center text-xs text-[#64748B]">
           Already registered?{" "}
           <Link
             href="/login"
-            className="text-teal-400 font-semibold hover:underline"
+            className="text-[#1D4ED8] font-semibold hover:underline"
           >
             Sign In
           </Link>

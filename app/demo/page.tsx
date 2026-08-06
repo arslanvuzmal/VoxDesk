@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
 import { Navbar } from "@/components/ui/navbar";
-import { Briefcase, Sparkles, AlertTriangle } from "lucide-react";
+import { Briefcase, AlertTriangle } from "lucide-react";
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
 const ElevenLabsVoiceController = dynamic(
@@ -14,8 +14,8 @@ const ElevenLabsVoiceController = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400 font-mono space-y-2 max-w-4xl mx-auto">
-        <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping inline-block" />
+      <div className="p-8 rounded-xl bg-white border border-[#E2E8F0] text-center text-xs text-[#64748B] font-mono space-y-2 max-w-4xl mx-auto shadow-sm">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#1D4ED8] animate-ping inline-block" />
         <p>Loading ElevenLabs Realtime WebRTC Engine...</p>
       </div>
     ),
@@ -85,35 +85,34 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
         <div className="max-w-4xl mx-auto space-y-8 py-6">
           {/* Header */}
           <div className="text-center space-y-3">
-            <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-mono text-xs border border-indigo-500/20 inline-flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              Official ElevenLabs Realtime Voice Production Sandbox
+            <span className="px-3 py-1 rounded-full bg-[#EFF6FF] text-[#1D4ED8] font-mono text-xs border border-[#1D4ED8]/20 inline-flex items-center gap-1.5 font-semibold">
+              ElevenLabs Realtime Voice Production Sandbox
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
               Live Voice Agent Sandbox
             </h1>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto">
+            <p className="text-sm text-[#64748B] max-w-xl mx-auto">
               Test real-time speech conversation over WebRTC powered by ElevenLabs Conversational AI.
             </p>
           </div>
 
           {selectionNotice && (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center space-x-3 text-amber-300 text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+            <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FCD34D] flex items-center space-x-3 text-[#78350F] text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-[#B45309]" />
               <span>{selectionNotice}</span>
             </div>
           )}
 
           {/* STEP 1: ORGANIZATION PRESET SELECTION */}
           <div className="space-y-3">
-            <h3 className="text-xs font-mono uppercase text-slate-400 tracking-wider font-semibold">
+            <h3 className="text-xs font-semibold uppercase text-[#64748B] tracking-wider">
               1. Select Industry Organization Profile
             </h3>
 
@@ -125,30 +124,30 @@ export default function DemoPage() {
                     key={p.presetKey}
                     type="button"
                     onClick={() => handleSelectPreset(p.presetKey, p.supported)}
-                    className={`p-4 rounded-xl border text-left transition-all space-y-2 relative ${
+                    className={`p-4 rounded-xl border text-left transition-all space-y-2 relative shadow-sm ${
                       isSelected
-                        ? "bg-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/10"
+                        ? "bg-white border-[#1D4ED8] shadow-md ring-2 ring-[#1D4ED8]/10"
                         : p.supported
-                        ? "bg-slate-900/60 border-slate-800 hover:border-slate-700"
-                        : "bg-slate-900/20 border-slate-900 opacity-60 cursor-not-allowed"
+                        ? "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
+                        : "bg-[#F1F5F9] border-[#E2E8F0] opacity-60 cursor-not-allowed"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white text-sm">
+                      <span className="font-bold text-[#0F172A] text-sm">
                         {p.name}
                       </span>
                       <Briefcase
                         className={`w-4 h-4 ${
-                          isSelected ? "text-indigo-400" : "text-slate-500"
+                          isSelected ? "text-[#1D4ED8]" : "text-[#64748B]"
                         }`}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 line-clamp-2">
+                    <p className="text-xs text-[#64748B] line-clamp-2">
                       {p.tagline}
                     </p>
                     {!p.supported && (
-                      <span className="inline-block mt-1 text-[10px] font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                        Not configured for the live provider yet
+                      <span className="inline-block mt-1 text-[10px] font-mono text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded border border-[#FCD34D]">
+                        Not configured for live provider
                       </span>
                     )}
                   </button>
@@ -159,7 +158,7 @@ export default function DemoPage() {
 
           {/* STEP 2: LANGUAGE SELECTION */}
           <div className="space-y-3">
-            <h3 className="text-xs font-mono uppercase text-slate-400 tracking-wider font-semibold">
+            <h3 className="text-xs font-semibold uppercase text-[#64748B] tracking-wider">
               2. Select Spoken Language
             </h3>
 
@@ -167,10 +166,10 @@ export default function DemoPage() {
               <button
                 type="button"
                 onClick={() => handleSelectLanguage("en-US", true)}
-                className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
+                className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all shadow-sm ${
                   selectedLanguage === "en-US"
-                    ? "bg-slate-900 border-indigo-500 text-indigo-400"
-                    : "bg-slate-900/60 border-slate-800 text-slate-300"
+                    ? "bg-white border-[#1D4ED8] text-[#1D4ED8] ring-2 ring-[#1D4ED8]/10"
+                    : "bg-white border-[#E2E8F0] text-[#475569]"
                 }`}
               >
                 🇬🇧 English (en-US)
@@ -179,22 +178,22 @@ export default function DemoPage() {
               <button
                 type="button"
                 onClick={() => handleSelectLanguage("ur-PK", false)}
-                className="p-3 rounded-xl border text-center text-xs font-semibold bg-slate-900/20 border-slate-900 text-slate-500 opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
+                className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
                 <span>🇵🇰 Urdu (اردو)</span>
-                <span className="text-[9px] text-amber-400">
-                  Not configured for the live provider yet
+                <span className="text-[9px] text-[#B45309]">
+                  Not configured for live provider
                 </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleSelectLanguage("es-ES", false)}
-                className="p-3 rounded-xl border text-center text-xs font-semibold bg-slate-900/20 border-slate-900 text-slate-500 opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
+                className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
                 <span>🇪🇸 Spanish (Español)</span>
-                <span className="text-[9px] text-amber-400">
-                  Not configured for the live provider yet
+                <span className="text-[9px] text-[#B45309]">
+                  Not configured for live provider
                 </span>
               </button>
             </div>

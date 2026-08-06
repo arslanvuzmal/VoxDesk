@@ -10,7 +10,6 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const rawCallback = searchParams.get("callbackUrl");
 
-  // Validate same-origin callbackUrl starting with /dashboard
   const callbackUrl =
     rawCallback && rawCallback.startsWith("/dashboard")
       ? rawCallback
@@ -47,64 +46,64 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-[#13171C] border border-[#272D35] p-8 rounded-xl space-y-6">
+    <div className="w-full max-w-md bg-white border border-[#E2E8F0] p-8 rounded-xl space-y-6 shadow-sm">
       <div className="text-center space-y-2">
-        <div className="w-10 h-10 rounded-lg bg-[#2DD4BF] text-[#0B0D10] font-bold text-lg flex items-center justify-center mx-auto">
+        <div className="w-10 h-10 rounded-lg bg-[#1D4ED8] text-white font-bold text-lg flex items-center justify-center mx-auto shadow-sm">
           V
         </div>
-        <h1 className="text-2xl font-bold text-white tracking-tight">
-          Sign In to VoxDesk AI
+        <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">
+          Sign In to VoxDesk
         </h1>
-        <p className="text-xs text-[#8B949E]">
+        <p className="text-xs text-[#64748B]">
           Access voice operations, live call console, and call history.
         </p>
       </div>
 
       {/* Demo Credentials Box */}
-      <div className="p-3.5 rounded-lg bg-[#171C22] border border-[#272D35] text-xs font-mono space-y-1.5 text-[#D4D4D8]">
-        <div className="flex items-center gap-1.5 font-bold text-[#2DD4BF]">
+      <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-mono space-y-1.5 text-[#334155]">
+        <div className="flex items-center gap-1.5 font-bold text-[#15803D]">
           <CheckCircle2 className="w-3.5 h-3.5" />
           <span>DEMO WORKSPACE CREDENTIALS:</span>
         </div>
         <p>
-          <span className="text-[#8B949E]">Email:</span>{" "}
-          <strong className="text-white">owner@northstarlegal.com</strong>
+          <span className="text-[#64748B]">Email:</span>{" "}
+          <strong className="text-[#0F172A]">owner@northstarlegal.com</strong>
         </p>
         <p>
-          <span className="text-[#8B949E]">Password:</span>{" "}
-          <strong className="text-white">password123</strong>
+          <span className="text-[#64748B]">Password:</span>{" "}
+          <strong className="text-[#0F172A]">password123</strong>
         </p>
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg bg-[#FB7185]/10 border border-[#FB7185]/30 text-xs text-[#FB7185]">
+        <div className="p-3 rounded-lg bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#B91C1C]">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         <div>
-          <label className="block font-semibold text-[#D4D4D8] mb-1">
+          <label className="block font-semibold text-[#0F172A] mb-1">
             Email Address
           </label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2.5 rounded-lg bg-[#0F1216] border border-[#272D35] text-white focus:outline-none focus:border-[#2DD4BF]"
+            className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
             required
           />
         </div>
 
         <div>
-          <label className="block font-semibold text-[#D4D4D8] mb-1">
+          <label className="block font-semibold text-[#0F172A] mb-1">
             Password
           </label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2.5 rounded-lg bg-[#0F1216] border border-[#272D35] text-white focus:outline-none focus:border-[#2DD4BF]"
+            className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
             required
           />
         </div>
@@ -112,20 +111,20 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors"
+          className="w-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
         >
           <span>{loading ? "Authenticating..." : "Sign In to Workspace"}</span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </form>
 
-      <div className="pt-2 text-center text-xs text-[#8B949E] border-t border-[#272D35] flex items-center justify-between">
-        <Link href="/" className="hover:text-white">
+      <div className="pt-2 text-center text-xs text-[#64748B] border-t border-[#E2E8F0] flex items-center justify-between">
+        <Link href="/" className="hover:text-[#0F172A]">
           ← Return to Home
         </Link>
         <Link
           href="/demo"
-          className="text-[#2DD4BF] hover:underline font-semibold"
+          className="text-[#1D4ED8] hover:underline font-semibold"
         >
           Explore Demo Sandbox →
         </Link>
@@ -136,9 +135,9 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0D10] text-[#F4F4F5]">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#F8FAFC] text-[#0F172A]">
       <Suspense
-        fallback={<div className="text-xs text-[#8B949E]">Loading...</div>}
+        fallback={<div className="text-xs text-[#64748B]">Loading...</div>}
       >
         <LoginForm />
       </Suspense>

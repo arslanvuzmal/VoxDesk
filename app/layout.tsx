@@ -3,24 +3,24 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://voxdesk-ai.vercel.app"),
-  title: "VoxDesk AI — Voice Operations & Call Automation",
+  title: "VoxDesk — Voice Operations Platform",
   description:
-    "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
+    "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
   authors: [{ name: "Arslan Vuzmal Lone" }],
   openGraph: {
-    title: "VoxDesk AI — Voice Operations & Call Automation",
+    title: "VoxDesk — Voice Operations Platform",
     description:
-      "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
+      "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
     url: "https://voxdesk-ai.vercel.app",
-    siteName: "VoxDesk AI",
+    siteName: "VoxDesk",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "VoxDesk AI — Voice Operations & Call Automation",
+    title: "VoxDesk — Voice Operations Platform",
     description:
-      "VoxDesk helps service businesses handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one voice operations workspace.",
+      "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
   },
 };
 
@@ -30,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased min-h-screen bg-[#0B0D10] text-[#F4F4F5] selection:bg-[#2DD4BF] selection:text-[#0B0D10]">
+    <html lang="en">
+      <body className="antialiased min-h-screen bg-[#F8FAFC] text-[#0F172A] selection:bg-[#1D4ED8] selection:text-white">
         {children}
       </body>
     </html>
