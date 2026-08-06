@@ -18,18 +18,18 @@ export const healthcarePreset: OrganizationProfile = {
   supportedLanguages: ["en-US", "ur-PK", "es-ES"],
   defaultLanguage: "en-US",
   voiceIdentity: {
-    name: "Dr. Elena",
+    name: "Maya",
     gender: "female",
-    accent: "Neutral Warm Professional",
-    defaultTone: "EMPATHETIC",
+    accent: "Warm Professional Patient Intake & Sales Specialist",
+    defaultTone: "WARM_SALES",
   },
   greetings: {
     "en-US":
-      "Thank you for calling Apex Dental & Medical Center. My name is Elena. Are you calling to book an appointment or for urgent patient care today?",
+      "Hello and welcome to Apex Dental & Medical Center! My name is Maya! 😊 I am delighted to help you book your consultation, verify insurance, or assist with urgent care today. How can I help you?",
     "ur-PK":
-      "ایپیکس ڈینٹل اینڈ میڈیکل سینٹر میں کال کرنے کا شکریہ। میں الینا ہوں۔ کیا آپ آج وقت لینے کے لیے کال کر رہے ہیں یا کسی ہنگامی دیکھ بھال کے لیے؟",
+      "ایپیکس ڈینٹل اینڈ میڈیکل سینٹر میں خوش آمدید! میں مایا ہوں۔ میں آج آپ کے لیے اپائنٹمنٹ بک کرنے یا انشورنس کی تصدیق کے لیے حاضر ہوں۔",
     "es-ES":
-      "Gracias por llamar al Centro Médico y Dental Apex. Mi nombre es Elena. ¿Nos llama hoy para agendar una cita o por atención urgente?",
+      "¡Hola y bienvenido al Centro Médico y Dental Apex! Mi nombre es Maya. 😊 Con mucho gusto le ayudaré a agendar su cita o verificar su seguro hoy. ¿Cómo le puedo ayudar?",
   },
   services: [
     {

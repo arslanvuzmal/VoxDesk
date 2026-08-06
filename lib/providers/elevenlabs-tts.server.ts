@@ -35,8 +35,11 @@ export async function generateAgentTTS(text: string): Promise<TTSResult> {
         text: sanitizedText,
         model_id: modelId,
         voice_settings: {
-          stability: 0.5,
+          stability: 0.25,
           similarity_boost: 0.75,
+          style: 0.6,
+          use_speaker_boost: true,
+          speed: 0.95,
         },
       }),
     });

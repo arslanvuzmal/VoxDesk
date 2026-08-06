@@ -9,6 +9,7 @@ import {
 } from "@/lib/conversation/schemas/voice-agent-output";
 import { buildVoiceAgentSystemPrompt } from "@/lib/conversation/prompts/voice-agent-system";
 import { getOrganizationProfile } from "@/lib/organization/registry";
+import { getDeterministicFallback } from "@/lib/providers/openrouter.server";
 
 export interface CloudflareLLMRequest {
   userMessage: string;
@@ -26,7 +27,7 @@ export async function generateCloudflareResponse(
   const model = env.CLOUDFLARE_LLM_MODEL || "@cf/moonshotai/kimi-k2.6";
   const timeoutMs = parseInt(env.CLOUDFLARE_LLM_TIMEOUT_MS, 10) || 15000;
   const maxTokens = parseInt(env.CLOUDFLARE_MAX_OUTPUT_TOKENS, 10) || 180;
-  const temperature = parseFloat(env.CLOUDFLARE_TEMPERATURE) || 0.35;
+  const temperature = parseFloat(env.CLOUDFLARE_TEMPERATURE) || 0.65;
 
   const presetKey = input.presetKey || "LEGAL";
   const language = input.language || "en-US";
@@ -105,24 +106,10 @@ function getFallbackStructuredOutput(
   profile: any,
   language: SupportedLanguage,
 ): VoiceAgentOutput {
-  const greeting = profile.greetings[language] || profile.greetings["en-US"];
-
-  return {
-    spokenReply: greeting,
-    detectedLanguage: language,
-    intent: input.scenario,
-    secondaryIntent: null,
-    suggestedState: "IDENTIFYING_INTENT",
-    sentiment: "neutral",
-    urgency: "medium",
-    confidence: 0.75,
-    extractedFields: {},
-    missingRequiredFields: [],
-    suggestedAction: "NONE",
-    requiresHumanReview: false,
-    handoffReason: null,
-    knowledgeReferences: [],
-    nextBestQuestion: null,
-    shouldEnd: false,
-  };
+  return getDeterministicFallback(
+    input.userMessage,
+    input.scenario,
+    profile,
+    language,
+  );
 }

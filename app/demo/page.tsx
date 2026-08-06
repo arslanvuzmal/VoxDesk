@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
-import { RealVoiceConsole } from "@/components/calls/real-voice-console";
 import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
 import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import { listOrganizationPresets } from "@/lib/organization/registry";
@@ -13,14 +13,27 @@ import {
   Users,
   PhoneForwarded,
   HelpCircle,
-  ShieldCheck,
   AlertTriangle,
-  RotateCcw,
-  BookOpen,
-  Globe,
   Briefcase,
   Sparkles,
 } from "lucide-react";
+
+// Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
+const ElevenLabsVoiceConsole = dynamic(
+  () =>
+    import("@/components/calls/elevenlabs-voice-console").then(
+      (mod) => mod.ElevenLabsVoiceConsole,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="p-8 rounded-lg bg-[#13171C] border border-[#272D35] text-center text-xs text-[#8B949E] font-mono space-y-2">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-ping inline-block" />
+        <p>Loading ElevenLabs Realtime WebRTC Engine...</p>
+      </div>
+    ),
+  },
+);
 
 export default function DemoPage() {
   const presets = listOrganizationPresets();
@@ -29,7 +42,7 @@ export default function DemoPage() {
   const [selectedScenario, setSelectedScenario] = useState<
     "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE"
   >("BOOKING");
-  const [hasConsented, setHasConsented] = useState(false);
+  const [hasConsented, setHasConsented] = useState(true);
   const [activeSession, setActiveSession] = useState(false);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [sessionStartError, setSessionStartError] = useState<{
@@ -90,7 +103,7 @@ export default function DemoPage() {
             <div className="text-center space-y-3">
               <span className="px-3 py-1 rounded-full bg-[#171C22] text-[#2DD4BF] font-mono text-xs border border-[#272D35] inline-flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                Solution-First Voice Sandbox
+                Official ElevenLabs Realtime Voice Sandbox
               </span>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                 Try the VoxDesk Voice Receptionist
@@ -364,7 +377,7 @@ export default function DemoPage() {
               </button>
             </div>
 
-            <RealVoiceConsole
+            <ElevenLabsVoiceConsole
               scenario={selectedScenario}
               presetKey={selectedPresetKey}
               language={selectedLanguage as any}

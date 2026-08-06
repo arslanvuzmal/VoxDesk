@@ -62,6 +62,7 @@ export interface IDemoSessionStore {
   ): Promise<DemoSessionData | null>;
   endSession(sessionId: string, reason: string): Promise<boolean>;
   deleteSession(sessionId: string): Promise<boolean>;
+  clearAllSessions(): Promise<void>;
   acquireRequestLock(sessionId: string): Promise<boolean>;
   releaseRequestLock(sessionId: string): Promise<void>;
   recordTurnId(sessionId: string, turnId: string): Promise<boolean>;
@@ -70,6 +71,9 @@ export interface IDemoSessionStore {
   getStoredResponse(responseId: string): Promise<StoredResponse | null>;
   consumeResponse(responseId: string): Promise<StoredResponse | null>;
   countActiveSessions(): Promise<number>;
+  getActiveSessionCount(): Promise<number>;
+  getIpDailySessionCount(ipHash: string): Promise<number>;
+  checkIpCooldown(ipHash: string, cooldownSeconds: number): Promise<boolean>;
   checkDailyIPLimit(
     ipHash: string,
   ): Promise<{ allowed: boolean; current: number; limit: number }>;
@@ -132,7 +136,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
-    const expiresAt = now + 180 * 1000;
+    const expiresAt = now + 1800 * 1000;
 
     const session: DemoSessionData = {
       sessionId,
@@ -144,7 +148,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
       expiresAt,
       lastActivityAt: now,
       turnsUsed: 0,
-      maxTurns: 6,
+      maxTurns: 50,
       userCharacters: 0,
       agentCharacters: 0,
       llmInputTokens: 0,
@@ -233,6 +237,14 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     return this.sessions.delete(sessionId);
   }
 
+  async clearAllSessions(): Promise<void> {
+    this.sessions.clear();
+    this.ipSessionCount.clear();
+    this.ipLastSession.clear();
+    this.locks.clear();
+    this.responses.clear();
+  }
+
   async acquireRequestLock(sessionId: string): Promise<boolean> {
     if (this.locks.has(sessionId)) return false;
     this.locks.add(sessionId);
@@ -308,10 +320,32 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     return count;
   }
 
+  async getActiveSessionCount(): Promise<number> {
+    return this.countActiveSessions();
+  }
+
+  async getIpDailySessionCount(ipHash: string): Promise<number> {
+    const today = this.getTodayStr();
+    const data = this.ipSessionCount.get(ipHash);
+    if (data && data.date === today) return data.count;
+    return 0;
+  }
+
+  async checkIpCooldown(
+    ipHash: string,
+    cooldownSeconds: number,
+  ): Promise<boolean> {
+    const last = this.ipLastSession.get(ipHash);
+    if (!last) return false;
+    const elapsedSeconds = (Date.now() - last) / 1000;
+    return elapsedSeconds < cooldownSeconds;
+  }
+
   async checkDailyIPLimit(
     ipHash: string,
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
-    return { allowed: true, current: 0, limit: 999999 };
+    const current = await this.getIpDailySessionCount(ipHash);
+    return { allowed: current < 10, current, limit: 10 };
   }
 
   async checkGlobalDailyLimit(): Promise<{
@@ -319,12 +353,22 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     current: number;
     limit: number;
   }> {
-    return { allowed: true, current: 0, limit: 999999 };
+    return {
+      allowed: true,
+      current: this.globalDailySessions.count,
+      limit: 100,
+    };
   }
 
   async checkCooldown(
     ipHash: string,
   ): Promise<{ allowed: boolean; secondsRemaining: number }> {
+    const last = this.ipLastSession.get(ipHash);
+    if (!last) return { allowed: true, secondsRemaining: 0 };
+    const elapsed = (Date.now() - last) / 1000;
+    if (elapsed < 15) {
+      return { allowed: false, secondsRemaining: Math.ceil(15 - elapsed) };
+    }
     return { allowed: true, secondsRemaining: 0 };
   }
 }
@@ -350,7 +394,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
-    const expiresAt = now + 180 * 1000;
+    const expiresAt = now + 1800 * 1000;
 
     const session: DemoSessionData = {
       sessionId,
@@ -362,7 +406,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
       expiresAt,
       lastActivityAt: now,
       turnsUsed: 0,
-      maxTurns: 6,
+      maxTurns: 50,
       userCharacters: 0,
       agentCharacters: 0,
       llmInputTokens: 0,
@@ -383,7 +427,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
       completed: false,
     };
 
-    const ttl = 180;
+    const ttl = 1800;
     await this.redis.set(
       `voxdesk:session:${sessionId}`,
       JSON.stringify(session),
@@ -448,6 +492,13 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   async deleteSession(sessionId: string): Promise<boolean> {
     await this.redis.del(`voxdesk:session:${sessionId}`);
     return true;
+  }
+
+  async clearAllSessions(): Promise<void> {
+    const keys = await this.redis.keys("voxdesk:*");
+    if (keys.length > 0) {
+      await Promise.all(keys.map((k) => this.redis.del(k)));
+    }
   }
 
   async acquireRequestLock(sessionId: string): Promise<boolean> {
@@ -530,10 +581,32 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     return keys.length;
   }
 
+  async getActiveSessionCount(): Promise<number> {
+    return this.countActiveSessions();
+  }
+
+  async getIpDailySessionCount(ipHash: string): Promise<number> {
+    const today = this.getTodayStr();
+    const count = await this.redis.get<number>(`voxdesk:ip:${ipHash}:${today}`);
+    return count || 0;
+  }
+
+  async checkIpCooldown(
+    ipHash: string,
+    cooldownSeconds: number,
+  ): Promise<boolean> {
+    const rawLast = await this.redis.get<string>(`voxdesk:cooldown:${ipHash}`);
+    if (!rawLast) return false;
+    const last = parseInt(rawLast, 10);
+    const elapsed = (Date.now() - last) / 1000;
+    return elapsed < cooldownSeconds;
+  }
+
   async checkDailyIPLimit(
     ipHash: string,
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
-    return { allowed: true, current: 0, limit: 999999 };
+    const current = await this.getIpDailySessionCount(ipHash);
+    return { allowed: current < 10, current, limit: 10 };
   }
 
   async checkGlobalDailyLimit(): Promise<{

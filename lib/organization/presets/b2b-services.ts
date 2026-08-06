@@ -19,18 +19,18 @@ export const b2bServicesPreset: OrganizationProfile = {
   supportedLanguages: ["en-US", "ur-PK", "es-ES"],
   defaultLanguage: "en-US",
   voiceIdentity: {
-    name: "Alex",
-    gender: "male",
-    accent: "Tech Executive Professional",
-    defaultTone: "CONFIDENT",
+    name: "Maya",
+    gender: "female",
+    accent: "Corporate Sweet & Professional Sales Specialist",
+    defaultTone: "WARM_SALES",
   },
   greetings: {
     "en-US":
-      "Welcome to Nexus Global Software Solutions. My name is Alex. Are you exploring our enterprise AI automation platform for your engineering team today?",
+      "Hello! Thank you for contacting Nexus Global Software Solutions. My name is Maya! 😊 I can help schedule a live executive product walkthrough, connect you with an enterprise architect, or discuss pricing. How can I help you today?",
     "ur-PK":
-      "نیکسس گلوبل سافٹ ویئر سلوشنز میں خوش آمدید۔ میں الیکس ہوں۔ کیا آپ آج اپنی ٹیم کے لیے ہمارے انٹرپرائز صوتی پلیٹ فارم کو دیکھ رہے ہیں؟",
+      "نیکسس گلوبل سافٹ ویئر سلوشنز میں کال کرنے کا شکریہ! میں مایا ہوں۔ میں آپ کے لیے پروڈکٹ ڈیمو شیڈول کرنے یا پرائسنگ پر بات کرنے کے لیے حاضر ہوں۔",
     "es-ES":
-      "Bienvenido a Nexus Global Software Solutions. Mi nombre es Alex. ¿Está explorando nuestra plataforma empresarial de automatización hoy?",
+      "¡Hola! Muchas gracias por contactar a Nexus Global Software Solutions. Mi nombre es Maya. 😊 Puedo agendar una demostración en vivo o conversar sobre precios hoy. ¿Cómo le ayudo?",
   },
   services: [
     {

@@ -1,19 +1,28 @@
 import { BusinessActionType } from "./schemas/voice-agent-output";
 import { OrganizationProfile } from "@/lib/organization/types";
+import { generateRealAvailableSlots, AppointmentSlot } from "./availability";
 
 export interface PendingConfirmation {
+  id: string;
   actionType: "RESERVE_APPOINTMENT";
+  offeredAt: number;
+  expiresAt: number;
   payload: {
+    slotId: string;
     startTime: string;
     endTime: string;
-    service: string;
+    timezone: string;
+    serviceId: string;
+    formattedDate: string;
   };
-  createdAt: number;
-  expiresAt: number;
 }
 
 export type ActionDecision =
-  | { execute: true; action: BusinessActionType }
+  | {
+      execute: true;
+      action: BusinessActionType;
+      pendingConfirmation?: PendingConfirmation;
+    }
   | { execute: false; reason: string }
   | { execute: false; pendingConfirmation: PendingConfirmation };
 
@@ -33,7 +42,6 @@ export function evaluateSuggestedAction(
 ): ActionDecision {
   const {
     suggestedAction,
-    state,
     scenario,
     accumulatedFields,
     pendingConfirmation,
@@ -71,31 +79,33 @@ export function evaluateSuggestedAction(
     };
   }
 
-  // Reserve appointment policy: Requires explicit caller confirmation and valid slots
+  // Reserve appointment policy: Requires explicit caller confirmation against real offered slot
   if (suggestedAction === "RESERVE_APPOINTMENT") {
     const isExplicitConfirmation =
-      /yes|yeah|sure|confirm|book that|that works|perfect/i.test(userMessage);
+      /yes|yeah|sure|confirm|book that|that works|perfect|book it|go ahead/i.test(
+        userMessage,
+      );
 
-    if (!isExplicitConfirmation && !pendingConfirmation) {
-      const startTime = new Date(Date.now() + 86400000 * 2).toISOString();
-      const endTime = new Date(
-        Date.now() + 86400000 * 2 + 1800000,
-      ).toISOString();
+    // If caller has not explicitly confirmed an offered slot, offer real slots and create pending confirmation
+    if (!isExplicitConfirmation || !pendingConfirmation) {
+      const realSlots = generateRealAvailableSlots(profile.presetKey);
+      const chosenSlot = realSlots[0];
 
       return {
         execute: false,
         pendingConfirmation: {
+          id: `pending_${Date.now()}_${Math.random().toString(36).slice(2)}`,
           actionType: "RESERVE_APPOINTMENT",
           payload: {
-            startTime,
-            endTime,
-            service:
-              accumulatedFields.serviceInterest ||
-              profile.services[0]?.name ||
-              "Consultation",
+            slotId: chosenSlot.slotId,
+            startTime: chosenSlot.startTime,
+            endTime: chosenSlot.endTime,
+            timezone: chosenSlot.timezone,
+            serviceId: chosenSlot.serviceId,
+            formattedDate: chosenSlot.formattedDate,
           },
-          createdAt: Date.now(),
-          expiresAt: Date.now() + 600000,
+          offeredAt: Date.now(),
+          expiresAt: Date.now() + 600000, // 10 minutes
         },
       };
     }
@@ -108,7 +118,11 @@ export function evaluateSuggestedAction(
       };
     }
 
-    return { execute: true, action: "RESERVE_APPOINTMENT" };
+    return {
+      execute: true,
+      action: "RESERVE_APPOINTMENT",
+      pendingConfirmation,
+    };
   }
 
   // Lead creation policy: Requires minimum contact name/phone or explicit qualification scenario

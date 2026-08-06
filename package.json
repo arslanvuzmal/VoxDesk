@@ -7,7 +7,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
@@ -29,13 +30,15 @@
     "demo:call": "tsx scripts/demo-call.ts",
     "demo:story": "tsx scripts/demo-story.ts",
     "demo:verify": "tsx scripts/demo-verify.ts",
+    "elevenlabs:provision": "tsx scripts/provision-elevenlabs-agents.ts",
     "portfolio:capture": "tsx scripts/portfolio-capture.ts",
     "audit:routes": "tsx scripts/audit-routes.ts",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:security && npm run build"
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run test:unit && npm run test:integration && npm run test:security && npx prisma validate && npm run audit:routes && npm run build && npm run test:e2e"
   },
   "dependencies": {
     "@elevenlabs/client": "^1.17.0",
     "@elevenlabs/elevenlabs-js": "^2.60.0",
+    "@elevenlabs/react": "^1.12.0",
     "@openrouter/sdk": "^1.2.4",
     "@prisma/client": "^6.3.1",
     "@upstash/redis": "^1.34.4",
@@ -44,6 +47,7 @@
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
+    "livekit-server-sdk": "^2.10.0",
     "lucide-react": "^0.475.0",
     "next": "^15.1.7",
     "react": "^19.0.0",
