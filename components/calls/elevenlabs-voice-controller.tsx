@@ -209,13 +209,17 @@ export function ElevenLabsVoiceController() {
       const bootstrapData = await bootstrapRes.json();
       setSessionId(bootstrapData.sessionId);
 
-      // Step 4: Connect ElevenLabs WebRTC Session
+      // Step 4: Connect ElevenLabs Session
       setCallState("CONNECTING");
-      await conversation.startSession({
-        conversationToken: bootstrapData.conversationToken,
-        signedUrl: bootstrapData.conversationToken,
-        connectionType: "webrtc",
-      } as any);
+      if (bootstrapData.conversationToken?.startsWith("wss://") || bootstrapData.conversationToken?.startsWith("ws://")) {
+        await conversation.startSession({
+          signedUrl: bootstrapData.conversationToken,
+        });
+      } else {
+        await conversation.startSession({
+          conversationToken: bootstrapData.conversationToken,
+        } as any);
+      }
 
       // Conversation ID tracking
       if ((conversation as any).getId) {
