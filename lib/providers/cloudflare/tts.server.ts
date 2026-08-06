@@ -1,12 +1,21 @@
 import "server-only";
 import { env } from "@/lib/config/env";
-import { runCloudflareModel } from "./client.server";
 import { CloudflareAIError } from "./errors";
 
 export async function generateCloudflareTTSAudio(
   text: string,
 ): Promise<{ audioBuffer: Buffer; contentType: string }> {
+  const accountId = env.CLOUDFLARE_ACCOUNT_ID;
+  const apiToken = env.CLOUDFLARE_API_TOKEN;
   const model = env.CLOUDFLARE_TTS_MODEL || "@cf/deepgram/aura-2-en";
+
+  if (!accountId || !apiToken) {
+    throw new CloudflareAIError(
+      "Cloudflare credentials missing",
+      "CLOUDFLARE_DISABLED",
+      503,
+    );
+  }
 
   // Sanitize and limit text length for natural spoken audio
   const cleanText = text
@@ -16,31 +25,32 @@ export async function generateCloudflareTTSAudio(
     .replace(/\bi\.e\.\b/gi, "that is")
     .slice(0, 350);
 
-  const payload = {
-    text: cleanText,
-  };
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`;
 
   try {
-    const result = await runCloudflareModel<any>(model, payload, 10000);
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: cleanText }),
+    });
 
-    let audioBuffer: Buffer;
-    if (result instanceof Buffer) {
-      audioBuffer = result;
-    } else if (typeof result === "string") {
-      audioBuffer = Buffer.from(result, "base64");
-    } else if (result?.audio) {
-      audioBuffer = Buffer.from(result.audio, "base64");
-    } else {
+    if (!response.ok) {
       throw new CloudflareAIError(
-        "Invalid audio response format returned by Cloudflare TTS model.",
-        "CLOUDFLARE_TTS_FORMAT_ERROR",
-        500,
+        `Cloudflare TTS model ${model} failed with status ${response.status}`,
+        "CLOUDFLARE_TTS_FAILED",
+        response.status,
       );
     }
 
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = Buffer.from(arrayBuffer);
+
     return {
       audioBuffer,
-      contentType: "audio/mpeg",
+      contentType: response.headers.get("content-type") || "audio/mpeg",
     };
   } catch (error) {
     if (error instanceof CloudflareAIError) throw error;

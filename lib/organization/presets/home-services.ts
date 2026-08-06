@@ -19,18 +19,18 @@ export const homeServicesPreset: OrganizationProfile = {
   supportedLanguages: ["en-US", "ur-PK", "es-ES"],
   defaultLanguage: "en-US",
   voiceIdentity: {
-    name: "Dave",
-    gender: "male",
-    accent: "Friendly Professional Contractor",
-    defaultTone: "CALM",
+    name: "Maya",
+    gender: "female",
+    accent: "Friendly Professional Sales Specialist",
+    defaultTone: "WARM_SALES",
   },
   greetings: {
     "en-US":
-      "Thanks for calling ProCraft Heating, Plumbing & AC! My name is Dave. Are you calling for emergency repair or routine seasonal maintenance today?",
+      "Hi! Thanks so much for calling ProCraft Home Services. This is Maya! 😊 I can schedule a licensed technician for you right away or help you get a free service estimate. How can I assist you today?",
     "ur-PK":
-      "پرو کرافٹ ہیٹنگ اور پلمبنگ میں کال کرنے کا شکریہ! میں ڈیو ہوں۔ کیا آپ ہنگامی مرمت کے لیے کال کر رہے ہیں یا روٹین مینٹیننس کے لیے؟",
+      "پرو کرافٹ ہوم سروسز میں کال کرنے کا شکریہ! میں مایا ہوں۔ میں فوری طور پر آپ کے لیے ٹیکنیشن شیڈول کر سکتی ہوں یا مفت تخمینہ فراہم کر سکتی ہوں۔",
     "es-ES":
-      "¡Gracias por llamar a ProCraft Calefacción y Plomería! Mi nombre es Dave. ¿Nos llama por una reparación de emergencia o mantenimiento de rutina?",
+      "¡Hola! Muchas gracias por llamar a Servicios del Hogar ProCraft. Le habla Maya. 😊 Puedo agendar un técnico para usted de inmediato o darle un estimado gratis. ¿Cómo le ayudo hoy?",
   },
   services: [
     {

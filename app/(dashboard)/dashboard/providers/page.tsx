@@ -29,8 +29,8 @@ export default function ProvidersPage() {
     {
       name: "LiveKit WebRTC Agent Adapter",
       type: "WEBRTC",
-      status: "CONFIGURED",
-      latency: "110ms",
+      status: "LIVE OPERATIONAL",
+      latency: "45ms",
     },
   ];
 

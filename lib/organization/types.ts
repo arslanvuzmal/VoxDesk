@@ -4,7 +4,13 @@ export type IndustryType =
 export type SupportedLanguage = "en-US" | "ur-PK" | "es-ES";
 
 export type VoiceTone =
-  "PROFESSIONAL" | "WARM" | "CALM" | "EMPATHETIC" | "CONFIDENT" | "ENERGETIC";
+  | "PROFESSIONAL"
+  | "WARM"
+  | "WARM_SALES"
+  | "CALM"
+  | "EMPATHETIC"
+  | "CONFIDENT"
+  | "ENERGETIC";
 
 export interface ApprovedKnowledgeItem {
   id: string;

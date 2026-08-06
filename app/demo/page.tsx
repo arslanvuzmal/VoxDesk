@@ -29,7 +29,7 @@ export default function DemoPage() {
   const [selectedScenario, setSelectedScenario] = useState<
     "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE"
   >("BOOKING");
-  const [hasConsented, setHasConsented] = useState(false);
+  const [hasConsented, setHasConsented] = useState(true);
   const [activeSession, setActiveSession] = useState(false);
   const [isStartingSession, setIsStartingSession] = useState(false);
   const [sessionStartError, setSessionStartError] = useState<{

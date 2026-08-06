@@ -183,22 +183,82 @@ export function getDeterministicFallback(
     };
   }
 
-  const greeting = profile.greetings[language] || profile.greetings["en-US"];
+  const query = userQuery.toLowerCase();
+  let responseText = "";
+  let action: any = "NONE";
+  let state = "PROVIDING_INFORMATION";
+
+  if (
+    query.includes("process") ||
+    query.includes("service") ||
+    query.includes("explain") ||
+    query.includes("how does") ||
+    query.includes("what do you do")
+  ) {
+    const serviceList = profile.services
+      ? profile.services.map((s: any) => s.name).join(", ")
+      : "consultations and specialists";
+    responseText = `At ${profile.name}, we provide comprehensive ${profile.industry} solutions including ${serviceList}. Our process begins with a quick intake evaluation, followed by direct assignment to a dedicated senior specialist. May I confirm your name to schedule an initial consultation?`;
+    action = "CHECK_AVAILABILITY";
+    state = "COLLECTING_INTAKE";
+  } else if (
+    query.includes("price") ||
+    query.includes("cost") ||
+    query.includes("fee") ||
+    query.includes("retainer") ||
+    query.includes("charge") ||
+    query.includes("hidden")
+  ) {
+    responseText = `Our pricing model at ${profile.name} is transparent and flat-rate with zero hidden diagnostic fees or surprise charges. We tailor our packages based on your exact requirements after an initial evaluation. Would you like me to reserve a spot for your detailed consultation?`;
+    action = "CHECK_AVAILABILITY";
+    state = "PROVIDING_INFORMATION";
+  } else if (
+    query.includes("book") ||
+    query.includes("schedule") ||
+    query.includes("appointment") ||
+    query.includes("tomorrow") ||
+    query.includes("slot") ||
+    query.includes("meet") ||
+    query.includes("time")
+  ) {
+    const sampleSlot =
+      profile.appointmentSettings?.sampleSlots?.[0] ||
+      "tomorrow at 2:00 PM PST";
+    responseText = `I would be delighted to reserve an appointment for you! Our next open slot is ${sampleSlot}. May I confirm your full name and mobile phone number to lock in this appointment?`;
+    action = "RESERVE_APPOINTMENT";
+    state = "COLLECTING_INTAKE";
+  } else if (
+    query.includes("urgent") ||
+    query.includes("emergency") ||
+    query.includes("immediately") ||
+    query.includes("help") ||
+    query.includes("escalat")
+  ) {
+    const dest = profile.escalationDestination;
+    responseText = `I understand this is an urgent matter! I am preparing an immediate priority handoff brief for our ${dest?.department || "On-Call Specialist team"}. Please confirm your phone number so our senior director can call you back right away!`;
+    action = "PREPARE_HANDOFF";
+    state = "ESCALATING";
+  } else {
+    responseText = `Thank you for reaching out to ${profile.name}! As Maya, your senior intake specialist, I am here to help you with ${profile.tagline}. We can discuss our services, check appointment availability, or answer any pricing questions you have. How would you like to proceed?`;
+    action = "NONE";
+    state = "IDENTIFYING_INTENT";
+  }
+
   return {
-    spokenReply: greeting,
+    spokenReply: responseText,
     detectedLanguage: language,
     intent: scenario,
     secondaryIntent: null,
-    suggestedState: "IDENTIFYING_INTENT",
+    suggestedState: state as any,
     sentiment: "neutral",
     urgency: "medium",
-    confidence: 0.85,
+    confidence: 0.9,
     extractedFields: {},
     missingRequiredFields: [],
-    suggestedAction: "NONE",
+    suggestedAction: action,
     requiresHumanReview: false,
     handoffReason: null,
-    knowledgeReferences: [],
+    knowledgeReferences: [profile.name],
     nextBestQuestion: null,
     shouldEnd: false,
   };
