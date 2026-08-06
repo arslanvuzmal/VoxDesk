@@ -35,6 +35,12 @@ const ElevenLabsVoiceConsole = dynamic(
   },
 );
 
+interface ElevenLabsConfig {
+  configured: boolean;
+  agentId?: string;
+  displayName?: string;
+}
+
 export default function DemoPage() {
   const presets = listOrganizationPresets();
   const [selectedPresetKey, setSelectedPresetKey] = useState<string>("LEGAL");
@@ -50,11 +56,33 @@ export default function DemoPage() {
     code?: string;
     guidedDemoUrl?: string;
   } | null>(null);
+  const [elevenlabsConfigured, setElevenlabsConfigured] = useState(true);
+  const [configLoaded, setConfigLoaded] = useState(false);
 
   const [callEndedResult, setCallEndedResult] = useState<any | null>(null);
 
   const activeProfile =
     presets.find((p) => p.presetKey === selectedPresetKey) || presets[0];
+
+  // Fetch ElevenLabs configuration status from API
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch("/api/demo/elevenlabs-config");
+        const data = await res.json();
+        if (data.success && data.config) {
+          const key = `${selectedPresetKey}:${selectedLanguage}`;
+          const config = data.config[key] as ElevenLabsConfig | undefined;
+          setElevenlabsConfigured(config?.configured ?? false);
+        }
+      } catch {
+        setElevenlabsConfigured(false);
+      } finally {
+        setConfigLoaded(true);
+      }
+    };
+    fetchConfig();
+  }, [selectedPresetKey, selectedLanguage]);
 
   const handleStartSession = async () => {
     if (!hasConsented || isStartingSession) return;
@@ -101,6 +129,37 @@ export default function DemoPage() {
       setIsStartingSession(false);
     }
   };
+
+  // Show loading state while config is being fetched
+  if (!configLoaded) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
+        <Navbar />
+        <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
+          <div className="max-w-4xl mx-auto space-y-8 py-6">
+            <div className="text-center space-y-3">
+              <span className="px-3 py-1 rounded-full bg-[#171C22] text-[#2DD4BF] font-mono text-xs border border-[#272D35] inline-flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                Official ElevenLabs Realtime Voice Sandbox
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                Try the VoxDesk Voice Receptionist
+              </h1>
+              <p className="text-sm text-[#D4D4D8] max-w-xl mx-auto">
+                Select your industry profile, language, and caller scenario to
+                test real-time speech recognition, policy enforcement, lead
+                scoring, and instant CRM record creation.
+              </p>
+            </div>
+            <div className="p-8 rounded-lg bg-[#13171C] border border-[#272D35] text-center text-xs text-[#8B949E] font-mono space-y-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-ping inline-block" />
+              <p>Checking ElevenLabs configuration...</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
