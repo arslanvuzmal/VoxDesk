@@ -7,7 +7,6 @@ import { Navbar } from "@/components/ui/navbar";
 import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
 import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import { listOrganizationPresets } from "@/lib/organization/registry";
-import { resolveElevenLabsAgent, isElevenLabsConfigured } from "@/lib/elevenlabs/agent-registry";
 import {
   Mic,
   Calendar,
@@ -17,7 +16,6 @@ import {
   AlertTriangle,
   Briefcase,
   Sparkles,
-  Info,
 } from "lucide-react";
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
@@ -52,30 +50,21 @@ export default function DemoPage() {
     code?: string;
     guidedDemoUrl?: string;
   } | null>(null);
-  const [elevenlabsConfigured, setElevenlabsConfigured] = useState(true);
 
   const [callEndedResult, setCallEndedResult] = useState<any | null>(null);
 
   const activeProfile =
     presets.find((p) => p.presetKey === selectedPresetKey) || presets[0];
 
-  // Check if ElevenLabs agent is configured for current preset/language
-  useEffect(() => {
-    const agent = resolveElevenLabsAgent(
-      selectedPresetKey as any,
-      selectedLanguage as any,
-    );
-    // Check if we have a valid agent ID (not just the default fallback)
-    const hasValidAgent = agent && agent.agentId !== "36f372be729c9c1e4de8071b86271c6b";
-    setElevenlabsConfigured(!!hasValidAgent);
-  }, [selectedPresetKey, selectedLanguage]);
-
   const handleStartSession = async () => {
     if (!hasConsented || isStartingSession) return;
-    
-    // If ElevenLabs is not configured, show guided demo instead
-    if (!elevenlabsConfigured) {
-      window.location.href = "/demo/story";
+
+    // Enforce verified agent limit: Legal English only for initial release
+    if (selectedPresetKey !== "LEGAL" || selectedLanguage !== "en-US") {
+      setSessionStartError({
+        message:
+          "This business profile is coming after provider configuration. Please select Northstar Legal Consultations (English).",
+      });
       return;
     }
 
@@ -136,33 +125,6 @@ export default function DemoPage() {
               </p>
             </div>
 
-            {/* ElevenLabs Configuration Notice */}
-            {!elevenlabsConfigured && (
-              <div className="p-4 rounded-xl bg-[#171C22] border border-[#F59E0B]/40 space-y-3">
-                <div className="flex items-start gap-3 text-xs text-[#F59E0B]">
-                  <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-semibold text-white">
-                      ElevenLabs Realtime Not Configured
-                    </p>
-                    <p className="text-[#D4D4D8]">
-                      The live WebRTC voice demo requires an ElevenLabs account with a configured Conversational AI agent. 
-                      Please set <code className="bg-[#0B0D10] px-1.5 py-0.5 rounded text-[#2DD4BF] font-mono text-[10px]">ELEVENLABS_API_KEY</code> and 
-                      <code className="bg-[#0B0D10] px-1.5 py-0.5 rounded text-[#2DD4BF] font-mono text-[10px]">ELEVENLABS_AGENT_ID_LEGAL_EN</code> 
-                      in your environment variables.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => window.location.href = "/demo/story"}
-                      className="mt-2 px-4 py-2 rounded-lg bg-[#F59E0B] hover:bg-[#d97706] text-[#0B0D10] font-bold text-xs transition-colors"
-                    >
-                      Try Guided Story Demo Instead
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Error Message */}
             {sessionStartError && (
               <div className="p-4 rounded-xl bg-[#991B1B]/10 border border-[#991B1B]/40 space-y-3">
@@ -173,15 +135,6 @@ export default function DemoPage() {
                       Session Start Notice
                     </p>
                     <p>{sessionStartError.message}</p>
-                    {sessionStartError.guidedDemoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => window.location.href = sessionStartError.guidedDemoUrl!}
-                        className="mt-2 text-xs text-[#2DD4BF] hover:underline"
-                      >
-                        View Guided Walkthrough →
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -194,30 +147,45 @@ export default function DemoPage() {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {presets.map((p) => (
-                  <button
-                    key={p.presetKey}
-                    type="button"
-                    onClick={() => setSelectedPresetKey(p.presetKey)}
-                    className={`p-4 rounded-xl border text-left transition-all space-y-2 ${
-                      selectedPresetKey === p.presetKey
-                        ? "bg-[#13171C] border-[#2DD4BF] shadow-lg shadow-[#2DD4BF]/5"
-                        : "bg-[#0F1216] border-[#272D35] hover:border-[#8B949E]/50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white text-sm">
-                        {p.name}
-                      </span>
-                      <Briefcase
-                        className={`w-4 h-4 ${selectedPresetKey === p.presetKey ? "text-[#2DD4BF]" : "text-[#8B949E]"}`}
-                      />
-                    </div>
-                    <p className="text-xs text-[#8B949E] line-clamp-2">
-                      {p.tagline}
-                    </p>
-                  </button>
-                ))}
+                {presets.map((p) => {
+                  const isSupported = p.presetKey === "LEGAL";
+                  return (
+                    <button
+                      key={p.presetKey}
+                      type="button"
+                      disabled={!isSupported}
+                      onClick={() => setSelectedPresetKey(p.presetKey)}
+                      className={`p-4 rounded-xl border text-left transition-all space-y-2 relative ${
+                        selectedPresetKey === p.presetKey
+                          ? "bg-[#13171C] border-[#2DD4BF] shadow-lg shadow-[#2DD4BF]/5"
+                          : isSupported
+                            ? "bg-[#0F1216] border-[#272D35] hover:border-[#8B949E]/50"
+                            : "bg-[#0B0D10] border-[#1F242C] opacity-50 cursor-not-allowed"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-white text-sm">
+                          {p.name}
+                        </span>
+                        <Briefcase
+                          className={`w-4 h-4 ${
+                            selectedPresetKey === p.presetKey
+                              ? "text-[#2DD4BF]"
+                              : "text-[#8B949E]"
+                          }`}
+                        />
+                      </div>
+                      <p className="text-xs text-[#8B949E] line-clamp-2">
+                        {p.tagline}
+                      </p>
+                      {!isSupported && (
+                        <span className="inline-block mt-1 text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-2 py-0.5 rounded border border-[#F59E0B]/30">
+                          Coming after provider configuration
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -242,26 +210,24 @@ export default function DemoPage() {
 
                 <button
                   type="button"
-                  onClick={() => setSelectedLanguage("ur-PK")}
-                  className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
-                    selectedLanguage === "ur-PK"
-                      ? "bg-[#13171C] border-[#2DD4BF] text-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35] text-[#D4D4D8]"
-                  }`}
+                  disabled
+                  className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#0B0D10] border-[#1F242C] text-[#8B949E] opacity-50 cursor-not-allowed relative flex flex-col items-center gap-1"
                 >
-                  🇵🇰 Urdu (اردو)
+                  <span>🇵🇰 Urdu (اردو)</span>
+                  <span className="text-[9px] text-[#F59E0B]">
+                    Coming after provider config
+                  </span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setSelectedLanguage("es-ES")}
-                  className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
-                    selectedLanguage === "es-ES"
-                      ? "bg-[#13171C] border-[#2DD4BF] text-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35] text-[#D4D4D8]"
-                  }`}
+                  disabled
+                  className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#0B0D10] border-[#1F242C] text-[#8B949E] opacity-50 cursor-not-allowed relative flex flex-col items-center gap-1"
                 >
-                  🇪🇸 Spanish (Español)
+                  <span>🇪🇸 Spanish (Español)</span>
+                  <span className="text-[9px] text-[#F59E0B]">
+                    Coming after provider config
+                  </span>
                 </button>
               </div>
             </div>
@@ -371,21 +337,15 @@ export default function DemoPage() {
 
               <button
                 type="button"
-                disabled={!hasConsented || isStartingSession || !elevenlabsConfigured}
+                disabled={!hasConsented || isStartingSession}
                 onClick={handleStartSession}
-                className={`w-full disabled:opacity-50 text-[#0B0D10] font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 transition-all ${
-                  elevenlabsConfigured
-                    ? "bg-[#2DD4BF] hover:bg-[#26b8a5] shadow-lg shadow-[#2DD4BF]/10"
-                    : "bg-[#F59E0B] hover:bg-[#d97706]"
-                }`}
+                className="w-full bg-[#2DD4BF] hover:bg-[#26b8a5] disabled:opacity-50 text-[#0B0D10] font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#2DD4BF]/10"
               >
                 <Mic className="w-4 h-4" />
                 <span>
                   {isStartingSession
                     ? "Initializing Voice Agent..."
-                    : elevenlabsConfigured
-                    ? "Start Live Voice Call"
-                    : "Configure ElevenLabs to Enable"}
+                    : "Start Live Voice Call"}
                 </span>
               </button>
             </div>
@@ -397,11 +357,11 @@ export default function DemoPage() {
                   organizationName={activeProfile.name}
                   industry={activeProfile.industry}
                   callerName={
-                    callEndedResult.extractedFields?.fullName || "Sarah Jenkins"
+                    callEndedResult.extractedFields?.fullName || "Caller"
                   }
                   callerPhone={
                     callEndedResult.extractedFields?.contactPhone ||
-                    "+1 (555) 234-5678"
+                    "Not provided"
                   }
                   language={selectedLanguage}
                   scenario={selectedScenario}

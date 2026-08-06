@@ -36,3 +36,8 @@ Thumbs.db
 .vercel
 *.tsbuildinfo
 tsconfig.tsbuildinfo
+
+# Test artifacts
+playwright-report/
+test-results/
+playwright.config.ts
