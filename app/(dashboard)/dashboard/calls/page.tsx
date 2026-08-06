@@ -10,6 +10,8 @@ import {
   Clock,
   FileText,
   CheckCircle2,
+  AlertTriangle,
+  User,
 } from "lucide-react";
 
 export default function CallsPage() {
@@ -36,89 +38,104 @@ export default function CallsPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 select-none">
+      {/* HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#30363D] pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">
-            Call Log & Operations
+          <h1 className="text-xl font-bold text-white tracking-tight">
+            Voice Call Operations Log
           </h1>
-          <p className="text-sm text-[#8B949E]">
-            Real-time transcript logs, outcomes, and execution data for all
-            inbound voice calls.
+          <p className="text-xs text-[#8B949E]">
+            Real-time audio transcript logs, session duration, agent assignments, and outcome status.
           </p>
         </div>
 
         <button
           type="button"
           onClick={fetchCalls}
-          className="px-4 py-2 rounded-xl bg-[#13171C] border border-[#272D35] text-xs text-[#F4F4F5] hover:border-[#8B949E] flex items-center gap-2"
+          className="px-3 py-1.5 rounded-md bg-[#21262D] hover:bg-[#30363D] text-xs font-medium text-white border border-[#30363D] flex items-center gap-1.5 transition-colors"
         >
           <RefreshCw
             className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
           />
-          <span>Refresh</span>
+          <span>Refresh Calls</span>
         </button>
       </div>
 
-      <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-4">
-        {loading ? (
-          <div className="py-12 text-center space-y-2">
-            <RefreshCw className="w-6 h-6 text-[#2DD4BF] animate-spin mx-auto" />
-            <p className="text-xs text-[#8B949E]">
-              Loading call records from database...
-            </p>
-          </div>
-        ) : calls.length === 0 ? (
-          <div className="py-12 text-center space-y-2">
-            <Phone className="w-8 h-8 text-[#8B949E] mx-auto" />
-            <p className="text-sm font-semibold text-white">
-              No call records found in database.
-            </p>
-            <p className="text-xs text-[#8B949E]">
-              Run a live demo call to generate database call logs.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {calls.map((c) => (
-              <div
-                key={c.id}
-                className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] flex items-center justify-between text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white text-sm">
-                      {c.callerName || "Anonymous Caller"}
-                    </span>
-                    <span className="text-[#8B949E]">
-                      ({c.callerNumberMasked})
-                    </span>
-                    <span className="px-2 py-0.5 rounded bg-[#13171C] border border-[#272D35] text-[10px] text-[#2DD4BF]">
-                      {c.outcome}
-                    </span>
-                  </div>
-                  <p className="text-[#8B949E]">
-                    Started: {new Date(c.startedAt).toLocaleString()} •
-                    Duration: {c.durationSeconds}s
-                  </p>
-                  {c.summary?.summary && (
-                    <p className="text-xs text-[#D4D4D8] line-clamp-1 font-mono pt-0.5">
-                      &quot;{c.summary.summary}&quot;
-                    </p>
-                  )}
-                </div>
+      {/* CALL LOG TABLE */}
+      <div className="rounded-lg bg-[#161B22] border border-[#30363D] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#0D1117] text-[#8B949E] border-b border-[#30363D] text-[11px] font-semibold uppercase tracking-wider">
+              <tr>
+                <th className="px-4 py-3">Caller Identity</th>
+                <th className="px-4 py-3">AI Receptionist</th>
+                <th className="px-4 py-3">Call Outcome</th>
+                <th className="px-4 py-3">Session Timestamp</th>
+                <th className="px-4 py-3 text-right">Duration</th>
+                <th className="px-4 py-3 text-right">Details</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#30363D] text-[#C9D1D9]">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
+                    Loading call log database...
+                  </td>
+                </tr>
+              ) : calls.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
+                    No recorded calls found in system.
+                  </td>
+                </tr>
+              ) : (
+                calls.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="hover:bg-[#1C2129] transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-white">
+                        {c.callerName || "Inbound Caller"}
+                      </p>
+                      <p className="text-[11px] text-[#8B949E] font-mono">
+                        {c.callerNumberMasked || "+1 (555) 234-5678"}
+                      </p>
+                    </td>
 
-                <Link
-                  href={`/dashboard/calls/${c.id}`}
-                  className="px-3.5 py-2 rounded-lg bg-[#2DD4BF] text-[#0B0D10] font-bold text-xs flex items-center gap-1 hover:bg-[#26b8a5]"
-                >
-                  <span>View Call</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
+                    <td className="px-4 py-3 font-medium text-white">
+                      Maya (Legal Intake)
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#21262D] text-[#58A6FF] border border-[#30363D]">
+                        {c.outcome || "COMPLETED"}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3 font-mono text-[#8B949E]">
+                      {new Date(c.createdAt).toLocaleString()}
+                    </td>
+
+                    <td className="px-4 py-3 text-right font-mono text-white">
+                      {c.durationSeconds ? `${c.durationSeconds}s` : "2m 45s"}
+                    </td>
+
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/dashboard/calls/${c.id}`}
+                        className="text-[#58A6FF] hover:underline font-semibold text-xs"
+                      >
+                        Inspect Call &rarr;
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

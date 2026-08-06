@@ -8,12 +8,12 @@ import {
   Filter,
   CheckCircle2,
   AlertTriangle,
-  TrendingUp,
   ArrowRight,
-  PhoneCall,
-  Calendar,
-  Sparkles,
   RefreshCw,
+  Download,
+  Building2,
+  Clock,
+  UserCheck,
 } from "lucide-react";
 
 export default function LeadsPage() {
@@ -54,195 +54,233 @@ export default function LeadsPage() {
   const coldCount = leads.filter((l) => l.category === "COLD").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 select-none">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#30363D] pb-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-xs font-mono text-[#2DD4BF] mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Database-Backed CRM Lead Inbox</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white">Voice Lead Inbox</h1>
-          <p className="text-sm text-[#8B949E]">
-            Qualified leads automatically processed, scored, and persisted from
-            inbound VoxDesk calls.
+          <h1 className="text-xl font-bold text-white tracking-tight">
+            Voice Lead Operations Inbox
+          </h1>
+          <p className="text-xs text-[#8B949E]">
+            Qualified inbound prospects, intake recordings, and BANT scoring records.
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={fetchLeads}
-          className="px-4 py-2 rounded-xl bg-[#13171C] border border-[#272D35] text-xs text-[#F4F4F5] hover:border-[#8B949E] flex items-center gap-2 transition-colors self-start sm:self-auto"
-        >
-          <RefreshCw
-            className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
-          />
-          <span>Refresh Inbox</span>
-        </button>
-      </div>
-
-      {/* METRIC CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/5 space-y-1">
-          <span className="text-[10px] font-mono uppercase text-[#EF4444] font-bold">
-            HOT LEADS (≥75)
-          </span>
-          <div className="text-2xl font-extrabold text-white">{hotCount}</div>
-          <p className="text-[11px] text-[#8B949E]">
-            Immediate priority response
-          </p>
-        </div>
-
-        <div className="p-4 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 space-y-1">
-          <span className="text-[10px] font-mono uppercase text-[#F59E0B] font-bold">
-            WARM LEADS (≥50)
-          </span>
-          <div className="text-2xl font-extrabold text-white">{warmCount}</div>
-          <p className="text-[11px] text-[#8B949E]">Scheduled follow-up</p>
-        </div>
-
-        <div className="p-4 rounded-xl border border-[#3B82F6]/30 bg-[#3B82F6]/5 space-y-1">
-          <span className="text-[10px] font-mono uppercase text-[#3B82F6] font-bold">
-            HUMAN REVIEW (≥25)
-          </span>
-          <div className="text-2xl font-extrabold text-white">
-            {reviewCount}
-          </div>
-          <p className="text-[11px] text-[#8B949E]">Needs operator review</p>
-        </div>
-
-        <div className="p-4 rounded-xl border border-[#272D35] bg-[#0F1216] space-y-1">
-          <span className="text-[10px] font-mono uppercase text-[#8B949E] font-bold">
-            COLD LEADS (&lt;25)
-          </span>
-          <div className="text-2xl font-extrabold text-white">{coldCount}</div>
-          <p className="text-[11px] text-[#8B949E]">General nurture sequence</p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchLeads}
+            className="px-3 py-1.5 rounded-md bg-[#21262D] hover:bg-[#30363D] text-xs font-medium text-white border border-[#30363D] flex items-center gap-1.5 transition-colors"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+            />
+            <span>Refresh Data</span>
+          </button>
         </div>
       </div>
 
-      {/* FILTERS & SEARCH */}
-      <div className="p-4 rounded-xl bg-[#13171C] border border-[#272D35] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            fetchLeads();
-          }}
-          className="relative w-full sm:w-96"
-        >
-          <Search className="w-4 h-4 text-[#8B949E] absolute left-3 top-3" />
-          <input
-            type="text"
-            placeholder="Search leads by name, company, service..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#0B0D10] border border-[#272D35] rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-[#8B949E] focus:outline-none focus:border-[#2DD4BF]"
-          />
-        </form>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
-          <div className="flex items-center gap-1 text-xs text-[#8B949E]">
-            <Filter className="w-3.5 h-3.5" />
-            <span>Category:</span>
+      {/* SUMMARY STATS BAR */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+        <div className="p-3 rounded-lg bg-[#161B22] border border-[#30363D] flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-semibold text-[#8B949E] uppercase tracking-wider">
+              Priority Hot (≥75)
+            </p>
+            <p className="text-lg font-bold text-white font-mono mt-0.5">{hotCount}</p>
           </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#F85149]" />
+        </div>
 
-          <div className="flex items-center gap-1 bg-[#0B0D10] p-1 rounded-xl border border-[#272D35]">
-            {["ALL", "HOT", "WARM", "REVIEW"].map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-3 py-1 rounded-lg text-xs font-mono transition-colors ${
-                  categoryFilter === cat
-                    ? "bg-[#2DD4BF] text-[#0B0D10] font-bold"
-                    : "text-[#8B949E] hover:text-white"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
+        <div className="p-3 rounded-lg bg-[#161B22] border border-[#30363D] flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-semibold text-[#8B949E] uppercase tracking-wider">
+              Warm Opportunities
+            </p>
+            <p className="text-lg font-bold text-white font-mono mt-0.5">{warmCount}</p>
           </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#D29922]" />
+        </div>
+
+        <div className="p-3 rounded-lg bg-[#161B22] border border-[#30363D] flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-semibold text-[#8B949E] uppercase tracking-wider">
+              Review Required
+            </p>
+            <p className="text-lg font-bold text-white font-mono mt-0.5">{reviewCount}</p>
+          </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#58A6FF]" />
+        </div>
+
+        <div className="p-3 rounded-lg bg-[#161B22] border border-[#30363D] flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-semibold text-[#8B949E] uppercase tracking-wider">
+              Cold / Unqualified
+            </p>
+            <p className="text-lg font-bold text-white font-mono mt-0.5">{coldCount}</p>
+          </div>
+          <span className="w-2.5 h-2.5 rounded-full bg-[#6E7681]" />
         </div>
       </div>
 
-      {/* LEADS TABLE LIST */}
-      <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-4">
-        {loading ? (
-          <div className="py-12 text-center space-y-3">
-            <RefreshCw className="w-6 h-6 text-[#2DD4BF] animate-spin mx-auto" />
-            <p className="text-xs text-[#8B949E]">
-              Fetching voice leads from database...
-            </p>
-          </div>
-        ) : leads.length === 0 ? (
-          <div className="py-12 text-center space-y-3">
-            <Users className="w-8 h-8 text-[#8B949E] mx-auto" />
-            <p className="text-sm font-semibold text-white">
-              No leads match your filter criteria.
-            </p>
-            <p className="text-xs text-[#8B949E]">
-              Try placing a test call in the interactive demo page.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {leads.map((l) => {
-              const categoryBadge =
-                l.category === "HOT"
-                  ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30"
-                  : l.category === "WARM"
-                    ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
-                    : "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30";
+      {/* FILTER TOOLBAR */}
+      <div className="p-3 rounded-lg bg-[#161B22] border border-[#30363D] flex flex-col md:flex-row md:items-center justify-between gap-3">
+        {/* Category Tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto text-xs">
+          {[
+            { id: "ALL", label: "All Leads" },
+            { id: "HOT", label: "Hot (≥75)" },
+            { id: "WARM", label: "Warm (≥50)" },
+            { id: "REVIEW", label: "Review Needed" },
+            { id: "COLD", label: "Cold" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setCategoryFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-md font-medium transition-colors shrink-0 ${
+                categoryFilter === tab.id
+                  ? "bg-[#21262D] text-white border border-[#30363D]"
+                  : "text-[#8B949E] hover:text-white hover:bg-[#161B22]"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-              return (
-                <div
-                  key={l.id}
-                  className="p-5 rounded-xl bg-[#0F1216] border border-[#272D35] hover:border-[#2DD4BF]/50 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <h4 className="text-base font-bold text-white">
-                        {l.name}
-                      </h4>
-                      {l.company && (
-                        <span className="text-xs text-[#8B949E] bg-[#13171C] px-2.5 py-0.5 rounded-full border border-[#272D35]">
-                          {l.company}
-                        </span>
-                      )}
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${categoryBadge}`}
+        {/* Search & Urgency Filters */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8B949E]" />
+            <input
+              type="text"
+              placeholder="Filter by lead name or email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchLeads()}
+              className="bg-[#0D1117] border border-[#30363D] rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-[#6E7681] focus:outline-none focus:border-[#58A6FF]"
+            />
+          </div>
+
+          <select
+            value={urgencyFilter}
+            onChange={(e) => setUrgencyFilter(e.target.value)}
+            className="bg-[#0D1117] border border-[#30363D] rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#58A6FF]"
+          >
+            <option value="ALL">All Urgency</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="rounded-lg bg-[#161B22] border border-[#30363D] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-[#0D1117] text-[#8B949E] border-b border-[#30363D] text-[11px] font-semibold uppercase tracking-wider">
+              <tr>
+                <th className="px-4 py-3">Lead Contact</th>
+                <th className="px-4 py-3">BANT Qualification</th>
+                <th className="px-4 py-3">Matter / Category</th>
+                <th className="px-4 py-3">Urgency</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#30363D] text-[#C9D1D9]">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
+                    Loading leads database...
+                  </td>
+                </tr>
+              ) : leads.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
+                    No leads matching current filters.
+                  </td>
+                </tr>
+              ) : (
+                leads.map((lead) => (
+                  <tr
+                    key={lead.id}
+                    className="hover:bg-[#1C2129] transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/dashboard/leads/${lead.id}`}
+                        className="font-semibold text-white hover:text-[#58A6FF]"
                       >
-                        {l.category} ({l.score}/100)
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-[#D4D4D8]">
-                      Service Interest:{" "}
-                      <strong className="text-white">
-                        {l.serviceInterest || "General Consultation"}
-                      </strong>
-                    </p>
-
-                    {l.call?.summary?.summary && (
-                      <p className="text-xs text-[#8B949E] line-clamp-2 pt-1 font-mono">
-                        &quot;{l.call.summary.summary}&quot;
+                        {lead.name}
+                      </Link>
+                      <p className="text-[11px] text-[#8B949E] font-mono">
+                        {lead.email}
                       </p>
-                    )}
-                  </div>
+                    </td>
 
-                  <div className="flex items-center gap-3 self-end md:self-auto">
-                    <Link
-                      href={`/dashboard/leads/${l.id}`}
-                      className="px-4 py-2 rounded-xl bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-xs flex items-center gap-1.5 transition-colors"
-                    >
-                      <span>View Lead Detail</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white font-mono text-sm">
+                          {lead.score}
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                            lead.category === "HOT"
+                              ? "bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30"
+                              : lead.category === "WARM"
+                              ? "bg-[#D29922]/15 text-[#D29922] border-[#D29922]/30"
+                              : lead.category === "REVIEW"
+                              ? "bg-[#58A6FF]/15 text-[#58A6FF] border-[#58A6FF]/30"
+                              : "bg-[#6E7681]/15 text-[#6E7681] border-[#6E7681]/30"
+                          }`}
+                        >
+                          {lead.category}
+                        </span>
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-3 font-medium text-[#C9D1D9]">
+                      {lead.legalServiceNeeded || lead.practiceArea || "Legal Inquiry"}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-[11px] font-mono ${
+                          lead.urgency === "URGENT"
+                            ? "text-[#F85149] font-bold"
+                            : lead.urgency === "HIGH"
+                            ? "text-[#D29922] font-semibold"
+                            : "text-[#8B949E]"
+                        }`}
+                      >
+                        {lead.urgency}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#21262D] text-white border border-[#30363D]">
+                        {lead.status}
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-3 text-right">
+                      <Link
+                        href={`/dashboard/leads/${lead.id}`}
+                        className="text-[#58A6FF] hover:underline font-semibold text-xs"
+                      >
+                        Inspect Record &rarr;
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

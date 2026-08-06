@@ -20,6 +20,8 @@ import {
   ShieldCheck,
   Settings,
   LogOut,
+  ChevronDown,
+  Building2,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -52,26 +54,17 @@ export function Sidebar({ user }: SidebarProps) {
     window.location.href = "/login";
   };
 
-  return (
-    <aside className="w-56 bg-[#0F1216] border-r border-[#272D35] min-h-screen flex flex-col shrink-0">
-      {/* Workspace Header */}
-      <div className="p-4 border-b border-[#272D35] flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-[#2DD4BF] text-[#0B0D10] font-bold text-xs flex items-center justify-center">
-            V
-          </div>
-          <span className="text-sm font-bold text-white tracking-tight">
-            VoxDesk AI
-          </span>
-        </Link>
-        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#171C22] text-[#2DD4BF] border border-[#272D35]">
-          Fictional Demo
-        </span>
-      </div>
+  const coreRoutes = dashboardRoutes.filter((r) => r.category === "CORE");
+  const mgmtRoutes = dashboardRoutes.filter((r) => r.category === "MANAGEMENT");
+  const sysRoutes = dashboardRoutes.filter((r) => r.category === "SYSTEM");
 
-      {/* Navigation */}
-      <nav className="flex-1 p-2 space-y-0.5 text-xs font-medium text-[#D4D4D8] overflow-y-auto">
-        {dashboardRoutes.map((item) => {
+  const renderNavGroup = (title: string, routes: typeof dashboardRoutes) => (
+    <div className="space-y-1">
+      <h3 className="px-3 text-[10px] font-semibold text-[#6E7681] uppercase tracking-wider">
+        {title}
+      </h3>
+      <div className="space-y-0.5">
+        {routes.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname?.startsWith(item.href));
@@ -81,36 +74,84 @@ export function Sidebar({ user }: SidebarProps) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-md transition-colors ${
+              className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 isActive
-                  ? "bg-[#171C22] text-[#2DD4BF] font-semibold border border-[#272D35]"
-                  : "hover:bg-[#13171C] hover:text-white text-[#D4D4D8]"
+                  ? "bg-[#161B22] text-[#58A6FF] font-semibold border border-[#30363D]/60 shadow-sm"
+                  : "text-[#C9D1D9] hover:bg-[#161B22]/70 hover:text-white"
               }`}
             >
               <Icon
-                className={`w-4 h-4 shrink-0 ${isActive ? "text-[#2DD4BF]" : "text-[#8B949E]"}`}
+                className={`w-3.5 h-3.5 shrink-0 ${
+                  isActive ? "text-[#58A6FF]" : "text-[#8B949E]"
+                }`}
               />
-              <span>{item.label}</span>
+              <span className="truncate">{item.label}</span>
+              {item.href === "/dashboard/escalations" && (
+                <span className="ml-auto px-1.5 py-0.2 rounded-full bg-[#D29922]/20 text-[#D29922] text-[10px] font-mono border border-[#D29922]/30">
+                  3
+                </span>
+              )}
             </Link>
           );
         })}
+      </div>
+    </div>
+  );
+
+  return (
+    <aside className="w-60 bg-[#0D1117] border-r border-[#30363D] min-h-screen flex flex-col shrink-0 select-none">
+      {/* Workspace Switcher Header */}
+      <div className="p-3 border-b border-[#30363D]">
+        <div className="flex items-center justify-between p-2 rounded-lg bg-[#161B22] border border-[#30363D] cursor-pointer hover:border-[#8B949E] transition-colors">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-6 h-6 rounded bg-[#1F6FEB] text-white font-bold text-xs flex items-center justify-center shrink-0">
+              N
+            </div>
+            <div className="truncate">
+              <p className="text-xs font-semibold text-white truncate leading-tight">
+                Northstar Legal
+              </p>
+              <p className="text-[10px] text-[#8B949E] truncate">
+                Legal Consultations
+              </p>
+            </div>
+          </div>
+          <ChevronDown className="w-3.5 h-3.5 text-[#8B949E] shrink-0" />
+        </div>
+      </div>
+
+      {/* Navigation Sections */}
+      <nav className="flex-1 p-2 space-y-4 overflow-y-auto">
+        {renderNavGroup("Operations", coreRoutes)}
+        {renderNavGroup("Intelligence & Agents", mgmtRoutes)}
+        {renderNavGroup("System & Admin", sysRoutes)}
       </nav>
 
-      {/* Footer workspace info */}
-      <div className="p-3 border-t border-[#272D35] flex items-center justify-between text-[11px] text-[#8B949E]">
-        <div className="truncate">
-          <p className="font-semibold text-white truncate">
-            {user?.name || "Arslan Vuzmal Lone"}
-          </p>
-          <p className="truncate text-[10px]">Fictional Demo Workspace</p>
+      {/* User Footer Card */}
+      <div className="p-3 border-t border-[#30363D] bg-[#161B22]/50">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 rounded-full bg-[#21262D] border border-[#30363D] flex items-center justify-center text-xs font-semibold text-white shrink-0">
+              {(user?.name || "AV").slice(0, 2).toUpperCase()}
+            </div>
+            <div className="truncate">
+              <p className="text-xs font-medium text-white truncate leading-tight">
+                {user?.name || "Arslan Vuzmal"}
+              </p>
+              <p className="text-[10px] text-[#8B949E] truncate">
+                {user?.email || "arslan@voxdesk.ai"}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Sign Out"
+            type="button"
+            className="p-1.5 rounded-md hover:bg-[#21262D] text-[#8B949E] hover:text-white transition-colors shrink-0"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          title="Log out"
-          className="p-1 rounded hover:bg-[#171C22] text-[#8B949E] hover:text-white shrink-0"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-        </button>
       </div>
     </aside>
   );
