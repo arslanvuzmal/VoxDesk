@@ -55,7 +55,7 @@ export async function persistFinalCallResult(
       "General Service Consultation";
 
     // Use Prisma transaction to persist full record graph atomically
-    const txResult = await prisma.$transaction(async (tx) => {
+    const txResult = await prisma.$transaction(async (tx: any) => {
       // 1. Resolve Workspace and VoiceAgent records
       let workspace = targetWorkspaceId
         ? await tx.workspace.findUnique({ where: { id: targetWorkspaceId } })

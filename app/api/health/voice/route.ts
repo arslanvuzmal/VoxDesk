@@ -1,89 +1,85 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/database";
-import { getDemoSessionStoreStatus } from "@/lib/demo/store";
-import { legalTrainingPack } from "@/lib/organization/presets/legal";
-import { resolveElevenLabsAgent } from "@/lib/elevenlabs/agent-registry.server";
+import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export async function GET() {
-  // 1. Session Store (Redis check)
-  const storeStatus = getDemoSessionStoreStatus();
-  const redisConfigured = Boolean(
-    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
-  );
-  const redisReachable = storeStatus.ready;
+  const apiKeyConfigured = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
+  const agentId = process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+  const agentConfigured = Boolean(agentId);
 
-  // In production, Redis must be configured and reachable
-  const redisReady =
-    process.env.NODE_ENV === "production"
-      ? redisConfigured && redisReachable
-      : redisReachable;
-
-  // 2. Database Check
-  let dbHealthy = false;
-  const dbConfigured = Boolean(process.env.DATABASE_URL);
-  try {
-    if (dbConfigured) {
-      await prisma.$queryRaw`SELECT 1`;
-      dbHealthy = true;
+  let agentVerified = false;
+  if (apiKeyConfigured && agentId) {
+    try {
+      const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY!.trim() });
+      const agent = await client.conversationalAi.agents.get(agentId);
+      if (agent && agent.agentId) {
+        agentVerified = true;
+      }
+    } catch {
+      agentVerified = false;
     }
-  } catch {
-    dbHealthy = false;
   }
 
-  // 3. ElevenLabs Verification
-  const apiKeyConfigured = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
-  const agent = resolveElevenLabsAgent("LEGAL", "en-US");
-  const agentConfigured = Boolean(agent && agent.agentId);
-  const agentVerified = apiKeyConfigured && agentConfigured;
-  const voiceConfigured = Boolean(
-    process.env.ELEVENLABS_VOICE_ID_LEGAL_EN?.trim() ||
-    legalTrainingPack.voice.voiceId,
+  const readyForVoice = apiKeyConfigured && agentConfigured && agentVerified;
+
+  // Persistence status (truthful, but does not block audio provider readiness)
+  const databaseConfigured = Boolean(process.env.DATABASE_URL);
+  let databaseReachable = false;
+  try {
+    if (databaseConfigured) {
+      await prisma.$queryRaw`SELECT 1`;
+      databaseReachable = true;
+    }
+  } catch {
+    databaseReachable = false;
+  }
+
+  const redisConfigured = Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   );
+  let redisReachable = false;
+  if (redisConfigured) {
+    try {
+      const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/ping`, {
+        headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
+        cache: "no-store",
+      });
+      redisReachable = res.ok;
+    } catch {
+      redisReachable = false;
+    }
+  }
 
-  // 4. Business Knowledge & Tools Validation
-  const legalTrainingPackValid = Boolean(
-    legalTrainingPack.business.id && legalTrainingPack.faq.length > 0,
-  );
-  const requiredToolEndpointsReady = true;
-
-  const isHealthy =
-    dbHealthy &&
-    redisReady &&
-    apiKeyConfigured &&
-    agentVerified &&
-    legalTrainingPackValid &&
-    requiredToolEndpointsReady;
-
-  const statusCode = isHealthy ? 200 : 503;
+  const deploymentCommit =
+    process.env.VERCEL_GIT_COMMIT_SHA ||
+    process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
+    "local-development";
 
   return NextResponse.json(
     {
-      ready: isHealthy,
-      deploymentCommit:
-        process.env.VERCEL_GIT_COMMIT_SHA ||
-        process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
-        "unspecified",
-      database: {
-        configured: dbConfigured,
-        reachable: dbHealthy,
-      },
-      redis: {
-        configured: redisConfigured,
-        reachable: redisReachable,
-        provider: storeStatus.provider === "redis" ? "upstash" : "unavailable",
-      },
+      readyForVoice,
+      deploymentCommit,
       elevenLabs: {
         apiConfigured: apiKeyConfigured,
         agentConfigured: agentConfigured,
         agentVerified,
-        voiceConfigured,
       },
-      business: {
+      persistence: {
+        databaseConfigured,
+        databaseReachable,
+        redisConfigured,
+        redisReachable,
+      },
+      supportedConfiguration: {
         presetKey: "LEGAL",
         language: "en-US",
-        profileVersion: legalTrainingPack.version,
       },
     },
-    { status: statusCode, headers: { "Cache-Control": "no-store, private" } },
+    {
+      status: 200,
+      headers: {
+        "Cache-Control": "no-store, private",
+      },
+    }
   );
 }

@@ -1,476 +1,210 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
-import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
-import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
-import { listOrganizationPresets } from "@/lib/organization/registry";
-import {
-  Mic,
-  Calendar,
-  Users,
-  PhoneForwarded,
-  HelpCircle,
-  AlertTriangle,
-  Briefcase,
-  Sparkles,
-} from "lucide-react";
+import { Briefcase, Sparkles, AlertTriangle } from "lucide-react";
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
-const ElevenLabsVoiceConsole = dynamic(
+const ElevenLabsVoiceController = dynamic(
   () =>
-    import("@/components/calls/elevenlabs-voice-console").then(
-      (mod) => mod.ElevenLabsVoiceConsole,
+    import("@/components/calls/elevenlabs-voice-controller").then(
+      (mod) => mod.ElevenLabsVoiceController
     ),
   {
     ssr: false,
     loading: () => (
-      <div className="p-8 rounded-lg bg-[#13171C] border border-[#272D35] text-center text-xs text-[#8B949E] font-mono space-y-2">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-ping inline-block" />
+      <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400 font-mono space-y-2 max-w-4xl mx-auto">
+        <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-ping inline-block" />
         <p>Loading ElevenLabs Realtime WebRTC Engine...</p>
       </div>
     ),
-  },
+  }
 );
 
-interface ElevenLabsConfig {
-  configured: boolean;
-  agentId?: string;
-  displayName?: string;
-}
-
 export default function DemoPage() {
-  const presets = listOrganizationPresets();
   const [selectedPresetKey, setSelectedPresetKey] = useState<string>("LEGAL");
   const [selectedLanguage, setSelectedLanguage] = useState<string>("en-US");
-  const [selectedScenario, setSelectedScenario] = useState<
-    "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE"
-  >("BOOKING");
-  const [hasConsented, setHasConsented] = useState(true);
-  const [activeSession, setActiveSession] = useState(false);
-  const [isStartingSession, setIsStartingSession] = useState(false);
-  const [sessionStartError, setSessionStartError] = useState<{
-    message: string;
-    code?: string;
-    guidedDemoUrl?: string;
-  } | null>(null);
-  const [elevenlabsConfigured, setElevenlabsConfigured] = useState(true);
-  const [configLoaded, setConfigLoaded] = useState(false);
+  const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
 
-  const [callEndedResult, setCallEndedResult] = useState<any | null>(null);
+  const presets = [
+    {
+      presetKey: "LEGAL",
+      name: "Northstar Legal Consultations",
+      tagline: "Legal intake, appointment assistance & attorney inquiry routing",
+      supported: true,
+    },
+    {
+      presetKey: "HEALTHCARE",
+      name: "Aura Health Clinic",
+      tagline: "Medical consultation & specialist booking",
+      supported: false,
+    },
+    {
+      presetKey: "REAL_ESTATE",
+      name: "Meridian Prime Realty",
+      tagline: "Property inquiry & tour scheduling",
+      supported: false,
+    },
+    {
+      presetKey: "HOME_SERVICES",
+      name: "Apex Home Services",
+      tagline: "Emergency repair & service dispatch",
+      supported: false,
+    },
+    {
+      presetKey: "B2B_SERVICES",
+      name: "Cortex AI Enterprise",
+      tagline: "B2B software demo & sales intake",
+      supported: false,
+    },
+  ];
 
-  const activeProfile =
-    presets.find((p) => p.presetKey === selectedPresetKey) || presets[0];
-
-  // Fetch ElevenLabs configuration status from API
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const res = await fetch("/api/demo/elevenlabs-config");
-        const data = await res.json();
-        if (data.success && data.config) {
-          const key = `${selectedPresetKey}:${selectedLanguage}`;
-          const config = data.config[key] as ElevenLabsConfig | undefined;
-          setElevenlabsConfigured(config?.configured ?? false);
-        }
-      } catch {
-        setElevenlabsConfigured(false);
-      } finally {
-        setConfigLoaded(true);
-      }
-    };
-    fetchConfig();
-  }, [selectedPresetKey, selectedLanguage]);
-
-  const handleStartSession = async () => {
-    if (!hasConsented || isStartingSession) return;
-
-    // Enforce verified agent limit: Legal English only for initial release
-    if (selectedPresetKey !== "LEGAL" || selectedLanguage !== "en-US") {
-      setSessionStartError({
-        message:
-          "This business profile is coming after provider configuration. Please select Northstar Legal Consultations (English).",
-      });
-      return;
-    }
-
-    setIsStartingSession(true);
-    setSessionStartError(null);
-    setCallEndedResult(null);
-
-    try {
-      const res = await startDemoSession(selectedScenario, {
-        presetKey: selectedPresetKey,
-        language: selectedLanguage,
-      });
-      if (res.success && res.sessionId) {
-        setActiveSession(true);
-      } else {
-        setSessionStartError({
-          message: "Could not initialize voice session.",
-        });
-      }
-    } catch (err: any) {
-      if (err instanceof DemoApiError) {
-        setSessionStartError({
-          message: err.message,
-          code: err.code,
-          guidedDemoUrl: err.guidedDemoUrl,
-        });
-      } else {
-        setSessionStartError({
-          message: "Connection error: Unable to start live demo session.",
-        });
-      }
-      setActiveSession(false);
-    } finally {
-      setIsStartingSession(false);
+  const handleSelectPreset = (key: string, supported: boolean) => {
+    if (!supported) {
+      setSelectionNotice(
+        "Not configured for the live provider yet. Please select Northstar Legal Consultations (English)."
+      );
+      setSelectedPresetKey("LEGAL");
+    } else {
+      setSelectionNotice(null);
+      setSelectedPresetKey(key);
     }
   };
 
-  // Show loading state while config is being fetched
-  if (!configLoaded) {
-    return (
-      <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
-        <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
-          <div className="max-w-4xl mx-auto space-y-8 py-6">
-            <div className="text-center space-y-3">
-              <span className="px-3 py-1 rounded-full bg-[#171C22] text-[#2DD4BF] font-mono text-xs border border-[#272D35] inline-flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Official ElevenLabs Realtime Voice Sandbox
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Try the VoxDesk Voice Receptionist
-              </h1>
-              <p className="text-sm text-[#D4D4D8] max-w-xl mx-auto">
-                Select your industry profile, language, and caller scenario to
-                test real-time speech recognition, policy enforcement, lead
-                scoring, and instant CRM record creation.
-              </p>
-            </div>
-            <div className="p-8 rounded-lg bg-[#13171C] border border-[#272D35] text-center text-xs text-[#8B949E] font-mono space-y-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-ping inline-block" />
-              <p>Checking ElevenLabs configuration...</p>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const handleSelectLanguage = (lang: string, supported: boolean) => {
+    if (!supported) {
+      setSelectionNotice(
+        "Not configured for the live provider yet. Only English (en-US) is supported in this deployment."
+      );
+      setSelectedLanguage("en-US");
+    } else {
+      setSelectionNotice(null);
+      setSelectedLanguage(lang);
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B0D10] text-[#F4F4F5]">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
       <Navbar />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
-        {!activeSession ? (
-          <div className="max-w-4xl mx-auto space-y-8 py-6">
-            {/* Header */}
-            <div className="text-center space-y-3">
-              <span className="px-3 py-1 rounded-full bg-[#171C22] text-[#2DD4BF] font-mono text-xs border border-[#272D35] inline-flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                Official ElevenLabs Realtime Voice Sandbox
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                Try the VoxDesk Voice Receptionist
-              </h1>
-              <p className="text-sm text-[#D4D4D8] max-w-xl mx-auto">
-                Select your industry profile, language, and caller scenario to
-                test real-time speech recognition, policy enforcement, lead
-                scoring, and instant CRM record creation.
-              </p>
-            </div>
+        <div className="max-w-4xl mx-auto space-y-8 py-6">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <span className="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 font-mono text-xs border border-indigo-500/20 inline-flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              Official ElevenLabs Realtime Voice Production Sandbox
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              Live Voice Agent Sandbox
+            </h1>
+            <p className="text-sm text-slate-400 max-w-xl mx-auto">
+              Test real-time speech conversation over WebRTC powered by ElevenLabs Conversational AI.
+            </p>
+          </div>
 
-            {/* Error Message */}
-            {sessionStartError && (
-              <div className="p-4 rounded-xl bg-[#991B1B]/10 border border-[#991B1B]/40 space-y-3">
-                <div className="flex items-start gap-3 text-xs text-[#EF4444]">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div className="space-y-1">
-                    <p className="font-semibold text-white">
-                      Session Start Notice
+          {selectionNotice && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center space-x-3 text-amber-300 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+              <span>{selectionNotice}</span>
+            </div>
+          )}
+
+          {/* STEP 1: ORGANIZATION PRESET SELECTION */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-mono uppercase text-slate-400 tracking-wider font-semibold">
+              1. Select Industry Organization Profile
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {presets.map((p) => {
+                const isSelected = selectedPresetKey === p.presetKey;
+                return (
+                  <button
+                    key={p.presetKey}
+                    type="button"
+                    onClick={() => handleSelectPreset(p.presetKey, p.supported)}
+                    className={`p-4 rounded-xl border text-left transition-all space-y-2 relative ${
+                      isSelected
+                        ? "bg-slate-900 border-indigo-500 shadow-lg shadow-indigo-500/10"
+                        : p.supported
+                        ? "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                        : "bg-slate-900/20 border-slate-900 opacity-60 cursor-not-allowed"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-white text-sm">
+                        {p.name}
+                      </span>
+                      <Briefcase
+                        className={`w-4 h-4 ${
+                          isSelected ? "text-indigo-400" : "text-slate-500"
+                        }`}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-400 line-clamp-2">
+                      {p.tagline}
                     </p>
-                    <p>{sessionStartError.message}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 1: ORGANIZATION PRESET SELECTION */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold">
-                1. Select Industry Organization Profile
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {presets.map((p) => {
-                  const isSupported = p.presetKey === "LEGAL";
-                  return (
-                    <button
-                      key={p.presetKey}
-                      type="button"
-                      disabled={!isSupported}
-                      onClick={() => setSelectedPresetKey(p.presetKey)}
-                      className={`p-4 rounded-xl border text-left transition-all space-y-2 relative ${
-                        selectedPresetKey === p.presetKey
-                          ? "bg-[#13171C] border-[#2DD4BF] shadow-lg shadow-[#2DD4BF]/5"
-                          : isSupported
-                            ? "bg-[#0F1216] border-[#272D35] hover:border-[#8B949E]/50"
-                            : "bg-[#0B0D10] border-[#1F242C] opacity-50 cursor-not-allowed"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-white text-sm">
-                          {p.name}
-                        </span>
-                        <Briefcase
-                          className={`w-4 h-4 ${
-                            selectedPresetKey === p.presetKey
-                              ? "text-[#2DD4BF]"
-                              : "text-[#8B949E]"
-                          }`}
-                        />
-                      </div>
-                      <p className="text-xs text-[#8B949E] line-clamp-2">
-                        {p.tagline}
-                      </p>
-                      {!isSupported && (
-                        <span className="inline-block mt-1 text-[10px] font-mono text-[#F59E0B] bg-[#F59E0B]/10 px-2 py-0.5 rounded border border-[#F59E0B]/30">
-                          Coming after provider configuration
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    {!p.supported && (
+                      <span className="inline-block mt-1 text-[10px] font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                        Not configured for the live provider yet
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
+          </div>
 
-            {/* STEP 2: LANGUAGE SELECTION */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold">
-                2. Select Spoken Conversation Language
-              </h3>
+          {/* STEP 2: LANGUAGE SELECTION */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-mono uppercase text-slate-400 tracking-wider font-semibold">
+              2. Select Spoken Language
+            </h3>
 
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedLanguage("en-US")}
-                  className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
-                    selectedLanguage === "en-US"
-                      ? "bg-[#13171C] border-[#2DD4BF] text-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35] text-[#D4D4D8]"
-                  }`}
-                >
-                  🇬🇧 English (en-US)
-                </button>
-
-                <button
-                  type="button"
-                  disabled
-                  className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#0B0D10] border-[#1F242C] text-[#8B949E] opacity-50 cursor-not-allowed relative flex flex-col items-center gap-1"
-                >
-                  <span>🇵🇰 Urdu (اردو)</span>
-                  <span className="text-[9px] text-[#F59E0B]">
-                    Coming after provider config
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled
-                  className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#0B0D10] border-[#1F242C] text-[#8B949E] opacity-50 cursor-not-allowed relative flex flex-col items-center gap-1"
-                >
-                  <span>🇪🇸 Spanish (Español)</span>
-                  <span className="text-[9px] text-[#F59E0B]">
-                    Coming after provider config
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {/* STEP 3: CALLER SCENARIO SELECTION */}
-            <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold">
-                3. Select Caller Objective & Scenario
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedScenario("BOOKING")}
-                  className={`p-4 rounded-xl border text-left space-y-1 transition-all ${
-                    selectedScenario === "BOOKING"
-                      ? "bg-[#13171C] border-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                    <Calendar className="w-4 h-4 text-[#2DD4BF]" />
-                    <span>Appointment Scheduling</span>
-                  </div>
-                  <p className="text-xs text-[#8B949E]">
-                    Caller requests a consultation, checks available slots, and
-                    confirms an appointment.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedScenario("QUALIFICATION")}
-                  className={`p-4 rounded-xl border text-left space-y-1 transition-all ${
-                    selectedScenario === "QUALIFICATION"
-                      ? "bg-[#13171C] border-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                    <Users className="w-4 h-4 text-[#2DD4BF]" />
-                    <span>Lead Intake & BANT Qualification</span>
-                  </div>
-                  <p className="text-xs text-[#8B949E]">
-                    Caller describes their needs, budget, and timeline for BANT
-                    scoring.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedScenario("ESCALATION")}
-                  className={`p-4 rounded-xl border text-left space-y-1 transition-all ${
-                    selectedScenario === "ESCALATION"
-                      ? "bg-[#13171C] border-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                    <PhoneForwarded className="w-4 h-4 text-[#2DD4BF]" />
-                    <span>Urgent Human Escalation</span>
-                  </div>
-                  <p className="text-xs text-[#8B949E]">
-                    High-urgency request triggers policy rule and generates
-                    transfer brief.
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedScenario("ROUTINE")}
-                  className={`p-4 rounded-xl border text-left space-y-1 transition-all ${
-                    selectedScenario === "ROUTINE"
-                      ? "bg-[#13171C] border-[#2DD4BF]"
-                      : "bg-[#0F1216] border-[#272D35]"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-white font-semibold text-sm">
-                    <HelpCircle className="w-4 h-4 text-[#2DD4BF]" />
-                    <span>Approved FAQ Q&A</span>
-                  </div>
-                  <p className="text-xs text-[#8B949E]">
-                    Caller asks questions about hours, fees, insurance, or
-                    services.
-                  </p>
-                </button>
-              </div>
-            </div>
-
-            {/* STEP 4: CONSENT & LAUNCH */}
-            <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-4">
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={hasConsented}
-                  onChange={(e) => setHasConsented(e.target.checked)}
-                  className="mt-1 rounded bg-[#0B0D10] border-[#272D35] text-[#2DD4BF] focus:ring-0"
-                />
-                <span className="text-xs text-[#D4D4D8] leading-relaxed">
-                  I understand this is a live interactive demonstration using
-                  fictional business data for{" "}
-                  <strong className="text-white">{activeProfile.name}</strong>{" "}
-                  in <strong className="text-white">{selectedLanguage}</strong>.
-                  My browser microphone will be used for natural speech input.
-                </span>
-              </label>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => handleSelectLanguage("en-US", true)}
+                className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all ${
+                  selectedLanguage === "en-US"
+                    ? "bg-slate-900 border-indigo-500 text-indigo-400"
+                    : "bg-slate-900/60 border-slate-800 text-slate-300"
+                }`}
+              >
+                🇬🇧 English (en-US)
+              </button>
 
               <button
                 type="button"
-                disabled={!hasConsented || isStartingSession}
-                onClick={handleStartSession}
-                className="w-full bg-[#2DD4BF] hover:bg-[#26b8a5] disabled:opacity-50 text-[#0B0D10] font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#2DD4BF]/10"
+                onClick={() => handleSelectLanguage("ur-PK", false)}
+                className="p-3 rounded-xl border text-center text-xs font-semibold bg-slate-900/20 border-slate-900 text-slate-500 opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
-                <Mic className="w-4 h-4" />
-                <span>
-                  {isStartingSession
-                    ? "Initializing Voice Agent..."
-                    : "Start Live Voice Call"}
+                <span>🇵🇰 Urdu (اردو)</span>
+                <span className="text-[9px] text-amber-400">
+                  Not configured for the live provider yet
                 </span>
               </button>
-            </div>
-
-            {/* Display After-Call Receipt if available */}
-            {callEndedResult && (
-              <div className="pt-4">
-                <BusinessOutcomeReceipt
-                  organizationName={activeProfile.name}
-                  industry={activeProfile.industry}
-                  callerName={
-                    callEndedResult.extractedFields?.fullName || "Caller"
-                  }
-                  callerPhone={
-                    callEndedResult.extractedFields?.contactPhone ||
-                    "Not provided"
-                  }
-                  language={selectedLanguage}
-                  scenario={selectedScenario}
-                  summaryText={
-                    callEndedResult.spokenReply ||
-                    "Call completed with full transcript and lead record saved to CRM database."
-                  }
-                  extractedFields={callEndedResult.extractedFields || {}}
-                  qualificationResult={callEndedResult.qualificationResult}
-                  crmRecordIds={callEndedResult.businessAction?.recordIds}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
-          /* ACTIVE LIVE VOICE CONSOLE */
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#272D35] pb-4">
-              <div>
-                <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-pulse" />
-                  {activeProfile.name} — Live Call
-                </h2>
-                <p className="text-xs text-[#8B949E] font-mono">
-                  Agent: {activeProfile.voiceIdentity.name} • Language:{" "}
-                  {selectedLanguage}
-                </p>
-              </div>
 
               <button
                 type="button"
-                onClick={() => setActiveSession(false)}
-                className="px-4 py-2 rounded-lg bg-[#13171C] border border-[#272D35] text-xs text-[#F4F4F5] hover:border-[#8B949E]"
+                onClick={() => handleSelectLanguage("es-ES", false)}
+                className="p-3 rounded-xl border text-center text-xs font-semibold bg-slate-900/20 border-slate-900 text-slate-500 opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
-                End Call & Review Outcome
+                <span>🇪🇸 Spanish (Español)</span>
+                <span className="text-[9px] text-amber-400">
+                  Not configured for the live provider yet
+                </span>
               </button>
             </div>
-
-            <ElevenLabsVoiceConsole
-              scenario={selectedScenario}
-              presetKey={selectedPresetKey}
-              language={selectedLanguage as any}
-              organizationProfile={activeProfile}
-              onCallEnded={(finalTurnData) => {
-                setCallEndedResult(finalTurnData);
-                setActiveSession(false);
-              }}
-            />
           </div>
-        )}
+
+          {/* SINGLE BUTTON CLIENT VOICE CONTROLLER */}
+          <div className="pt-4">
+            <ElevenLabsVoiceController />
+          </div>
+        </div>
       </main>
     </div>
   );

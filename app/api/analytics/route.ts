@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
         ]);
 
       const totalDurationSeconds = callsWithDuration._sum.durationSeconds || 0;
-      const hotLeads = leads.filter((l) => l.category === "HOT").length;
-      const warmLeads = leads.filter((l) => l.category === "WARM").length;
-      const reviewLeads = leads.filter((l) => l.category === "REVIEW").length;
-      const coldLeads = leads.filter((l) => l.category === "COLD").length;
+      const hotLeads = leads.filter((l: any) => l.category === "HOT").length;
+      const warmLeads = leads.filter((l: any) => l.category === "WARM").length;
+      const reviewLeads = leads.filter((l: any) => l.category === "REVIEW").length;
+      const coldLeads = leads.filter((l: any) => l.category === "COLD").length;
 
       const conversionRate =
         totalCalls > 0 ? Math.round((appointmentsCount / totalCalls) * 100) : 0;

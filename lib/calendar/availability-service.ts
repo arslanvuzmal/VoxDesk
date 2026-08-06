@@ -52,7 +52,7 @@ export async function getAvailableSlots(
       );
 
       // Check overlap collision
-      const hasCollision = existingAppts.some((appt) => {
+      const hasCollision = existingAppts.some((appt: any) => {
         return candidateStart < appt.endTime && candidateEnd > appt.startTime;
       });
 

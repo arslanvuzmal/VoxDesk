@@ -133,13 +133,13 @@ export default function KnowledgeManagementPage() {
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-1">
           <span className="text-[#8B949E] block">Indexed Passages</span>
           <span className="font-bold text-white text-sm">
-            75 Approved Passages
+            Configured Passages
           </span>
         </div>
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-1">
           <span className="text-[#8B949E] block">Evaluation Score</span>
           <span className="font-bold text-[#2DD4BF] text-sm">
-            98.4% Groundedness
+            Not measured
           </span>
         </div>
       </div>
