@@ -27,7 +27,7 @@ export async function generateCloudflareResponse(
   const model = env.CLOUDFLARE_LLM_MODEL || "@cf/moonshotai/kimi-k2.6";
   const timeoutMs = parseInt(env.CLOUDFLARE_LLM_TIMEOUT_MS, 10) || 15000;
   const maxTokens = parseInt(env.CLOUDFLARE_MAX_OUTPUT_TOKENS, 10) || 180;
-  const temperature = parseFloat(env.CLOUDFLARE_TEMPERATURE) || 0.35;
+  const temperature = parseFloat(env.CLOUDFLARE_TEMPERATURE) || 0.65;
 
   const presetKey = input.presetKey || "LEGAL";
   const language = input.language || "en-US";

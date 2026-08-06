@@ -87,7 +87,7 @@ export async function generateAgentTurn(
       body: JSON.stringify({
         model,
         messages,
-        temperature: 0.3,
+        temperature: 0.65,
         max_tokens: 220,
       }),
     });
@@ -187,59 +187,118 @@ export function getDeterministicFallback(
   let responseText = "";
   let action: any = "NONE";
   let state = "PROVIDING_INFORMATION";
+  let sentiment: "positive" | "neutral" | "negative" | "concerned" = "neutral";
+  let urgency: "low" | "medium" | "high" | "critical" = "medium";
 
+  // Greeting / opening
   if (
+    query.includes("hello") ||
+    query.includes("hi ") ||
+    query.includes("hey") ||
+    query.includes("good morning") ||
+    query.includes("good afternoon")
+  ) {
+    responseText = `Hi there! Thanks for calling ${profile.name}. I'm ${profile.voiceIdentity.name}. How can I help you today?`;
+    action = "NONE";
+    state = "GREETING";
+    sentiment = "positive";
+    urgency = "low";
+  }
+  // Process / services inquiry
+  else if (
     query.includes("process") ||
     query.includes("service") ||
     query.includes("explain") ||
     query.includes("how does") ||
-    query.includes("what do you do")
+    query.includes("what do you do") ||
+    query.includes("what services")
   ) {
     const serviceList = profile.services
       ? profile.services.map((s: any) => s.name).join(", ")
       : "consultations and specialists";
-    responseText = `At ${profile.name}, we provide comprehensive ${profile.industry} solutions including ${serviceList}. Our process begins with a quick intake evaluation, followed by direct assignment to a dedicated senior specialist. May I confirm your name to schedule an initial consultation?`;
+    responseText = `We offer ${serviceList}. It starts with a quick intake call, then we match you with the right specialist. What made you reach out today?`;
     action = "CHECK_AVAILABILITY";
-    state = "COLLECTING_INTAKE";
-  } else if (
+    state = "IDENTIFYING_INTENT";
+    sentiment = "positive";
+  }
+  // Pricing
+  else if (
     query.includes("price") ||
     query.includes("cost") ||
     query.includes("fee") ||
     query.includes("retainer") ||
     query.includes("charge") ||
-    query.includes("hidden")
+    query.includes("hidden") ||
+    query.includes("budget")
   ) {
-    responseText = `Our pricing model at ${profile.name} is transparent and flat-rate with zero hidden diagnostic fees or surprise charges. We tailor our packages based on your exact requirements after an initial evaluation. Would you like me to reserve a spot for your detailed consultation?`;
+    responseText = `Our pricing is flat-rate and transparent — no hidden fees. The exact amount depends on your situation after an initial eval. Want me to check availability for a consultation?`;
     action = "CHECK_AVAILABILITY";
     state = "PROVIDING_INFORMATION";
-  } else if (
+    sentiment = "neutral";
+  }
+  // Booking
+  else if (
     query.includes("book") ||
     query.includes("schedule") ||
     query.includes("appointment") ||
     query.includes("tomorrow") ||
     query.includes("slot") ||
     query.includes("meet") ||
-    query.includes("time")
+    query.includes("time") ||
+    query.includes("when") ||
+    query.includes("available")
   ) {
     const sampleSlot =
       profile.appointmentSettings?.sampleSlots?.[0] ||
       "tomorrow at 2:00 PM PST";
-    responseText = `I would be delighted to reserve an appointment for you! Our next open slot is ${sampleSlot}. May I confirm your full name and mobile phone number to lock in this appointment?`;
+    responseText = `I'd be happy to get something on the calendar. We've got ${sampleSlot} open — does that work? If so, just give me your name and number and I'll lock it in.`;
     action = "RESERVE_APPOINTMENT";
-    state = "COLLECTING_INTAKE";
-  } else if (
+    state = "COLLECTING_CONTACT";
+    sentiment = "positive";
+  }
+  // Urgency / emergency
+  else if (
     query.includes("urgent") ||
     query.includes("emergency") ||
     query.includes("immediately") ||
     query.includes("help") ||
-    query.includes("escalat")
+    query.includes("escalat") ||
+    query.includes("asap") ||
+    query.includes("right now")
   ) {
     const dest = profile.escalationDestination;
-    responseText = `I understand this is an urgent matter! I am preparing an immediate priority handoff brief for our ${dest?.department || "On-Call Specialist team"}. Please confirm your phone number so our senior director can call you back right away!`;
+    responseText = `This sounds urgent — let me get you to the right person right away. What's the best number for our ${dest?.department || "senior team"} to call you back on?`;
     action = "PREPARE_HANDOFF";
     state = "ESCALATING";
-  } else {
-    responseText = `Thank you for reaching out to ${profile.name}! As Maya, your senior intake specialist, I am here to help you with ${profile.tagline}. We can discuss our services, check appointment availability, or answer any pricing questions you have. How would you like to proceed?`;
+    sentiment = "concerned";
+    urgency = "critical";
+  }
+  // Name provided
+  else if (
+    query.includes("my name is") ||
+    query.includes("i'm ") ||
+    query.includes("this is ")
+  ) {
+    responseText = `Nice to meet you! And what's the best phone number to reach you at?`;
+    action = "NONE";
+    state = "COLLECTING_CONTACT";
+    sentiment = "positive";
+  }
+  // Phone provided
+  else if (/\d{3}[-.]?\d{3}[-.]?\d{4}/.test(query)) {
+    responseText = `Got it. And what type of matter are you calling about today?`;
+    action = "NONE";
+    state = "COLLECTING_REQUIREMENTS";
+    sentiment = "neutral";
+  }
+  // Fallback
+  else {
+    const fallbacks = [
+      `I want to make sure I understand — could you tell me a bit more about what you need?`,
+      `Thanks for sharing that. What's the main thing you're hoping to accomplish?`,
+      `Got it. So what would be the ideal outcome for you here?`,
+    ];
+    responseText = fallbacks[Math.floor(Math.random() * fallbacks.length)];
     action = "NONE";
     state = "IDENTIFYING_INTENT";
   }
@@ -250,9 +309,9 @@ export function getDeterministicFallback(
     intent: scenario,
     secondaryIntent: null,
     suggestedState: state as any,
-    sentiment: "neutral",
-    urgency: "medium",
-    confidence: 0.9,
+    sentiment,
+    urgency,
+    confidence: 0.85,
     extractedFields: {},
     missingRequiredFields: [],
     suggestedAction: action,
