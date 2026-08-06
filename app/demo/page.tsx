@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
-import { ElevenLabsVoiceConsole } from "@/components/calls/elevenlabs-voice-console";
 import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
 import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import { listOrganizationPresets } from "@/lib/organization/registry";
@@ -17,6 +17,23 @@ import {
   Briefcase,
   Sparkles,
 } from "lucide-react";
+
+// Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
+const ElevenLabsVoiceConsole = dynamic(
+  () =>
+    import("@/components/calls/elevenlabs-voice-console").then(
+      (mod) => mod.ElevenLabsVoiceConsole,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="p-8 rounded-lg bg-[#13171C] border border-[#272D35] text-center text-xs text-[#8B949E] font-mono space-y-2">
+        <span className="w-2.5 h-2.5 rounded-full bg-[#2DD4BF] animate-ping inline-block" />
+        <p>Loading ElevenLabs Realtime WebRTC Engine...</p>
+      </div>
+    ),
+  },
+);
 
 export default function DemoPage() {
   const presets = listOrganizationPresets();
