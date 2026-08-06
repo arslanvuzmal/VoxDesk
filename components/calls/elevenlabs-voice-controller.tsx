@@ -212,8 +212,10 @@ export function ElevenLabsVoiceController() {
       // Step 4: Connect ElevenLabs WebRTC Session
       setCallState("CONNECTING");
       await conversation.startSession({
+        conversationToken: bootstrapData.conversationToken,
         signedUrl: bootstrapData.conversationToken,
-      });
+        connectionType: "webrtc",
+      } as any);
 
       // Conversation ID tracking
       if ((conversation as any).getId) {

@@ -1,63 +1,46 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("VoxDesk AI Interactive Public Demo & CRM E2E Flow", () => {
-  test("should complete full multi-turn booking flow and verify database outcome receipt", async ({
+test.describe("VoxDesk AI /demo Route Regression Suite", () => {
+  test("should render /demo page without client-side exceptions or missing ElevenLabs provider errors", async ({
     page,
   }) => {
+    const pageErrors: Error[] = [];
+    const consoleErrors: string[] = [];
+
+    page.on("pageerror", (error) => {
+      console.error("[PLAYWRIGHT_PAGE_ERROR]:", error);
+      pageErrors.push(error);
+    });
+
+    page.on("console", (msg) => {
+      if (msg.type() === "error") {
+        console.error("[PLAYWRIGHT_CONSOLE_ERROR]:", msg.text());
+        consoleErrors.push(msg.text());
+      }
+    });
+
     // 1. Open /demo
     await page.goto("/demo");
-    await expect(page).toHaveTitle(/VoxDesk AI/i);
+    await page.waitForLoadState("domcontentloaded");
 
-    // 2. Select Organization Preset (HEALTHCARE)
-    const healthcareBtn = page.locator("button:has-text('Apex Dental')");
-    if (await healthcareBtn.isVisible()) {
-      await healthcareBtn.click();
-    }
+    // 2. Assert no page errors
+    expect(pageErrors).toHaveLength(0);
 
-    // 3. Select Scenario (BOOKING)
-    const bookingScenarioBtn = page.locator("button:has-text('BOOKING')");
-    if (await bookingScenarioBtn.isVisible()) {
-      await bookingScenarioBtn.click();
-    }
+    // 3. Assert no generic Next.js crash screen
+    const appErrorHeading = page.getByText("Application error: a client-side exception has occurred");
+    await expect(appErrorHeading).not.toBeVisible();
 
-    // 4. Start Demo Call Session
-    const startCallBtn = page.locator(
-      "button:has-text('Start Interactive Call Demo')",
+    // 4. Assert header and call button are visible
+    await expect(page.getByText("Live Voice Agent Sandbox")).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Start Live Voice Call/i })
+    ).toBeVisible();
+
+    // 5. Assert no missing ConversationProvider console error
+    const providerError = consoleErrors.some((err) =>
+      err.includes("useConversation must be used within a ConversationProvider")
     );
-    if (await startCallBtn.isVisible()) {
-      await startCallBtn.click();
-    }
-
-    // 5. Verify Active Console is rendered
-    await page.waitForTimeout(1000);
-    const consoleHeading = page.locator("text=Live Call");
-    if (await consoleHeading.isVisible()) {
-      await expect(consoleHeading).toBeVisible();
-    }
-
-    // 6. Submit Manual Input Turn
-    const textInput = page.locator("input[placeholder*='Type your response']");
-    if (await textInput.isVisible()) {
-      await textInput.fill(
-        "I would like to schedule a dental checkup consultation.",
-      );
-      await page.keyboard.press("Enter");
-      await page.waitForTimeout(1500);
-    }
-
-    // 7. End Call and Review Receipt
-    const endCallBtn = page.locator(
-      "button:has-text('End Call & Review Outcome')",
-    );
-    if (await endCallBtn.isVisible()) {
-      await endCallBtn.click();
-    }
-
-    // 8. Verify Outcome Receipt
-    const receiptBanner = page.locator("text=Call Outcome Receipt");
-    if (await receiptBanner.isVisible()) {
-      await expect(receiptBanner).toBeVisible();
-    }
+    expect(providerError).toBe(false);
   });
 
   test("should load authenticated dashboard routes cleanly", async ({
