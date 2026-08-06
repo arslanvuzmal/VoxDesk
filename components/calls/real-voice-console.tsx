@@ -548,7 +548,7 @@ export function RealVoiceConsole({
       onResetScenario?.();
     } catch {
       alert("Failed to delete demo data.");
-    } flex {
+    } finally {
       setIsDeleting(false);
     }
   };
