@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
-import { RealVoiceConsole } from "@/components/calls/real-voice-console";
+import { ElevenLabsVoiceConsole } from "@/components/calls/elevenlabs-voice-console";
 import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
 import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import { listOrganizationPresets } from "@/lib/organization/registry";
@@ -13,11 +13,7 @@ import {
   Users,
   PhoneForwarded,
   HelpCircle,
-  ShieldCheck,
   AlertTriangle,
-  RotateCcw,
-  BookOpen,
-  Globe,
   Briefcase,
   Sparkles,
 } from "lucide-react";
@@ -90,7 +86,7 @@ export default function DemoPage() {
             <div className="text-center space-y-3">
               <span className="px-3 py-1 rounded-full bg-[#171C22] text-[#2DD4BF] font-mono text-xs border border-[#272D35] inline-flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                Solution-First Voice Sandbox
+                Official ElevenLabs Realtime Voice Sandbox
               </span>
               <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
                 Try the VoxDesk Voice Receptionist
@@ -364,7 +360,7 @@ export default function DemoPage() {
               </button>
             </div>
 
-            <RealVoiceConsole
+            <ElevenLabsVoiceConsole
               scenario={selectedScenario}
               presetKey={selectedPresetKey}
               language={selectedLanguage as any}

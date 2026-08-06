@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/database";
 import { getDemoSessionStoreStatus } from "@/lib/demo/store";
 import { legalTrainingPack } from "@/lib/organization/presets/legal";
+import { resolveElevenLabsAgent } from "@/lib/elevenlabs/agent-registry.server";
 import { env } from "@/lib/config/env";
 
 export async function GET() {
@@ -22,23 +23,28 @@ export async function GET() {
   }
 
   // 3. Voice Provider Readiness (ElevenLabs)
-  const hasApiKey = Boolean(env.ELEVENLABS_API_KEY);
-  const voiceProviderStatus = hasApiKey ? "READY" : "NOT_CONFIGURED";
+  const apiKeyConfigured = Boolean(
+    process.env.ELEVENLABS_API_KEY || env.ELEVENLABS_API_KEY,
+  );
+  const legalAgent = resolveElevenLabsAgent("LEGAL", "en-US");
+  const legalAgentConfigured = Boolean(legalAgent && legalAgent.agentId);
 
   // 4. Knowledge Index Readiness
   const knowledgeReady = Boolean(legalTrainingPack.faq.length > 0);
 
-  // 5. Webhook Tool Endpoints
-  const toolEndpointsReady = true;
-
-  const isHealthy = storeStatus.ready && knowledgeReady && toolEndpointsReady;
+  const isHealthy = apiKeyConfigured && legalAgentConfigured && knowledgeReady;
   const statusCode = isHealthy ? 200 : 503;
 
   return NextResponse.json(
     {
+      ready: isHealthy,
       status: isHealthy ? "HEALTHY" : "DEGRADED",
       timestamp,
-      deploymentVersion: legalTrainingPack.version,
+      deploymentCommit: process.env.VERCEL_GIT_COMMIT_SHA || "6e7f0a2",
+      elevenLabsApiConfigured: apiKeyConfigured,
+      legalEnglishAgentConfigured: legalAgentConfigured,
+      redisReady: storeStatus.ready,
+      databaseReady: dbHealthy,
       activeBusinessProfile: {
         id: legalTrainingPack.business.id,
         name: legalTrainingPack.business.name,
@@ -54,31 +60,12 @@ export async function GET() {
           error: dbError,
         },
         voiceProvider: {
-          status: voiceProviderStatus,
-          provider: "ELEVENLABS",
+          status: isHealthy ? "READY" : "NOT_CONFIGURED",
+          provider: "ELEVENLABS_REACT_SDK",
           primaryVoice: legalTrainingPack.voice.displayName,
-        },
-        knowledgeIndex: {
-          ready: knowledgeReady,
-          sourcesCount: legalTrainingPack.knowledgeSources.length,
-          faqCount: legalTrainingPack.faq.length,
-        },
-        toolEndpoints: {
-          ready: toolEndpointsReady,
-          tools: [
-            "get_business_information",
-            "check_availability",
-            "hold_appointment_slot",
-            "confirm_appointment",
-            "create_or_update_lead",
-            "prepare_follow_up",
-            "prepare_human_handoff",
-            "record_unanswered_question",
-            "complete_call",
-          ],
         },
       },
     },
-    { status: statusCode },
+    { status: statusCode, headers: { "Cache-Control": "no-store, private" } },
   );
 }
