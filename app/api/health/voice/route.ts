@@ -3,14 +3,15 @@ import { prisma } from "@/lib/database";
 import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
 
 export async function GET() {
-  const apiKeyConfigured = Boolean(process.env.ELEVENLABS_API_KEY?.trim());
+  const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
+  const apiKeyConfigured = Boolean(apiKey);
   const agentId = process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
   const agentConfigured = Boolean(agentId);
 
   let agentVerified = false;
-  if (apiKeyConfigured && agentId) {
+  if (apiKeyConfigured && agentId && apiKey) {
     try {
-      const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY!.trim() });
+      const client = new ElevenLabsClient({ apiKey });
       const agent = await client.conversationalAi.agents.get(agentId);
       if (agent && agent.agentId) {
         agentVerified = true;

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) {
     return NextResponse.json(
       {

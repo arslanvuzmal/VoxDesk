@@ -21,7 +21,7 @@ export function isElevenLabsConfigured(
   presetKey: VoxDeskPreset,
   language: SupportedLanguage
 ): boolean {
-  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) return false;
 
   if (presetKey === "LEGAL" && language === "en-US") {
@@ -40,7 +40,7 @@ export function resolveElevenLabsAgent(
   presetKey: VoxDeskPreset,
   language: SupportedLanguage
 ): AgentRegistration | null {
-  const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+  const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) return null;
 
   if (presetKey === "LEGAL" && language === "en-US") {
