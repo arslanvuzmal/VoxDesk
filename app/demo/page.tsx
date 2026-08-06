@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Navbar } from "@/components/ui/navbar";
 import { BusinessOutcomeReceipt } from "@/components/demo/business-outcome-receipt";
 import { startDemoSession, DemoApiError } from "@/lib/client/demo-api";
 import { listOrganizationPresets } from "@/lib/organization/registry";
+import { resolveElevenLabsAgent, isElevenLabsConfigured } from "@/lib/elevenlabs/agent-registry";
 import {
   Mic,
   Calendar,
@@ -16,6 +17,7 @@ import {
   AlertTriangle,
   Briefcase,
   Sparkles,
+  Info,
 } from "lucide-react";
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
@@ -50,14 +52,33 @@ export default function DemoPage() {
     code?: string;
     guidedDemoUrl?: string;
   } | null>(null);
+  const [elevenlabsConfigured, setElevenlabsConfigured] = useState(true);
 
   const [callEndedResult, setCallEndedResult] = useState<any | null>(null);
 
   const activeProfile =
     presets.find((p) => p.presetKey === selectedPresetKey) || presets[0];
 
+  // Check if ElevenLabs agent is configured for current preset/language
+  useEffect(() => {
+    const agent = resolveElevenLabsAgent(
+      selectedPresetKey as any,
+      selectedLanguage as any,
+    );
+    // Check if we have a valid agent ID (not just the default fallback)
+    const hasValidAgent = agent && agent.agentId !== "36f372be729c9c1e4de8071b86271c6b";
+    setElevenlabsConfigured(!!hasValidAgent);
+  }, [selectedPresetKey, selectedLanguage]);
+
   const handleStartSession = async () => {
     if (!hasConsented || isStartingSession) return;
+    
+    // If ElevenLabs is not configured, show guided demo instead
+    if (!elevenlabsConfigured) {
+      window.location.href = "/demo/story";
+      return;
+    }
+
     setIsStartingSession(true);
     setSessionStartError(null);
     setCallEndedResult(null);
@@ -115,6 +136,33 @@ export default function DemoPage() {
               </p>
             </div>
 
+            {/* ElevenLabs Configuration Notice */}
+            {!elevenlabsConfigured && (
+              <div className="p-4 rounded-xl bg-[#171C22] border border-[#F59E0B]/40 space-y-3">
+                <div className="flex items-start gap-3 text-xs text-[#F59E0B]">
+                  <Info className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-white">
+                      ElevenLabs Realtime Not Configured
+                    </p>
+                    <p className="text-[#D4D4D8]">
+                      The live WebRTC voice demo requires an ElevenLabs account with a configured Conversational AI agent. 
+                      Please set <code className="bg-[#0B0D10] px-1.5 py-0.5 rounded text-[#2DD4BF] font-mono text-[10px]">ELEVENLABS_API_KEY</code> and 
+                      <code className="bg-[#0B0D10] px-1.5 py-0.5 rounded text-[#2DD4BF] font-mono text-[10px]">ELEVENLABS_AGENT_ID_LEGAL_EN</code> 
+                      in your environment variables.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = "/demo/story"}
+                      className="mt-2 px-4 py-2 rounded-lg bg-[#F59E0B] hover:bg-[#d97706] text-[#0B0D10] font-bold text-xs transition-colors"
+                    >
+                      Try Guided Story Demo Instead
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Error Message */}
             {sessionStartError && (
               <div className="p-4 rounded-xl bg-[#991B1B]/10 border border-[#991B1B]/40 space-y-3">
@@ -125,6 +173,15 @@ export default function DemoPage() {
                       Session Start Notice
                     </p>
                     <p>{sessionStartError.message}</p>
+                    {sessionStartError.guidedDemoUrl && (
+                      <button
+                        type="button"
+                        onClick={() => window.location.href = sessionStartError.guidedDemoUrl!}
+                        className="mt-2 text-xs text-[#2DD4BF] hover:underline"
+                      >
+                        View Guided Walkthrough →
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -314,15 +371,21 @@ export default function DemoPage() {
 
               <button
                 type="button"
-                disabled={!hasConsented || isStartingSession}
+                disabled={!hasConsented || isStartingSession || !elevenlabsConfigured}
                 onClick={handleStartSession}
-                className="w-full bg-[#2DD4BF] hover:bg-[#26b8a5] disabled:opacity-50 text-[#0B0D10] font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#2DD4BF]/10"
+                className={`w-full disabled:opacity-50 text-[#0B0D10] font-bold text-sm py-4 rounded-xl flex items-center justify-center gap-2 transition-all ${
+                  elevenlabsConfigured
+                    ? "bg-[#2DD4BF] hover:bg-[#26b8a5] shadow-lg shadow-[#2DD4BF]/10"
+                    : "bg-[#F59E0B] hover:bg-[#d97706]"
+                }`}
               >
                 <Mic className="w-4 h-4" />
                 <span>
                   {isStartingSession
                     ? "Initializing Voice Agent..."
-                    : "Start Live Voice Call"}
+                    : elevenlabsConfigured
+                    ? "Start Live Voice Call"
+                    : "Configure ElevenLabs to Enable"}
                 </span>
               </button>
             </div>
