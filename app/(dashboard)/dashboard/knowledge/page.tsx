@@ -199,7 +199,7 @@ export default function KnowledgeManagementPage() {
                 Matched RAG Chunk (Confidence: {evalResult.matchedPassages[0].score * 100}%)
               </p>
               <p className="text-white font-medium italic mt-1">
-                "{evalResult.matchedPassages[0].snippet}"
+                &quot;{evalResult.matchedPassages[0].snippet}&quot;
               </p>
             </div>
             <div className="pt-2 border-t border-[#21262D]">
