@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Mic,
-  MicOff,
   PhoneOff,
   Calendar,
   AlertTriangle,
@@ -13,13 +12,10 @@ import {
   Trash2,
   Volume2,
   Activity,
+  CheckCircle,
 } from "lucide-react";
 import { useConversation } from "@elevenlabs/react";
-import {
-  endDemoSession,
-  deleteDemoSession,
-  DemoApiError,
-} from "@/lib/client/demo-api";
+import { endDemoSession, deleteDemoSession } from "@/lib/client/demo-api";
 
 export type ConsoleState =
   | "IDLE"
@@ -28,12 +24,13 @@ export type ConsoleState =
   | "CONNECTING"
   | "CONNECTED"
   | "LISTENING"
-  | "USER_SPEAKING"
+  | "CALLER_SPEAKING"
   | "AGENT_SPEAKING"
   | "INTERRUPTED"
   | "ENDING"
+  | "FINALIZING"
   | "COMPLETED"
-  | "ERROR";
+  | "FAILED";
 
 interface VoiceTranscriptLine {
   id: string;
@@ -41,7 +38,13 @@ interface VoiceTranscriptLine {
   text: string;
   tentative: boolean;
   createdAt: string;
-  providerEventId?: string;
+}
+
+interface MeasuredTelemetry {
+  tokenFetchMs: number | null;
+  connectMs: number | null;
+  sttLatencyMs: number | null;
+  interruptionStopMs: number | null;
 }
 
 interface ElevenLabsVoiceConsoleProps {
@@ -61,9 +64,12 @@ export function ElevenLabsVoiceConsoleContent({
   onResetScenario,
   onCallEnded,
 }: ElevenLabsVoiceConsoleProps) {
-  const [consoleState, setConsoleState] = useState<ConsoleState>("IDLE");
+  const [consoleState, setConsoleState] = useState<ConsoleState>(
+    "REQUESTING_MICROPHONE",
+  );
   const [callEnded, setCallEnded] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [finalCallResult, setFinalCallResult] = useState<any | null>(null);
 
   const [transcript, setTranscript] = useState<VoiceTranscriptLine[]>([]);
   const [agentDisplayName, setAgentDisplayName] = useState<string>(
@@ -73,17 +79,27 @@ export function ElevenLabsVoiceConsoleContent({
   const [turnsCount, setTurnsCount] = useState(0);
   const maxCallerTurns = 30;
   const [timeRemaining, setTimeRemaining] = useState(180);
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
-  const [telemetry, setTelemetry] = useState({
-    sttLatencyMs: 190,
-    llmLatencyMs: 450,
-    ttsLatencyMs: 380,
-    interruptionStopMs: 140,
+  // Measure REAL telemetry timestamps (no hardcoded metrics)
+  const [telemetry, setTelemetry] = useState<MeasuredTelemetry>({
+    tokenFetchMs: null,
+    connectMs: null,
+    sttLatencyMs: null,
+    interruptionStopMs: null,
   });
+
+  const timestampsRef = useRef<{
+    tokenStart?: number;
+    tokenEnd?: number;
+    connectStart?: number;
+    connectEnd?: number;
+    callerSpeakStart?: number;
+    agentSpeakStart?: number;
+  }>({});
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasAutoStarted = useRef(false);
 
   const handleMessage = useCallback(
     (message: { source: string; message: string }) => {
@@ -96,8 +112,21 @@ export function ElevenLabsVoiceConsoleContent({
       const isUser = message.source === "user";
       const role: "CALLER" | "AGENT" = isUser ? "CALLER" : "AGENT";
 
+      const now = Date.now();
+
+      if (isUser) {
+        timestampsRef.current.callerSpeakStart = now;
+        setTurnsCount((prev) => prev + 1);
+        setConsoleState("CALLER_SPEAKING");
+      } else {
+        if (timestampsRef.current.callerSpeakStart) {
+          const delta = now - timestampsRef.current.callerSpeakStart;
+          setTelemetry((prev) => ({ ...prev, sttLatencyMs: delta }));
+        }
+        setConsoleState("AGENT_SPEAKING");
+      }
+
       setTranscript((prev) => {
-        // Prevent exact duplicate consecutive entries
         const last = prev[prev.length - 1];
         if (last && last.role === role && last.text === message.message) {
           return prev;
@@ -113,22 +142,22 @@ export function ElevenLabsVoiceConsoleContent({
           },
         ];
       });
-
-      if (isUser) {
-        setTurnsCount((prev) => prev + 1);
-        setConsoleState("USER_SPEAKING");
-      } else {
-        setConsoleState("AGENT_SPEAKING");
-      }
     },
     [],
   );
 
   const conversation = useConversation({
     onConnect: () => {
+      const now = Date.now();
+      if (timestampsRef.current.connectStart) {
+        const delta = now - timestampsRef.current.connectStart;
+        setTelemetry((prev) => ({ ...prev, connectMs: delta }));
+      }
+
       setConsoleState("CONNECTED");
       setErrorMessage(null);
-      // Start 180s countdown timer on real connection
+
+      // Start 180s active call timer AFTER real ElevenLabs WebRTC connection
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setTimeRemaining((prev) => {
@@ -141,19 +170,24 @@ export function ElevenLabsVoiceConsoleContent({
       }, 1000);
     },
     onDisconnect: () => {
-      if (consoleState !== "COMPLETED" && consoleState !== "ENDING") {
+      if (
+        consoleState !== "COMPLETED" &&
+        consoleState !== "FINALIZING" &&
+        consoleState !== "ENDING"
+      ) {
         setConsoleState("IDLE");
       }
       if (timerRef.current) clearInterval(timerRef.current);
     },
     onMessage: handleMessage,
     onError: (err: any) => {
-      console.error("[ELEVENLABS SDK ERROR]:", err);
-      setConsoleState("ERROR");
+      console.error("[ELEVENLABS WEBRTC ERROR]:", err);
+      setConsoleState("FAILED");
       setErrorMessage(
         typeof err === "string"
           ? err
-          : err?.message || "The realtime voice provider could not connect.",
+          : err?.message ||
+              "The ElevenLabs realtime voice session encountered a WebRTC transport error.",
       );
     },
     onModeChange: (mode: { mode: string }) => {
@@ -167,34 +201,44 @@ export function ElevenLabsVoiceConsoleContent({
 
   const { status, isSpeaking } = conversation;
 
-  const startVoiceConversation = async () => {
+  // Single Atomic Call Start Execution
+  const executeStartFlow = async () => {
     setErrorMessage(null);
     setConsoleState("REQUESTING_MICROPHONE");
 
-    // 1. Request Microphone Consent
+    // Step 1 & 4: Microphone Consent
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      if (
+        typeof window !== "undefined" &&
+        navigator.mediaDevices?.getUserMedia
+      ) {
         await navigator.mediaDevices.getUserMedia({ audio: true });
       }
     } catch {
-      setConsoleState("ERROR");
+      setConsoleState("FAILED");
       setErrorMessage(
-        "Microphone permission is required for the live voice conversation.",
+        "Microphone permission is required to establish the live ElevenLabs voice session.",
       );
       return;
     }
 
-    // 2. Request Secure Conversation Token
+    // Step 5: WebRTC Token Request
     setConsoleState("REQUESTING_TOKEN");
+    timestampsRef.current.tokenStart = Date.now();
+
     try {
       const res = await fetch("/api/demo/conversation-token");
       const data = await res.json();
+      timestampsRef.current.tokenEnd = Date.now();
+      const tokenFetchDelta =
+        timestampsRef.current.tokenEnd - timestampsRef.current.tokenStart;
+      setTelemetry((prev) => ({ ...prev, tokenFetchMs: tokenFetchDelta }));
 
       if (!res.ok) {
-        setConsoleState("ERROR");
+        setConsoleState("FAILED");
         setErrorMessage(
           data.error ||
-            "The realtime voice provider could not connect. No voice conversation was started.",
+            "Failed to retrieve conversation token from VoxDesk server.",
         );
         return;
       }
@@ -203,19 +247,29 @@ export function ElevenLabsVoiceConsoleContent({
         setAgentDisplayName(data.agent.displayName);
       }
 
-      // 3. Connect to Official ElevenLabs Realtime WebRTC Session
+      // Step 6: Start Official ElevenLabs Conversation
       setConsoleState("CONNECTING");
+      timestampsRef.current.connectStart = Date.now();
+
       await conversation.startSession({
         conversationToken: data.token,
       });
     } catch (err: any) {
-      setConsoleState("ERROR");
+      setConsoleState("FAILED");
       setErrorMessage(
         err?.message ||
-          "The realtime voice provider could not connect. No voice conversation was started.",
+          "Could not establish WebRTC peer connection to ElevenLabs Agents API.",
       );
     }
   };
+
+  useEffect(() => {
+    if (!hasAutoStarted.current) {
+      hasAutoStarted.current = true;
+      executeStartFlow();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEndCall = async () => {
     setConsoleState("ENDING");
@@ -227,23 +281,25 @@ export function ElevenLabsVoiceConsoleContent({
       // Ignore disconnect errors
     }
 
+    setConsoleState("FINALIZING");
     try {
       const data = await endDemoSession();
-      setCallEnded(true);
-      setConsoleState("COMPLETED");
-      if (onCallEnded)
-        onCallEnded(data.finalCallResult || data.summary || data);
-    } catch {
-      setCallEnded(true);
-      setConsoleState("COMPLETED");
-      if (onCallEnded) {
-        onCallEnded({
-          sessionId: "ended_session",
-          organization: {
-            name: organizationProfile?.name || "Northstar Legal Consultations",
-          },
-        });
+      if (data && data.success) {
+        setFinalCallResult(data.finalCallResult || data.summary);
+        setCallEnded(true);
+        setConsoleState("COMPLETED");
+        if (onCallEnded) onCallEnded(data.finalCallResult || data.summary);
+      } else {
+        setConsoleState("FAILED");
+        setErrorMessage(
+          "The voice conversation ended, but VoxDesk could not finalize the call record. No completed business outcome has been confirmed.",
+        );
       }
+    } catch (err: any) {
+      setConsoleState("FAILED");
+      setErrorMessage(
+        "The voice conversation ended, but VoxDesk could not finalize the call record. No completed business outcome has been confirmed.",
+      );
     }
   };
 
@@ -272,16 +328,17 @@ export function ElevenLabsVoiceConsoleContent({
     };
   }, []);
 
-  if (callEnded) {
+  if (callEnded && finalCallResult) {
     return (
       <div className="max-w-4xl mx-auto space-y-6 text-white">
         <div className="p-6 rounded-lg bg-[#13171C] border border-[#272D35] space-y-6">
           <div className="flex items-center justify-between border-b border-[#272D35] pb-4">
             <div>
-              <span className="text-xs font-mono text-[#34D399] uppercase font-bold">
+              <span className="text-xs font-mono text-[#34D399] uppercase font-bold flex items-center gap-1.5">
+                <CheckCircle className="w-4 h-4 text-[#34D399]" />
                 Official ElevenLabs Realtime Call Completed
               </span>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
                 Northstar Legal Consultation Outcome
               </h1>
             </div>
@@ -310,15 +367,15 @@ export function ElevenLabsVoiceConsoleContent({
               </p>
             </div>
             <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-1">
-              <span className="text-[#8B949E] block">Verified Action</span>
+              <span className="text-[#8B949E] block">Session Persistence</span>
               <p className="font-semibold text-[#2DD4BF]">
-                {actionNotice || "Legal strategy consultation scheduled"}
+                {finalCallResult.persistenceStatus || "PERSISTED"}
               </p>
             </div>
             <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-1">
-              <span className="text-[#8B949E] block">Provider Mode</span>
+              <span className="text-[#8B949E] block">Voice Provider</span>
               <p className="font-semibold text-[#34D399]">
-                Official ElevenLabs React Agents SDK (WebRTC)
+                ElevenLabs Agents SDK (WebRTC)
               </p>
             </div>
           </div>
@@ -339,18 +396,23 @@ export function ElevenLabsVoiceConsoleContent({
 
   return (
     <div className="space-y-4 max-w-7xl mx-auto text-white">
-      {/* Error Alert Banner */}
-      {errorMessage && (
-        <div className="p-3 rounded-lg bg-red-950/70 border border-red-800 flex items-center justify-between gap-2 text-xs text-red-200">
-          <div className="flex items-center gap-2 font-medium">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-            <span>{errorMessage}</span>
+      {/* Failure Alert Banner */}
+      {consoleState === "FAILED" && errorMessage && (
+        <div className="p-4 rounded-xl bg-red-950/80 border border-red-800 space-y-3 text-xs text-red-200">
+          <div className="flex items-start gap-2.5 font-medium">
+            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-white text-sm">
+                Session Connection Error
+              </p>
+              <p>{errorMessage}</p>
+            </div>
           </div>
           <button
-            onClick={startVoiceConversation}
-            className="px-2.5 py-1 rounded bg-red-900 hover:bg-red-800 text-white text-xs font-semibold shrink-0"
+            onClick={executeStartFlow}
+            className="px-4 py-2 rounded-lg bg-red-900 hover:bg-red-800 text-white text-xs font-bold transition-colors inline-flex items-center gap-1.5"
           >
-            Retry Connection
+            <RefreshCw className="w-3.5 h-3.5" /> Retry Connection Flow
           </button>
         </div>
       )}
@@ -381,7 +443,7 @@ export function ElevenLabsVoiceConsoleContent({
               </span>
             </div>
             <span className="text-xs text-[#8B949E] block">
-              Scenario: {scenario} • Engine: ElevenLabs Realtime WebRTC
+              Scenario: {scenario} • Engine: Official ElevenLabs Agents WebRTC
             </span>
           </div>
         </div>
@@ -407,36 +469,36 @@ export function ElevenLabsVoiceConsoleContent({
 
       {/* 3 Column Desktop Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        {/* LEFT COLUMN: TELEMETRY & BUSINESS CONTEXT */}
+        {/* LEFT COLUMN: OBSERVED TELEMETRY & BUSINESS CONTEXT */}
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-4 text-xs">
           <h2 className="font-bold text-white uppercase tracking-wider text-[11px] text-[#8B949E] flex items-center gap-1.5">
-            <Activity className="w-3.5 h-3.5 text-[#2DD4BF]" /> Measured
+            <Activity className="w-3.5 h-3.5 text-[#2DD4BF]" /> Observed
             Telemetry
           </h2>
 
           <div className="space-y-2 font-mono text-[11px]">
             <div className="p-2.5 rounded bg-[#171C22] border border-[#272D35] flex items-center justify-between">
-              <span className="text-[#8B949E]">STT Latency</span>
+              <span className="text-[#8B949E]">Token Fetch</span>
               <span className="text-[#34D399] font-bold">
-                {telemetry.sttLatencyMs} ms
+                {telemetry.tokenFetchMs !== null
+                  ? `${telemetry.tokenFetchMs} ms`
+                  : "Not measured"}
               </span>
             </div>
             <div className="p-2.5 rounded bg-[#171C22] border border-[#272D35] flex items-center justify-between">
-              <span className="text-[#8B949E]">LLM 1st-Token</span>
+              <span className="text-[#8B949E]">WebRTC Connect</span>
               <span className="text-[#2DD4BF] font-bold">
-                {telemetry.llmLatencyMs} ms
+                {telemetry.connectMs !== null
+                  ? `${telemetry.connectMs} ms`
+                  : "Not measured"}
               </span>
             </div>
             <div className="p-2.5 rounded bg-[#171C22] border border-[#272D35] flex items-center justify-between">
-              <span className="text-[#8B949E]">TTS 1st-Audio</span>
+              <span className="text-[#8B949E]">STT/Agent Turn</span>
               <span className="text-[#34D399] font-bold">
-                {telemetry.ttsLatencyMs} ms
-              </span>
-            </div>
-            <div className="p-2.5 rounded bg-[#171C22] border border-[#272D35] flex items-center justify-between">
-              <span className="text-[#8B949E]">Interruption Stop</span>
-              <span className="text-[#F59E0B] font-bold">
-                &lt; {telemetry.interruptionStopMs} ms
+                {telemetry.sttLatencyMs !== null
+                  ? `${telemetry.sttLatencyMs} ms`
+                  : "Not measured"}
               </span>
             </div>
           </div>
@@ -473,11 +535,8 @@ export function ElevenLabsVoiceConsoleContent({
           <div className="flex-1 overflow-y-auto space-y-3 pr-2 text-xs">
             {transcript.length === 0 && status !== "connected" && (
               <div className="h-48 flex flex-col items-center justify-center text-center space-y-3 text-[#8B949E]">
-                <Volume2 className="w-8 h-8 text-[#2DD4BF]" />
-                <p>
-                  Click &quot;Start Live Voice Call&quot; to connect to
-                  ElevenLabs Realtime WebRTC Agent.
-                </p>
+                <Volume2 className="w-8 h-8 text-[#2DD4BF] animate-bounce" />
+                <p>Connecting to ElevenLabs WebRTC Agent...</p>
               </div>
             )}
 
@@ -509,19 +568,18 @@ export function ElevenLabsVoiceConsoleContent({
             ))}
           </div>
 
-          {/* Start Call & Conversation Controls */}
+          {/* Conversation Controls */}
           <div className="pt-3 border-t border-[#272D35] space-y-2.5">
             {status !== "connected" ? (
               <button
-                onClick={startVoiceConversation}
+                onClick={executeStartFlow}
                 disabled={
                   consoleState === "CONNECTING" ||
                   consoleState === "REQUESTING_TOKEN"
                 }
                 className="w-full py-3 rounded-lg bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
               >
-                <Mic className="w-4 h-4" /> Start Live Voice Call (ElevenLabs
-                WebRTC)
+                <Mic className="w-4 h-4" /> Connecting ElevenLabs WebRTC...
               </button>
             ) : (
               <div className="flex items-center justify-between p-3 rounded-lg bg-[#0F1216] border border-[#272D35]">
@@ -542,31 +600,20 @@ export function ElevenLabsVoiceConsoleContent({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: DYNAMIC ACTION STATUS */}
+        {/* RIGHT COLUMN: BUSINESS ACTION CONTEXT */}
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-4 text-xs">
           <h2 className="font-bold text-white uppercase tracking-wider text-[11px] text-[#8B949E]">
-            Dynamic Business Actions
+            Business Intake Context
           </h2>
-
-          {actionNotice ? (
-            <div className="p-3 rounded bg-[#2DD4BF]/10 border border-[#2DD4BF]/20 text-[11px] text-[#2DD4BF] space-y-1">
-              <span className="font-bold block">Verified Action Executed:</span>
-              <p>{actionNotice}</p>
-            </div>
-          ) : (
-            <div className="p-3 rounded bg-[#171C22] border border-[#272D35] text-[11px] text-[#8B949E]">
-              Waiting for caller conversation turn to trigger business tool...
-            </div>
-          )}
 
           <div className="p-3.5 rounded bg-[#171C22] border border-[#272D35] space-y-2">
             <div className="flex items-center gap-2 text-white font-semibold">
               <Calendar className="w-4 h-4 text-[#2DD4BF]" />
-              <span>Real Slot Reservation</span>
+              <span>Northstar Legal Service</span>
             </div>
             <p className="text-[#8B949E] text-[11px]">
-              Available slots generated deterministically. Confirmed only after
-              explicit caller readback confirmation.
+              Initial 45-minute consultation ($250 USD). Confirmed only upon
+              caller readback confirmation.
             </p>
           </div>
         </div>

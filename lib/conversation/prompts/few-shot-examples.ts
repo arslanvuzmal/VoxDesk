@@ -12,16 +12,14 @@ export const FEW_SHOT_EXAMPLES = [
   {
     category: "BOOKING",
     caller: "I need to speak with someone about a contract next week.",
-    agentReply:
-      "Sure thing. Morning or afternoon usually better for you?",
+    agentReply: "Sure thing. Morning or afternoon usually better for you?",
     intent: "BOOKING",
     suggestedAction: "CHECK_AVAILABILITY",
   },
   {
     category: "BOOKING_SLOT_SELECTION",
     caller: "Four o'clock works.",
-    agentReply:
-      "Tuesday at 4 PM. What name should I put it under?",
+    agentReply: "Tuesday at 4 PM. What name should I put it under?",
     intent: "BOOKING",
     suggestedAction: "RESERVE_APPOINTMENT",
   },
@@ -52,8 +50,7 @@ export const FEW_SHOT_EXAMPLES = [
   {
     category: "MISUNDERSTANDING",
     caller: "No, that's not what I meant.",
-    agentReply:
-      "No worries — my bad. What did I miss?",
+    agentReply: "No worries — my bad. What did I miss?",
     intent: "UNKNOWN",
     suggestedAction: "NONE",
   },
@@ -68,8 +65,7 @@ export const FEW_SHOT_EXAMPLES = [
   {
     category: "NAME_COLLECTION",
     caller: "My name is Sarah Johnson.",
-    agentReply:
-      "Nice to meet you, Sarah. And the best number to reach you?",
+    agentReply: "Nice to meet you, Sarah. And the best number to reach you?",
     intent: "COLLECTING_CONTACT",
     suggestedAction: "NONE",
   },
