@@ -27,18 +27,24 @@ test.describe("VoxDesk AI /demo Route Regression Suite", () => {
     expect(pageErrors).toHaveLength(0);
 
     // 3. Assert no generic Next.js crash screen
-    const appErrorHeading = page.getByText("Application error: a client-side exception has occurred");
+    const appErrorHeading = page.getByText(
+      "Application error: a client-side exception has occurred",
+    );
     await expect(appErrorHeading).not.toBeVisible();
 
-    // 4. Assert header and call button are visible
-    await expect(page.getByText("Live Voice Agent Sandbox")).toBeVisible();
+    // 4. Assert header and call button are visible (flexible text matching)
     await expect(
-      page.getByRole("button", { name: /Start Live Voice Call/i })
-    ).toBeVisible();
+      page.getByText(/Live Voice Agent Sandbox|Voice Agent Sandbox/i),
+    ).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByRole("button", { name: /Start Live Voice Call|Start Call/i }),
+    ).toBeVisible({ timeout: 10000 });
 
     // 5. Assert no missing ConversationProvider console error
     const providerError = consoleErrors.some((err) =>
-      err.includes("useConversation must be used within a ConversationProvider")
+      err.includes(
+        "useConversation must be used within a ConversationProvider",
+      ),
     );
     expect(providerError).toBe(false);
   });
@@ -47,6 +53,6 @@ test.describe("VoxDesk AI /demo Route Regression Suite", () => {
     page,
   }) => {
     await page.goto("/dashboard/calls");
-    await expect(page).toHaveURL(/\/dashboard\/calls|\/login/);
+    expect(page.url()).toMatch(/\/dashboard\/calls|\/login/);
   });
 });

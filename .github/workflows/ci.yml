@@ -10,6 +10,10 @@ jobs:
   verify:
     name: Build & Test Verification
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
+      NEXT_TELEMETRY_DISABLED: 1
 
     steps:
       - name: Checkout Repository
@@ -50,5 +54,11 @@ jobs:
 
       - name: Build Next.js Production Bundle
         run: npm run build
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
         env:
-          NEXT_TELEMETRY_DISABLED: 1
+          PLAYWRIGHT_BASE_URL: https://voxdesk-ai.vercel.app

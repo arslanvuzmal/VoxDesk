@@ -40,5 +40,4 @@ tsconfig.tsbuildinfo
 # Test artifacts
 playwright-report/
 test-results/
-playwright.config.ts
 .env*

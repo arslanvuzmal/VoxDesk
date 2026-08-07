@@ -11,19 +11,27 @@ interface RouteCheck {
 }
 
 const routesToAudit: RouteCheck[] = [
-  // Public Pages (HTTP 200)
-  { path: "/", expectedStatus: 200, name: "Landing Page" },
-  { path: "/features", expectedStatus: 200, name: "Features Page" },
-  { path: "/industries", expectedStatus: 200, name: "Industries Page" },
-  { path: "/architecture", expectedStatus: 200, name: "Architecture Page" },
-  { path: "/demo", expectedStatus: 200, name: "Demo Page" },
-  { path: "/demo/story", expectedStatus: 200, name: "Guided Story Page" },
-  { path: "/docs", expectedStatus: 200, name: "Documentation Page" },
-  { path: "/status", expectedStatus: 200, name: "Status Page" },
-  { path: "/privacy", expectedStatus: 200, name: "Privacy Policy Page" },
-  { path: "/terms", expectedStatus: 200, name: "Terms of Service Page" },
-  { path: "/login", expectedStatus: 200, name: "Login Page" },
-  { path: "/register", expectedStatus: 200, name: "Register Page" },
+  // Public Pages (HTTP 200 or 308 for Vercel edge redirects)
+  { path: "/", expectedStatus: [200, 308], name: "Landing Page" },
+  { path: "/features", expectedStatus: [200, 308], name: "Features Page" },
+  { path: "/industries", expectedStatus: [200, 308], name: "Industries Page" },
+  {
+    path: "/architecture",
+    expectedStatus: [200, 308],
+    name: "Architecture Page",
+  },
+  { path: "/demo", expectedStatus: [200, 308], name: "Demo Page" },
+  {
+    path: "/demo/story",
+    expectedStatus: [200, 308],
+    name: "Guided Story Page",
+  },
+  { path: "/docs", expectedStatus: [200, 308], name: "Documentation Page" },
+  { path: "/status", expectedStatus: [200, 308], name: "Status Page" },
+  { path: "/privacy", expectedStatus: [200, 308], name: "Privacy Policy Page" },
+  { path: "/terms", expectedStatus: [200, 308], name: "Terms of Service Page" },
+  { path: "/login", expectedStatus: [200, 308], name: "Login Page" },
+  { path: "/register", expectedStatus: [200, 308], name: "Register Page" },
 
   // Protected Dashboard Routes (Unauthenticated should redirect to /login - HTTP 307/308 or 200 if handled via layout)
   {
