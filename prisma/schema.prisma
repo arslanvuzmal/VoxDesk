@@ -1018,10 +1018,12 @@ model Campaign {
   completedAt           DateTime?
   cancelledAt           DateTime?
   failedReason          String?
+  openingDisclosure     String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   recipients            CampaignRecipient[]
+  attempts              OutboundAttempt[]
 
   @@index([workspaceId])
   @@index([workspaceId, state])
@@ -1045,10 +1047,12 @@ model CampaignRecipient {
   outcome        String?
   optOutRequested Boolean    @default(false)
   optOutAt      DateTime?
+  suppressedAt  DateTime?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   campaign       Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   workspace      Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  outboundAttempts OutboundAttempt[]
 
   @@index([campaignId, status])
   @@map("campaign_recipients")
@@ -1073,6 +1077,8 @@ model OutboundAttempt {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaign        Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  recipient       CampaignRecipient? @relation(fields: [recipientId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([campaignId])
