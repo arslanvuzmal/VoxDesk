@@ -66,7 +66,7 @@ export async function POST(req: Request) {
             workspaceId: workspace.id,
             agentId: agent.id,
             provider: 'ELEVENLABS',
-            providerCallId: providerConversationId || null,
+            providerCallControlId: providerConversationId || null,
             callerNumberMasked: '+1 (555) ***-****',
             durationSeconds,
             startedAt: new Date(startMs),

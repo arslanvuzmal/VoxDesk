@@ -62,6 +62,143 @@ enum CallOutcome {
   UNRESOLVED
 }
 
+enum CallChannel {
+  WEB
+  PHONE
+  SIP
+}
+
+enum CallTerminationReason {
+  CALLER_HANGUP
+  RECIPIENT_HANGUP
+  AGENT_HANGUP
+  HUMAN_HANGUP
+  NO_ANSWER
+  BUSY
+  VOICEMAIL
+  FAILED_PROVIDER
+  FAILED_AGENT
+  FAILED_TOOL
+  TIME_LIMIT
+  COMPLIANCE_BLOCK
+  ADMIN_CANCELLED
+}
+
+enum CampaignState {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum CampaignRecipientState {
+  PENDING
+  SUPPRESSED
+  QUEUED
+  DIALING
+  RINGING
+  ANSWERED
+  COMPLETED
+  NO_ANSWER
+  BUSY
+  VOICEMAIL
+  FAILED
+  OPTED_OUT
+  FOLLOW_UP_REQUIRED
+}
+
+enum OutboundWorkflowType {
+  APPOINTMENT_REMINDER
+  REQUESTED_CALLBACK
+  CUSTOMER_FOLLOW_UP
+  MISSING_INFORMATION_REMINDER
+  SERVICE_UPDATE
+  CONSENTED_LEAD_FOLLOW_UP
+  SURVEY_REQUEST
+}
+
+enum ConsentCategory {
+  EXPRESS_CONSENT
+  IMPLIED_CONSENT
+  EXISTING_BUSINESS_RELATIONSHIP
+  LEGAL_OBLIGATION
+  VITAL_INTEREST
+  PUBLIC_TASK
+}
+
+enum LanguageStatus {
+  NOT_CONFIGURED
+  CONTENT_INCOMPLETE
+  PROVIDER_SUPPORTED
+  TESTING
+  VERIFIED
+  DEGRADED
+  DISABLED
+}
+
+enum ImprovementObservationCategory {
+  UNANSWERED_BUSINESS_QUESTION
+  INCORRECT_BUSINESS_INFORMATION
+  REPEATED_QUESTION
+  MISSED_REQUIRED_FIELD
+  TOOL_FAILURE
+  WRONG_ACTION
+  FAILED_CONFIRMATION
+  POOR_HANDOFF
+  LANGUAGE_ERROR
+  PRONUNCIATION_ERROR
+  CALLER_INTERRUPTION_FAILURE
+  LONG_RESPONSE
+  UNSAFE_RESPONSE
+  OUTBOUND_DISCLOSURE_FAILURE
+  OPT_OUT_FAILURE
+  PROVIDER_FAILURE
+}
+
+enum ImprovementProposalType {
+  KNOWLEDGE_UPDATE
+  PROMPT_ADJUSTMENT
+  CONVERSATION_RULE
+  TOOL_SCHEMA_CHANGE
+  TOOL_RETRY_POLICY
+  ESCALATION_RULE
+  LANGUAGE_CONTENT_UPDATE
+  PRONUNCIATION_UPDATE
+  EVALUATION_CASE
+  UI_WORKFLOW_CHANGE
+}
+
+enum ImprovementProposalStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  EVALUATION_RUNNING
+  EVALUATION_PASSED
+  EVALUATION_FAILED
+  CANARY_DEPLOYED
+  PROMOTED
+  ROLLED_BACK
+}
+
+enum EvaluationType {
+  DETERMINISTIC
+  MODEL_BASED
+}
+
+enum DeploymentState {
+  CANDIDATE
+  SHADOW
+  CANARY
+  PRODUCTION
+  ROLLED_BACK
+}
+
 enum LeadCategory {
   HOT
   WARM
@@ -94,6 +231,7 @@ enum ProviderType {
   CALCOM
   HUBSPOT
   GENERIC_WEBHOOK
+  TELNYX
 }
 
 model User {
@@ -152,6 +290,28 @@ model Workspace {
   notifications        Notification[]
   webhookEndpoints     WebhookEndpoint[]
   auditLogs            AuditLog[]
+  languageProfiles     LanguageProfile[]
+  sipTrunks            SipTrunk[]
+  telephonyConnections TelephonyConnection[]
+  concurrencyLeases    CallConcurrencyLease[]
+  consentRecords       ConsentRecord[]
+  suppressionEntries   SuppressionEntry[]
+  communicationPreferences CommunicationPreference[]
+  campaigns            Campaign[]
+  campaignRecipients  CampaignRecipient[]
+  outboundAttempts     OutboundAttempt[]
+  businessTrainingPacks BusinessTrainingPack[]
+  improvementObservations ImprovementObservation[]
+  improvementProposals ImprovementProposal[]
+  evaluationSuites     EvaluationSuite[]
+  evaluationRuns       EvaluationRun[]
+  deploymentCandidates DeploymentCandidate[]
+  agentDeployments     AgentDeployment[]
+  rollbackRecords      RollbackRecord[]
+  contacts             Contact[]
+  tasks                Task[]
+  handoffs             Handoff[]
+  followUps            FollowUp[]
 
   @@map("workspaces")
 }
@@ -327,36 +487,54 @@ model EscalationPolicy {
 }
 
 model Call {
-  id                    String              @id @default(cuid())
-  workspaceId           String
-  agentId               String
-  provider              ProviderType        @default(DEMO)
-  providerCallId        String?
-  direction             CallDirection       @default(INBOUND)
-  callerNumberMasked    String
-  callerName            String?
-  status                CallStatus          @default(COMPLETED)
-  startedAt             DateTime            @default(now())
-  answeredAt            DateTime?
-  endedAt               DateTime?
-  durationSeconds       Int                 @default(0)
-  recordingConsent      Boolean             @default(true)
-  outcome               CallOutcome         @default(QUESTION_ANSWERED)
-  qualificationCategory LeadCategory?
-  qualificationScore    Float?
-  appointmentId         String?             @unique
-  leadId                String?             @unique
-  escalationUsed        Boolean             @default(false)
-  estimatedCost         Float               @default(0.0)
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  workspace             Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  agent                 VoiceAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  events                CallEvent[]
-  transcriptSegments    TranscriptSegment[]
-  summary               CallSummary?
-  appointment           Appointment?        @relation("CallToAppointment", fields: [appointmentId], references: [id], onDelete: SetNull)
-  lead                  Lead?               @relation("CallToLead", fields: [leadId], references: [id], onDelete: SetNull)
+  id                          String              @id @default(cuid())
+  workspaceId                 String
+  agentId                     String
+  agentVersionId              String?
+  provider                    ProviderType        @default(DEMO)
+  providerCallControlId       String?
+  providerCallSessionId       String?
+  providerCallLegId           String?
+  providerConversationId      String?
+  direction                   CallDirection       @default(INBOUND)
+  channel                     String              @default("PHONE") // WEB | PHONE | SIP
+  language                    String              @default("en-US")
+  fromNumberEncrypted         String?
+  toNumberEncrypted           String?
+  fromNumberHash              String?
+  toNumberHash                String?
+  callerNumberMasked          String
+  callerName                  String?
+  status                      CallStatus          @default(INITIATED)
+  startedAt                   DateTime            @default(now())
+  answeredAt                  DateTime?
+  endedAt                     DateTime?
+  durationSeconds             Int                 @default(0)
+  terminationReason           String?
+  recordingConsent            Boolean             @default(true)
+  outcome                     CallOutcome         @default(QUESTION_ANSWERED)
+  qualificationCategory       LeadCategory?
+  qualificationScore          Float?
+  appointmentId               String?             @unique
+  leadId                      String?             @unique
+  contactId                   String?
+  campaignId                  String?
+  escalationUsed              Boolean             @default(false)
+  estimatedCost               Float               @default(0.0)
+  createdAt                   DateTime            @default(now())
+  updatedAt                   DateTime            @updatedAt
+  workspace                   Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  agent                      VoiceAgent          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  events                     CallEvent[]
+  transcriptSegments         TranscriptSegment[]
+  summary                    CallSummary?
+  legs                       CallLeg[]
+  participants               CallParticipant[]
+  recordings                 CallRecording[]
+  toolExecutions             CallToolExecution[]
+  evaluations                CallEvaluation[]
+  appointment                 Appointment?        @relation("CallToAppointment", fields: [appointmentId], references: [id], onDelete: SetNull)
+  lead                        Lead?               @relation("CallToLead", fields: [leadId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -364,17 +542,121 @@ model Call {
   @@map("calls")
 }
 
+model CallLeg {
+  id            String    @id @default(cuid())
+  callId        String
+  legType       String    // INBOUND | OUTBOUND | AGENT | HUMAN
+  providerLegId String?
+  direction     String
+  fromNumber    String?
+  toNumber      String?
+  status        String    @default("INITIATED")
+  startedAt     DateTime?
+  endedAt       DateTime?
+  durationSeconds Int     @default(0)
+  sipHeaders    Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_legs")
+}
+
+model CallParticipant {
+  id            String    @id @default(cuid())
+  callId        String
+  participantType String  // CALLER | AGENT | HUMAN | SYSTEM
+  identifier    String?
+  name          String?
+  role          String?
+  joinedAt      DateTime?
+  leftAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_participants")
+}
+
+model CallToolExecution {
+  id            String    @id @default(cuid())
+  callId        String
+  toolName      String
+  parameters    Json?
+  result        Json?
+  success       Boolean   @default(false)
+  errorMessage  String?
+  executedAt    DateTime  @default(now())
+  durationMs    Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_tool_executions")
+}
+
+model CallRecording {
+  id            String    @id @default(cuid())
+  callId        String
+  recordingUrl  String?
+  recordingPath String?
+  durationSeconds Int     @default(0)
+  fileSizeBytes Int?
+  format        String    @default("mp3")
+  retentionPolicy String?
+  accessUrl     String?
+  accessExpiresAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_recordings")
+}
+
+model CallEvaluation {
+  id                  String    @id @default(cuid())
+  callId              String
+  evaluatorType       String    // DETERMINISTIC | MODEL_BASED
+  evaluatorVersion    String
+  rubricVersion       String?
+  category            String
+  score               Float?
+  evidence            Json?
+  confidence          Float?
+  evaluatedAt         DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  call                Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+
+  @@index([callId])
+  @@map("call_evaluations")
+}
+
 model CallEvent {
   id          String   @id @default(cuid())
   callId      String
   eventType   String
   sequence    Int
+  providerEventId String?  // Telnyx event ID for deduplication
   occurredAt  DateTime @default(now())
+  eventTime   DateTime?
+  normalizedType String?
   safePayload Json
+  processedAt DateTime?
+  processingStatus String @default("PENDING") // PENDING | PROCESSED | FAILED | DEAD_LETTER
+  retryCount  Int       @default(0)
+  correlationId String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   call        Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
 
   @@index([callId])
+  @@index([providerEventId])
+  @@index([processingStatus])
   @@map("call_events")
 }
 
@@ -555,6 +837,497 @@ model WebhookDelivery {
 
   @@index([webhookEndpointId])
   @@map("webhook_deliveries")
+}
+
+model LanguageProfile {
+  id                   String         @id @default(cuid())
+  workspaceId          String
+  languageCode         String
+  locale               String
+  displayName          String
+  direction            String         @default("ltr")
+  voiceAgentId         String?
+  voiceId              String?
+  speechProvider       String         @default("elevenlabs")
+  telephonySupported   Boolean        @default(false)
+  webSupported         Boolean        @default(false)
+  businessContentComplete Boolean     @default(false)
+  evaluationStatus     String         @default("NOT_EVALUATED")
+  lastVerifiedAt       DateTime?
+  fallbackLanguage     String?
+  humanFallback        Boolean        @default(true)
+  status               LanguageStatus @default(NOT_CONFIGURED)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  workspace            Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, languageCode])
+  @@index([workspaceId])
+  @@map("language_profiles")
+}
+
+model SipTrunk {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  provider            String    @default("TELNYX")
+  trunkName           String
+  sipUsername         String
+  sipPasswordEncrypted String
+  trunkId             String?
+  tlsEnabled          Boolean   @default(true)
+  srtpEnabled         Boolean   @default(true)
+  mediaEncryption     Boolean   @default(true)
+  elevenlabsDestination String?
+  status              String    @default("ACTIVE")
+  webhookUrl          String?
+  webhookSecretHash   String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("sip_trunks")
+}
+
+model TelephonyConnection {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  provider            String    @default("TELNYX")
+  connectionName      String
+  connectionId        String?
+  outboundProfileId   String?
+  webhookUrl          String?
+  webhookFailoverUrl  String?
+  status              String    @default("ACTIVE")
+  lastHealthCheck     DateTime?
+  tags                String[]  @default([])
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("telephony_connections")
+}
+
+model CallConcurrencyLease {
+  id           String    @id @default(cuid())
+  scopeType    String    // "TENANT" | "BUSINESS" | "AGENT" | "PHONE_NUMBER" | "CAMPAIGN" | "CONNECTION" | "GLOBAL"
+  scopeId      String
+  callId       String?
+  acquiredAt   DateTime  @default(now())
+  expiresAt    DateTime
+  releasedAt   DateTime?
+  heartbeatAt  DateTime?
+  status       String    @default("ACTIVE")
+  workspaceId  String?
+  workspace    Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([scopeType, scopeId])
+  @@index([status])
+  @@map("call_concurrency_leases")
+}
+
+model ConsentRecord {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  contactId       String?
+  consentType     String    @default("OUTBOUND_CALL")
+  consentStatus   String    @default("GRANTED")
+  source          String?
+  evidence        Json?
+  grantedAt       DateTime  @default(now())
+  revokedAt       DateTime?
+  jurisdiction    String    @default("US")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact         Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([contactId])
+  @@map("consent_records")
+}
+
+model SuppressionEntry {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  contactId       String?
+  phoneHash       String
+  reason          String    @default("DO_NOT_CALL")
+  suppressedAt    DateTime  @default(now())
+  expiresAt       DateTime?
+  source          String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact         Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, phoneHash])
+  @@map("suppression_entries")
+}
+
+model CommunicationPreference {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  contactId       String?  @unique
+  preferredLanguage String  @default("en-US")
+  preferredChannel String  @default("PHONE")
+  timeZone        String    @default("America/New_York")
+  doNotCall       Boolean   @default(false)
+  doNotText       Boolean   @default(false)
+  doNotEmail      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact         Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, contactId])
+  @@map("communication_preferences")
+}
+
+model Campaign {
+  id                    String    @id @default(cuid())
+  workspaceId           String
+  name                  String
+  businessId            String?
+  workflowType          String
+  agentId               String
+  agentVersionId        String?
+  language              String    @default("en-US")
+  callerId              String?
+  targetSegment         String?
+  callingWindowStart    String?
+  callingWindowEnd      String?
+  timezoneStrategy      String    @default("LOCAL")
+  maxAttempts           Int       @default(3)
+  retryIntervalMinutes  Int       @default(60)
+  concurrencyLimit      Int       @default(2)
+  callsPerMinute        Int       @default(5)
+  approvalStatus        String    @default("PENDING_APPROVAL")
+  dryRunCompleted       Boolean   @default(false)
+  dryRunReport          Json?
+  state                 String    @default("DRAFT")
+  createdBy             String?
+  approvedBy            String?
+  approvedAt            DateTime?
+  startedAt             DateTime?
+  pausedAt              DateTime?
+  completedAt           DateTime?
+  cancelledAt           DateTime?
+  failedReason          String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  workspace             Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  recipients            CampaignRecipient[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, state])
+  @@map("campaigns")
+}
+
+model CampaignRecipient {
+  id             String      @id @default(cuid())
+  workspaceId    String?
+  campaignId     String
+  contactId      String?
+  recipientName  String?
+  recipientPhoneEncrypted String?
+  recipientPhoneHash String?
+  recipientEmailEncrypted String?
+  countryCode    String      @default("US")
+  status         String      @default("PENDING")
+  attempts       Int         @default(0)
+  lastAttemptAt  DateTime?
+  completedAt    DateTime?
+  outcome        String?
+  optOutRequested Boolean    @default(false)
+  optOutAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  campaign       Campaign    @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  workspace      Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId, status])
+  @@map("campaign_recipients")
+}
+
+model OutboundAttempt {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  campaignId      String?
+  recipientId     String?
+  callId          String?
+  direction       String    @default("OUTBOUND")
+  status          String    @default("PENDING")
+  attemptNumber   Int       @default(1)
+  startedAt       DateTime?
+  endedAt         DateTime?
+  durationSeconds Int       @default(0)
+  terminationReason String?
+  recordingConsent Boolean  @default(false)
+  outcome         String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([campaignId])
+  @@map("outbound_attempts")
+}
+
+model BusinessTrainingPack {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  agentId             String
+  businessName        String
+  industry            String
+  description         String?
+  timeZone            String    @default("America/New_York")
+  identityJson        Json      // business identity, locations
+  servicesJson        Json      // services definitions
+  officeHoursJson     Json      // business hours
+  approvedAnswersJson Json      // approved answers
+  policiesJson        Json      // policies
+  intakeJson          Json      // required/optional fields
+  qualificationJson   Json      // qualification criteria
+  appointmentJson     Json      // appointment rules
+  escalationJson      Json      // escalation rules and destinations
+  outboundJson        Json      // permitted workflows, disclosures, attempt policies
+  safetyJson          Json      // restricted topics, emergency rules
+  languagesJson       Json      // language configuration array
+  versionNumber       Int       @default(1)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, agentId, versionNumber])
+  @@index([workspaceId])
+  @@map("business_training_packs")
+}
+
+model ImprovementObservation {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  callId          String?
+  agentVersionId  String?
+  category        String    // UNANSWERED_BUSINESS_QUESTION | INCORRECT_BUSINESS_INFORMATION | REPEATED_QUESTION | MISSED_REQUIRED_FIELD | TOOL_FAILURE | WRONG_ACTION | FAILED_CONFIRMATION | POOR_HANDOFF | LANGUAGE_ERROR | PRONUNCIATION_ERROR | CALLER_INTERRUPTION_FAILURE | LONG_RESPONSE | UNSAFE_RESPONSE | OUTBOUND_DISCLOSURE_FAILURE | OPT_OUT_FAILURE | PROVIDER_FAILURE
+  description     String
+  evidence        Json
+  affectedCalls   Int       @default(1)
+  firstObservedAt DateTime  @default(now())
+  lastObservedAt  DateTime  @default(now())
+  status          String    @default("OPEN") // OPEN | AGGREGATED | PROPOSED
+  proposalId      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([category])
+  @@map("improvement_observations")
+}
+
+model ImprovementProposal {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  observationIds  String[]  @default([])
+  proposalType    String    // KNOWLEDGE_UPDATE | PROMPT_ADJUSTMENT | CONVERSATION_RULE | TOOL_SCHEMA_CHANGE | TOOL_RETRY_POLICY | ESCALATION_RULE | LANGUAGE_CONTENT_UPDATE | PRONUNCIATION_UPDATE | EVALUATION_CASE | UI_WORKFLOW_CHANGE
+  title           String
+  description     String
+  evidence        Json?
+  expectedBenefit String
+  risk            String?
+  changedConfig   Json
+  evaluationRequirements Json?
+  reviewerId      String?
+  decision        String?  // PENDING | APPROVED | REJECTED
+  decisionAt      DateTime?
+  deploymentCandidateId String?
+  rollbackPath    String?
+  status          String    @default("DRAFT")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@map("improvement_proposals")
+}
+
+model EvaluationSuite {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  name            String
+  description     String?
+  businessId      String?
+  language        String    @default("en-US")
+  agentVersionId  String?
+  channel         String    // WEB | INBOUND | OUTBOUND
+  workflow        String?
+  cases           Json      // structured evaluation cases
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("evaluation_suites")
+}
+
+model EvaluationRun {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  suiteId         String
+  agentVersionId  String
+  evaluatorType   String    // DETERMINISTIC | MODEL_BASED
+  evaluatorVersion String
+  rubricVersion   String
+  inputReferences Json
+  results         Json
+  score           Float?
+  evidence        Json?
+  confidence      Float?
+  timestamp       DateTime  @default(now())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("evaluation_runs")
+}
+
+model DeploymentCandidate {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  agentId             String
+  agentVersionId      String?
+  proposalId          String?
+  status              String    @default("CANDIDATE") // CANDIDATE | EVALUATING | CANARY | READY | DEPLOYED | ROLLED_BACK
+  evaluationSuiteIds  String[]  @default([])
+  canaryResults       Json?
+  regressionDetected  Boolean   @default(false)
+  rollbackRecordId    String?
+  deployedAt          DateTime?
+  rolledBackAt        DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("deployment_candidates")
+}
+
+model AgentDeployment {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  agentId             String
+  agentVersionId      String
+  deploymentCandidateId String
+  environment         String    @default("PRODUCTION")
+  deployedAt          DateTime  @default(now())
+  active              Boolean   @default(true)
+  rollbackReason      String?
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("agent_deployments")
+}
+
+model RollbackRecord {
+  id                  String    @id @default(cuid())
+  workspaceId         String
+  deploymentCandidateId String?
+  agentDeploymentId   String?
+  rollbackReason      String
+  rolledBackAt        DateTime  @default(now())
+  rollbackPerformedBy String?
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("rollback_records")
+}
+
+model Contact {
+  id                    String            @id @default(cuid())
+  workspaceId           String
+  name                  String
+  emailEncrypted        String?
+  phoneEncrypted        String?
+  phoneHash             String?
+  company               String?
+  preferredLanguage     String            @default("en-US")
+  consentRecords        ConsentRecord[]
+  suppressionEntries    SuppressionEntry[]
+  preferences           CommunicationPreference?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  workspace             Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("contacts")
+}
+
+model Task {
+  id            String    @id @default(cuid())
+  workspaceId   String
+  title         String
+  description   String?
+  assignedTo    String?
+  priority      String    @default("MEDIUM")
+  status        String    @default("PENDING")
+  dueAt         DateTime?
+  completedAt   DateTime?
+  sourceType    String?
+  sourceId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("tasks")
+}
+
+model Handoff {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  callId            String?
+  agentId           String?
+  reason            String
+  destination       String
+  attemptCount      Int       @default(0)
+  transferStartedAt DateTime?
+  transferEndedAt   DateTime?
+  result            String?
+  finalOwner        String?
+  briefText         String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("handoffs")
+}
+
+model FollowUp {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  callId          String?
+  contactId       String?
+  campaignId      String?
+  followUpType    String    // CALLBACK | APPOINTMENT_CONFIRMATION | MISSING_INFORMATION | SURVEY
+  preferredTime   DateTime?
+  preferredChannel String   @default("PHONE")
+  status          String    @default("PENDING")
+  assignedTo      String?
+  completedAt     DateTime?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("follow_ups")
 }
 
 model AuditLog {

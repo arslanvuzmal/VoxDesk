@@ -1,0 +1,1371 @@
+{
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\backend-engineer\\agent.md": {
+    "size": 1639,
+    "mtime_ns": 1786062977708014500,
+    "word_count": 220,
+    "hash": "d565ec5813417e89411a56502656d423c59ea20117832c75838e0b297ac6f1e0"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\devops-engineer\\agent.md": {
+    "size": 1558,
+    "mtime_ns": 1786062977723852400,
+    "word_count": 196,
+    "hash": "4d851e1c5be7419f7c223d9c5d392c14e433e97f6cb3d3fff17c0fa5d3a0f3c1"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\documentation-editor\\agent.md": {
+    "size": 1761,
+    "mtime_ns": 1786062977747047200,
+    "word_count": 233,
+    "hash": "a1f5a5a956af4d48b49135397258654c1fceaa36d6adf48967ebc1c551af0d34"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\frontend-designer\\agent.md": {
+    "size": 1642,
+    "mtime_ns": 1786062977757949800,
+    "word_count": 220,
+    "hash": "f0b153005bc97018b63f90c0c8e708c15f642b30319e58bdcf0d905789566e7c"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\product-researcher\\agent.md": {
+    "size": 1547,
+    "mtime_ns": 1786062977771878400,
+    "word_count": 198,
+    "hash": "be700b24c018042c8f02c3536a93864c1ae47518e2ed058b6b4dd8880d7e97e8"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\qa-browser-engineer\\agent.md": {
+    "size": 1578,
+    "mtime_ns": 1786062977786952600,
+    "word_count": 211,
+    "hash": "b72f19787c753344a4e611b4a42f6381280684d6bcd447f1a65b4226c2bdc19e"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\security-reviewer\\agent.md": {
+    "size": 1706,
+    "mtime_ns": 1786062977802991500,
+    "word_count": 216,
+    "hash": "7ad6dc082cb1ac7a2cbd742addcd0ac5f58b7d897213e16481f5ba42d662477b"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\solution-architect\\agent.md": {
+    "size": 1502,
+    "mtime_ns": 1786062977822708100,
+    "word_count": 195,
+    "hash": "92f682073cbf24fda1e7bc104ed98fd32c7eeed9b2b71da6c33811744798f18e"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\agents\\voice-engineer\\agent.md": {
+    "size": 1647,
+    "mtime_ns": 1786062977834427500,
+    "word_count": 199,
+    "hash": "41fbc9f03331ff3de88912ee0385240a39e103a9ca422bc51dcad2a4fb884ede"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\browser-verification\\SKILL.md": {
+    "size": 1608,
+    "mtime_ns": 1786062977882133500,
+    "word_count": 229,
+    "hash": "8a5f7934aba2a03c8397a0a0ea49d0f8c5437d2e3164231286b181bbf4c6d644"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\database-migration-safety\\SKILL.md": {
+    "size": 1738,
+    "mtime_ns": 1786062977898258200,
+    "word_count": 228,
+    "hash": "df20d4cc17bc03cd247bb94e6be9db2dbe7dd8b116eb90779103773c8a8f4a1a"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\demo-data-integrity\\SKILL.md": {
+    "size": 1582,
+    "mtime_ns": 1786062977914393100,
+    "word_count": 232,
+    "hash": "bd0c01f610661f5882c327f240bf82f0aa8410428e2635263ae6fd30f427253a"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\github-authorship-audit\\SKILL.md": {
+    "size": 1707,
+    "mtime_ns": 1786062977930511600,
+    "word_count": 237,
+    "hash": "b61d2134e56b321b9a65a68e7257f69259dfefce538509f2e1b8cfaeb56f9db6"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\portfolio-capture\\SKILL.md": {
+    "size": 1818,
+    "mtime_ns": 1786062977958153200,
+    "word_count": 229,
+    "hash": "fbcec0d715e6123fe5a53b1ce0d1b48af0c6b72c719f7a8fa24cb839cea459bc"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\security-audit\\SKILL.md": {
+    "size": 1433,
+    "mtime_ns": 1786062977963900300,
+    "word_count": 210,
+    "hash": "817640acab3146a13078c3ce85f4496e756e4d503c0f65f9cb4f9a5f1401fb8c"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.agents\\skills\\voice-provider-review\\SKILL.md": {
+    "size": 1705,
+    "mtime_ns": 1786062977990562900,
+    "word_count": 237,
+    "hash": "ec782c173ee57ab252a2d45ec6dfe2dbeb3d1b8d1eefac2ea5a2d12577099ab5"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.eslintrc.json": {
+    "size": 42,
+    "mtime_ns": 1786062978009790700,
+    "word_count": 4,
+    "hash": "60d02366f0ad9aeead5391bb4cb4dd9c7796365794cde12d6b45f199266718fd"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\.github\\workflows\\ci.yml": {
+    "size": 1521,
+    "mtime_ns": 1786063713001104600,
+    "word_count": 160,
+    "hash": "411b46135d48643d8446718966b93829f668d9f297499a3ebcd7dc2751d93d39"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\README.md": {
+    "size": 2752,
+    "mtime_ns": 1786062981753674700,
+    "word_count": 332,
+    "hash": "3e5fe5059f73ed7d8d046fe0bf818025ad28b0e72af8fac25f58703934d8fa7d"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\THIRD_PARTY_NOTICES.md": {
+    "size": 1509,
+    "mtime_ns": 1786062982073758500,
+    "word_count": 218,
+    "hash": "6a10170c27f1eec0697621cf6468442d41e0a777a2a4f7ada4c4ed1343d89264"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(auth)\\login\\page.tsx": {
+    "size": 4734,
+    "mtime_ns": 1786064572043486400,
+    "word_count": 387
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(auth)\\register\\page.tsx": {
+    "size": 4701,
+    "mtime_ns": 1786064572081249300,
+    "word_count": 362
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\agent\\page.tsx": {
+    "size": 6597,
+    "mtime_ns": 1786064572133493200,
+    "word_count": 536
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\agents\\page.tsx": {
+    "size": 2874,
+    "mtime_ns": 1786064572156543400,
+    "word_count": 242
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\analytics\\page.tsx": {
+    "size": 5490,
+    "mtime_ns": 1786064572198176100,
+    "word_count": 406
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\appointments\\[id]\\page.tsx": {
+    "size": 4299,
+    "mtime_ns": 1786064572234382300,
+    "word_count": 336
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\appointments\\page.tsx": {
+    "size": 4772,
+    "mtime_ns": 1786064572265317400,
+    "word_count": 350
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\audit\\page.tsx": {
+    "size": 1905,
+    "mtime_ns": 1786064572281861200,
+    "word_count": 157
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\calls\\[id]\\page.tsx": {
+    "size": 4384,
+    "mtime_ns": 1786064572315361900,
+    "word_count": 369
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\calls\\page.tsx": {
+    "size": 4674,
+    "mtime_ns": 1786064572341336100,
+    "word_count": 353
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\conversations\\page.tsx": {
+    "size": 5965,
+    "mtime_ns": 1786064572378099100,
+    "word_count": 486
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\error.tsx": {
+    "size": 1772,
+    "mtime_ns": 1786064572399261100,
+    "word_count": 159
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\escalations\\page.tsx": {
+    "size": 2334,
+    "mtime_ns": 1786064572422268100,
+    "word_count": 183
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\integrations\\page.tsx": {
+    "size": 1920,
+    "mtime_ns": 1786064572438453200,
+    "word_count": 172
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\knowledge\\page.tsx": {
+    "size": 7795,
+    "mtime_ns": 1786064572475168100,
+    "word_count": 617
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\layout.tsx": {
+    "size": 2634,
+    "mtime_ns": 1786064572491779000,
+    "word_count": 233
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\leads\\[id]\\page.tsx": {
+    "size": 9938,
+    "mtime_ns": 1786064572526777700,
+    "word_count": 732
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\leads\\page.tsx": {
+    "size": 11273,
+    "mtime_ns": 1786064572584103700,
+    "word_count": 811
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\live\\page.tsx": {
+    "size": 153,
+    "mtime_ns": 1786064572595789200,
+    "word_count": 15
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\loading.tsx": {
+    "size": 503,
+    "mtime_ns": 1786064572607041500,
+    "word_count": 47
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\not-found.tsx": {
+    "size": 1735,
+    "mtime_ns": 1786064572619579200,
+    "word_count": 145
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\page.tsx": {
+    "size": 13704,
+    "mtime_ns": 1786064572659923200,
+    "word_count": 919
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\phone-numbers\\page.tsx": {
+    "size": 1255,
+    "mtime_ns": 1786064572691464300,
+    "word_count": 105
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\providers\\page.tsx": {
+    "size": 2069,
+    "mtime_ns": 1786064572711676500,
+    "word_count": 182
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\settings\\audit\\page.tsx": {
+    "size": 2018,
+    "mtime_ns": 1786064572732510900,
+    "word_count": 149
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\settings\\page.tsx": {
+    "size": 1699,
+    "mtime_ns": 1786064572745803100,
+    "word_count": 136
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(dashboard)\\dashboard\\team\\page.tsx": {
+    "size": 1883,
+    "mtime_ns": 1786064572760381400,
+    "word_count": 156
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\architecture\\page.tsx": {
+    "size": 2578,
+    "mtime_ns": 1786064572776470200,
+    "word_count": 224
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\features\\page.tsx": {
+    "size": 3045,
+    "mtime_ns": 1786064572793082000,
+    "word_count": 261
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\industries\\page.tsx": {
+    "size": 2908,
+    "mtime_ns": 1786064572811962400,
+    "word_count": 263
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\page.tsx": {
+    "size": 28745,
+    "mtime_ns": 1786064572914393200,
+    "word_count": 2203
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\privacy\\page.tsx": {
+    "size": 3346,
+    "mtime_ns": 1786064572939307700,
+    "word_count": 301
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\(marketing)\\terms\\page.tsx": {
+    "size": 3073,
+    "mtime_ns": 1786064572967216500,
+    "word_count": 281
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\analytics\\route.ts": {
+    "size": 2194,
+    "mtime_ns": 1786064573009103800,
+    "word_count": 214
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\appointments\\[id]\\route.ts": {
+    "size": 1334,
+    "mtime_ns": 1786064573037234800,
+    "word_count": 149
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\appointments\\route.ts": {
+    "size": 1293,
+    "mtime_ns": 1786064573053274200,
+    "word_count": 137
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\auth\\login\\route.ts": {
+    "size": 3380,
+    "mtime_ns": 1786064573100543600,
+    "word_count": 338
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\auth\\logout\\route.ts": {
+    "size": 408,
+    "mtime_ns": 1786064573119786500,
+    "word_count": 41
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\auth\\me\\route.ts": {
+    "size": 816,
+    "mtime_ns": 1786064573142264400,
+    "word_count": 85
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\auth\\register\\route.ts": {
+    "size": 2653,
+    "mtime_ns": 1786064573168374800,
+    "word_count": 245
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\calendar\\availability\\route.ts": {
+    "size": 798,
+    "mtime_ns": 1786064573186019600,
+    "word_count": 88
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\calendar\\book\\route.ts": {
+    "size": 1081,
+    "mtime_ns": 1786064573209911800,
+    "word_count": 114
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\calls\\[id]\\route.ts": {
+    "size": 1333,
+    "mtime_ns": 1786064573227806500,
+    "word_count": 155
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\calls\\route.ts": {
+    "size": 1233,
+    "mtime_ns": 1786064573239313400,
+    "word_count": 135
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\crm\\sync\\route.ts": {
+    "size": 1160,
+    "mtime_ns": 1786064573256369900,
+    "word_count": 127
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\action\\confirm-appointment\\route.ts": {
+    "size": 879,
+    "mtime_ns": 1786064573274101600,
+    "word_count": 90
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\action\\escalate\\route.ts": {
+    "size": 952,
+    "mtime_ns": 1786064573285111900,
+    "word_count": 96
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\conversation-token\\route.ts": {
+    "size": 3546,
+    "mtime_ns": 1786064573305524700,
+    "word_count": 372
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\elevenlabs-config\\route.ts": {
+    "size": 1174,
+    "mtime_ns": 1786064573319649500,
+    "word_count": 117
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\reset\\route.ts": {
+    "size": 1193,
+    "mtime_ns": 1786064573333708400,
+    "word_count": 131
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\respond\\route.ts": {
+    "size": 11378,
+    "mtime_ns": 1786064573381016500,
+    "word_count": 932
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\scenario\\route.ts": {
+    "size": 435,
+    "mtime_ns": 1786064573395175800,
+    "word_count": 47
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\session\\delete\\route.ts": {
+    "size": 868,
+    "mtime_ns": 1786064573409584900,
+    "word_count": 90
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\session\\end\\route.ts": {
+    "size": 4771,
+    "mtime_ns": 1786064573429703500,
+    "word_count": 383
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\session\\start\\route.ts": {
+    "size": 3805,
+    "mtime_ns": 1786064573451782800,
+    "word_count": 343
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\session\\status\\route.ts": {
+    "size": 886,
+    "mtime_ns": 1786064573463461000,
+    "word_count": 80
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\stt-disconnect\\route.ts": {
+    "size": 1368,
+    "mtime_ns": 1786064573482511100,
+    "word_count": 128
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\stt-token\\route.ts": {
+    "size": 2764,
+    "mtime_ns": 1786064573502089800,
+    "word_count": 255
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\tts\\route.ts": {
+    "size": 4288,
+    "mtime_ns": 1786064573526197700,
+    "word_count": 391
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\voice-bootstrap\\route.ts": {
+    "size": 4797,
+    "mtime_ns": 1786064573574427300,
+    "word_count": 505
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\demo\\voice-finalize\\route.ts": {
+    "size": 3346,
+    "mtime_ns": 1786064573604563400,
+    "word_count": 341
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\health\\voice\\route.ts": {
+    "size": 2425,
+    "mtime_ns": 1786064573627574300,
+    "word_count": 222
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\leads\\[id]\\route.ts": {
+    "size": 1376,
+    "mtime_ns": 1786064573645320000,
+    "word_count": 157
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\leads\\route.ts": {
+    "size": 1702,
+    "mtime_ns": 1786064573660206100,
+    "word_count": 193
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\voice\\conversation\\start\\route.ts": {
+    "size": 5706,
+    "mtime_ns": 1786064573706425200,
+    "word_count": 487
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\voice\\event\\route.ts": {
+    "size": 1239,
+    "mtime_ns": 1786064573725509400,
+    "word_count": 133
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\voice\\livekit\\token\\route.ts": {
+    "size": 1201,
+    "mtime_ns": 1786064573745110200,
+    "word_count": 109
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\voice\\start\\route.ts": {
+    "size": 895,
+    "mtime_ns": 1786064573757221400,
+    "word_count": 95
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\voice\\tools\\[toolName]\\route.ts": {
+    "size": 6492,
+    "mtime_ns": 1786064573798140600,
+    "word_count": 525
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\api\\webhooks\\voice\\route.ts": {
+    "size": 1356,
+    "mtime_ns": 1786064573817487100,
+    "word_count": 138
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\demo\\error.tsx": {
+    "size": 1312,
+    "mtime_ns": 1786064573834986500,
+    "word_count": 130
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\demo\\layout.tsx": {
+    "size": 258,
+    "mtime_ns": 1786064573849256900,
+    "word_count": 29
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\demo\\page.tsx": {
+    "size": 7978,
+    "mtime_ns": 1786064573878620100,
+    "word_count": 635
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\demo\\story\\page.tsx": {
+    "size": 358,
+    "mtime_ns": 1786064573907336300,
+    "word_count": 37
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\docs\\page.tsx": {
+    "size": 2322,
+    "mtime_ns": 1786064573932421100,
+    "word_count": 191
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\layout.tsx": {
+    "size": 1536,
+    "mtime_ns": 1786064573964544900,
+    "word_count": 168
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\not-found.tsx": {
+    "size": 2878,
+    "mtime_ns": 1786064573998829100,
+    "word_count": 234
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\robots.ts": {
+    "size": 529,
+    "mtime_ns": 1786064574014187700,
+    "word_count": 43
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\sitemap.ts": {
+    "size": 807,
+    "mtime_ns": 1786064574036889400,
+    "word_count": 75
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\app\\status\\page.tsx": {
+    "size": 4627,
+    "mtime_ns": 1786064574076956300,
+    "word_count": 357
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\calls\\elevenlabs-voice-console.tsx": {
+    "size": 21899,
+    "mtime_ns": 1786064574212971600,
+    "word_count": 1831
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\calls\\elevenlabs-voice-controller.tsx": {
+    "size": 21946,
+    "mtime_ns": 1786064574303480300,
+    "word_count": 1782
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\calls\\live-console.tsx": {
+    "size": 7631,
+    "mtime_ns": 1786064574338495400,
+    "word_count": 600
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\calls\\real-voice-console.tsx": {
+    "size": 31864,
+    "mtime_ns": 1786064574500964800,
+    "word_count": 2499
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\demo\\business-outcome-receipt.tsx": {
+    "size": 9598,
+    "mtime_ns": 1786064574587989200,
+    "word_count": 749
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\demo\\guided-story.tsx": {
+    "size": 6154,
+    "mtime_ns": 1786064574630568200,
+    "word_count": 601
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\home\\impact-estimator.tsx": {
+    "size": 10274,
+    "mtime_ns": 1786064574678931600,
+    "word_count": 712
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\home\\industry-selector.tsx": {
+    "size": 11316,
+    "mtime_ns": 1786064574721948800,
+    "word_count": 927
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\ui\\footer.tsx": {
+    "size": 4449,
+    "mtime_ns": 1786064574747769800,
+    "word_count": 291
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\ui\\navbar.tsx": {
+    "size": 4923,
+    "mtime_ns": 1786064574768712300,
+    "word_count": 348
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\components\\ui\\sidebar.tsx": {
+    "size": 4875,
+    "mtime_ns": 1786064574811551700,
+    "word_count": 391
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docker-compose.yml": {
+    "size": 373,
+    "mtime_ns": 1786062745643192800,
+    "word_count": 25,
+    "hash": "0f513e197279bd0626a526e467aa2e26e6d752aa833cc91ff3fe1dc2740917d7"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\ARCHITECTURE.md": {
+    "size": 3775,
+    "mtime_ns": 1786062980032044900,
+    "word_count": 395,
+    "hash": "d4529812ed04ba5464eead3bf0e042d623ce41f7dd332807e9b84646c917fac5"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\AUTHORSHIP_AUDIT.md": {
+    "size": 716,
+    "mtime_ns": 1786062980039672800,
+    "word_count": 92,
+    "hash": "de78d87ed18e71d1c1c0433619cff6459948c3513e5afaa40c6f441711c6dca1"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\COMPETITOR_ANALYSIS.md": {
+    "size": 2390,
+    "mtime_ns": 1786062980073865400,
+    "word_count": 275,
+    "hash": "cd970e4b56c24881b957faf10b9daabe48b5044fce0d54d5fe61d5411a942eba"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\CURRENT_STATE_AUDIT.md": {
+    "size": 3940,
+    "mtime_ns": 1786062980095079200,
+    "word_count": 410,
+    "hash": "c1812403f5ad17df8e1de405789c0cf1ace237ac2da75ce20a73342bb58d5673"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\CURRENT_VOICE_FAILURE_AUDIT.md": {
+    "size": 4999,
+    "mtime_ns": 1786062980133941200,
+    "word_count": 344,
+    "hash": "b9c2985886414776b67fc76f26f03c3c553b9daeb5eec3cfbfcebf3c23286f8f"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\DATABASE_DESIGN.md": {
+    "size": 2907,
+    "mtime_ns": 1786062980162014100,
+    "word_count": 343,
+    "hash": "78f41d55338785472e7e94d1ee6babc4cf45d18b3fa076c3d898c7b242eb50a8"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\DEMO_VS_PRODUCTION.md": {
+    "size": 1672,
+    "mtime_ns": 1786062980174271800,
+    "word_count": 221,
+    "hash": "f88c89078354782a9b1d77051d5b69781b923e2b6dcaaa9397ab118ee78af2e6"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\ELEVENLABS_STT_CONNECTION.md": {
+    "size": 938,
+    "mtime_ns": 1786062980179967400,
+    "word_count": 119,
+    "hash": "9f52c566c4b21afb7a40d88dca3d0d1c4e988c5ab270531bad25ed99f851fb0e"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_CLOUDFLARE_VOICE_REPORT.md": {
+    "size": 10286,
+    "mtime_ns": 1786062980215872300,
+    "word_count": 714,
+    "hash": "ddd92592b97b1edf787446b926afeb6ce08f06f25f55f89bdd58739cf378f7d7"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_PROJECT_REPORT.md": {
+    "size": 3644,
+    "mtime_ns": 1786062980223926800,
+    "word_count": 379,
+    "hash": "a8962779ab07b1cb40adcd68075b823845ddc293d1bed9d967c9d51d420015de"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_REDESIGN_REPORT.md": {
+    "size": 3355,
+    "mtime_ns": 1786062980242901200,
+    "word_count": 368,
+    "hash": "debf9026ab3617db9cb155f9dde9494689d1f8877907c176967c131aaf19721c"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_REPAIR_AUDIT.md": {
+    "size": 5219,
+    "mtime_ns": 1786062980268337300,
+    "word_count": 609,
+    "hash": "ad131ace5475a74a7492c354758beac9ba2c76b7c342acb5ebbb76b32a288fb6"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_REPAIR_REPORT.md": {
+    "size": 3903,
+    "mtime_ns": 1786062980286442300,
+    "word_count": 458,
+    "hash": "3a261cde4eee5d838240008dd230a6d5def98eaf8c26d364f56fcc4e8b02d4b9"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_ROUTE_REPORT.md": {
+    "size": 5575,
+    "mtime_ns": 1786062980316134200,
+    "word_count": 620,
+    "hash": "356d723cfb27db6eda1a33f5018d4b608b565fba1e6dc5b9845edfe3567c9a0b"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_SOLUTION_VERIFICATION_REPORT.md": {
+    "size": 2401,
+    "mtime_ns": 1786062980325869400,
+    "word_count": 302,
+    "hash": "eb801fab3c78d1bd31ab476772eabb64128235cbab633e683d6c36ff07a3616f"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_VOICE_DEMO_REPORT.md": {
+    "size": 2257,
+    "mtime_ns": 1786062980331857800,
+    "word_count": 289,
+    "hash": "9fac67cfb77780607baf47fa192a35faafe14a2dea86a68aeb8e364b9733d1ff"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\FINAL_VOICE_RESPONSE_REPAIR_REPORT.md": {
+    "size": 2431,
+    "mtime_ns": 1786062980352571100,
+    "word_count": 298,
+    "hash": "70ffefe610f9497a0984684b1954f8fc7bcbea73d542c8e71bc92ea40cbc6539"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\IMPLEMENTATION_PLAN.md": {
+    "size": 2991,
+    "mtime_ns": 1786062980366462100,
+    "word_count": 439,
+    "hash": "4554727c69def7d5526bc6ed37c747e1a349e7270b9b3d634e3478d961dbdef1"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\MULTILINGUAL_VOICE_SUPPORT.md": {
+    "size": 1903,
+    "mtime_ns": 1786062980381761400,
+    "word_count": 239,
+    "hash": "a779e2b904530391472967df5a40e3ce37f51be99d075c6811686b954ac1722d"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\PRODUCTION_VOICE_VERIFICATION.md": {
+    "size": 898,
+    "mtime_ns": 1786062980395649200,
+    "word_count": 110,
+    "hash": "49c275b79dcbc841676a30bdf9bb692010566753d384588c299a5b533c84f978"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\PRODUCT_REQUIREMENTS.md": {
+    "size": 2754,
+    "mtime_ns": 1786062980395649200,
+    "word_count": 357,
+    "hash": "74db87cccea1e2c55ae9386999b10f9e0c66de1928aae7faa228fca8b8b0813d"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\PROVIDER_COST_CONTROLS.md": {
+    "size": 639,
+    "mtime_ns": 1786062980411354900,
+    "word_count": 81,
+    "hash": "78f356ff2cc4048549e6d17853c7659fe0d171c02558591cdceb4ca783dbb20c"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\PUBLIC_DEMO_ABUSE_MODEL.md": {
+    "size": 794,
+    "mtime_ns": 1786062980411354900,
+    "word_count": 119,
+    "hash": "e21f8a88610f19038484dad6e98eaeb2443bdb40e4304c993f1907dc188cd6a7"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\REAL_VOICE_DEMO.md": {
+    "size": 1191,
+    "mtime_ns": 1786062980443166300,
+    "word_count": 140,
+    "hash": "94b729c229519717ca717604973db8aa042ea1ea77ef45db1c55b96ecc281bdc"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\REAL_VOICE_DEMO_AUDIT.md": {
+    "size": 3130,
+    "mtime_ns": 1786062980434154200,
+    "word_count": 359,
+    "hash": "4cc3a9a119eea201a659e7201981ed489e5ab84c292cda0d2526d07384cc4302"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\RESEARCH_NOTES.md": {
+    "size": 3952,
+    "mtime_ns": 1786062980463547600,
+    "word_count": 485,
+    "hash": "6c1b3c0d4c13c1c78e63196386531b59085b8473e874a713f252de17a4a6c659"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\ROUTE_AND_404_AUDIT.md": {
+    "size": 5723,
+    "mtime_ns": 1786062980475283100,
+    "word_count": 543,
+    "hash": "a645dcdc63492dc9515b64f435475849f32a7210e8769fee391a3da155230eb6"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\SCALING_AND_CAPACITY.md": {
+    "size": 2840,
+    "mtime_ns": 1786062980491304800,
+    "word_count": 209,
+    "hash": "0293ecff61019634318ac74d642781e7e6c6856d645085af2cc24a499d98ae3a"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\SOLUTION_ARCHITECTURE.md": {
+    "size": 2964,
+    "mtime_ns": 1786062980491304800,
+    "word_count": 355,
+    "hash": "f431f8f979717011e33f65c969052fca8c15a2cd18e17c27ac4a6851ba41d498"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\VERCEL_SESSION_STORAGE.md": {
+    "size": 727,
+    "mtime_ns": 1786062980507433200,
+    "word_count": 82,
+    "hash": "fd0222b0cee7dcf43a83708b1dff65be8d3606daf10907f5c677be3d95892b63"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\VOICE_RESPONSE_FAILURE_AUDIT.md": {
+    "size": 3076,
+    "mtime_ns": 1786062980523117600,
+    "word_count": 378,
+    "hash": "fb0b08bdd579f990be8ce6ce0e3e237d36818fbbe856904e45b9886573eb8d6d"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\docs\\VOICE_RESPONSE_REPAIR.md": {
+    "size": 1707,
+    "mtime_ns": 1786062980539565200,
+    "word_count": 205,
+    "hash": "47f41ecd55d26b4aea4514eb2379bb75c6a210705cec6aeea2b63d04f2736b09"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\hooks.json": {
+    "size": 1776,
+    "mtime_ns": 1786062980539565200,
+    "word_count": 158,
+    "hash": "74b9d184e2c03cb6e1603c630a6a8651bfee755795ab649c935253354673045b"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\auth\\index.ts": {
+    "size": 3350,
+    "mtime_ns": 1786064575620072400,
+    "word_count": 347
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\auth\\require-session.ts": {
+    "size": 2988,
+    "mtime_ns": 1786064575640913400,
+    "word_count": 330
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\availability-service.ts": {
+    "size": 2611,
+    "mtime_ns": 1786064575664691100,
+    "word_count": 281
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\calcom-calendar.ts": {
+    "size": 2204,
+    "mtime_ns": 1786064575689216600,
+    "word_count": 199
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\demo-calendar.ts": {
+    "size": 2692,
+    "mtime_ns": 1786064575710570100,
+    "word_count": 259
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\factory.ts": {
+    "size": 546,
+    "mtime_ns": 1786064575720473400,
+    "word_count": 53
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\google-calendar.ts": {
+    "size": 2214,
+    "mtime_ns": 1786064575735457600,
+    "word_count": 196
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\calendar\\interface.ts": {
+    "size": 1118,
+    "mtime_ns": 1786064575749707700,
+    "word_count": 93
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\client\\demo-api.ts": {
+    "size": 5635,
+    "mtime_ns": 1786064575800091900,
+    "word_count": 547
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\config\\env.ts": {
+    "size": 4364,
+    "mtime_ns": 1786064575831561200,
+    "word_count": 220
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\action-engine.ts": {
+    "size": 9729,
+    "mtime_ns": 1786064575880883700,
+    "word_count": 772
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\action-policy.ts": {
+    "size": 4351,
+    "mtime_ns": 1786064575914343200,
+    "word_count": 408
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\availability.ts": {
+    "size": 1797,
+    "mtime_ns": 1786064575930090100,
+    "word_count": 206
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\escalation\\index.ts": {
+    "size": 2798,
+    "mtime_ns": 1786064575951635300,
+    "word_count": 269
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\knowledge\\northstar-legal.ts": {
+    "size": 2122,
+    "mtime_ns": 1786064575972958000,
+    "word_count": 255
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\knowledge\\profile-knowledge.ts": {
+    "size": 2571,
+    "mtime_ns": 1786064575993515900,
+    "word_count": 234
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\prompts\\few-shot-examples.ts": {
+    "size": 2784,
+    "mtime_ns": 1786064576006619900,
+    "word_count": 343
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\prompts\\voice-agent-system.ts": {
+    "size": 5377,
+    "mtime_ns": 1786064576020801000,
+    "word_count": 539
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\qualification\\index.ts": {
+    "size": 8279,
+    "mtime_ns": 1786064576072586500,
+    "word_count": 816
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\schemas\\voice-agent-output.ts": {
+    "size": 1948,
+    "mtime_ns": 1786064576093401700,
+    "word_count": 135
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\state-machine.ts": {
+    "size": 2685,
+    "mtime_ns": 1786064576118085100,
+    "word_count": 197
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\state-machine\\index.ts": {
+    "size": 5163,
+    "mtime_ns": 1786064576149278200,
+    "word_count": 473
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\summaries\\index.ts": {
+    "size": 2820,
+    "mtime_ns": 1786064576176055100,
+    "word_count": 283
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\conversation\\types\\final-call-result.ts": {
+    "size": 1654,
+    "mtime_ns": 1786064576196766800,
+    "word_count": 158
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\crm\\demo-crm.ts": {
+    "size": 1941,
+    "mtime_ns": 1786064576219973500,
+    "word_count": 178
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\crm\\factory.ts": {
+    "size": 523,
+    "mtime_ns": 1786064576229493700,
+    "word_count": 53
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\crm\\hubspot-crm.ts": {
+    "size": 1544,
+    "mtime_ns": 1786064576241868700,
+    "word_count": 137
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\crm\\interface.ts": {
+    "size": 1085,
+    "mtime_ns": 1786064576253429000,
+    "word_count": 99
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\crm\\webhook-crm.ts": {
+    "size": 1464,
+    "mtime_ns": 1786064576265579400,
+    "word_count": 126
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\database\\index.ts": {
+    "size": 653,
+    "mtime_ns": 1786064576284445700,
+    "word_count": 83
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\database\\persistence.ts": {
+    "size": 7515,
+    "mtime_ns": 1786064576324606600,
+    "word_count": 653
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\health.ts": {
+    "size": 1201,
+    "mtime_ns": 1786064576346920800,
+    "word_count": 123
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\rate-limit.ts": {
+    "size": 2385,
+    "mtime_ns": 1786064576361470300,
+    "word_count": 262
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\request-lock.ts": {
+    "size": 505,
+    "mtime_ns": 1786064576369537500,
+    "word_count": 54
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\scenarios.ts": {
+    "size": 8618,
+    "mtime_ns": 1786064576390232700,
+    "word_count": 933
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\session.ts": {
+    "size": 2064,
+    "mtime_ns": 1786064576405112300,
+    "word_count": 204
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\store.ts": {
+    "size": 20984,
+    "mtime_ns": 1786064576522880600,
+    "word_count": 1887
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\demo\\usage-ledger.ts": {
+    "size": 1308,
+    "mtime_ns": 1786064576536536700,
+    "word_count": 141
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\elevenlabs\\agent-registry.client.ts": {
+    "size": 987,
+    "mtime_ns": 1786064576551149500,
+    "word_count": 96
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\elevenlabs\\agent-registry.server.ts": {
+    "size": 2278,
+    "mtime_ns": 1786064576567882400,
+    "word_count": 203
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\encryption\\index.ts": {
+    "size": 1775,
+    "mtime_ns": 1786064576592602400,
+    "word_count": 179
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\knowledge\\rag-engine.ts": {
+    "size": 3670,
+    "mtime_ns": 1786064576616133100,
+    "word_count": 368
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\navigation\\dashboard-routes.ts": {
+    "size": 1259,
+    "mtime_ns": 1786064576635450800,
+    "word_count": 107
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\presets\\b2b-services.ts": {
+    "size": 8383,
+    "mtime_ns": 1786064576665528900,
+    "word_count": 921
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\presets\\healthcare.ts": {
+    "size": 8843,
+    "mtime_ns": 1786064576681478800,
+    "word_count": 998
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\presets\\home-services.ts": {
+    "size": 8957,
+    "mtime_ns": 1786064576717839300,
+    "word_count": 1015
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\presets\\legal.ts": {
+    "size": 27570,
+    "mtime_ns": 1786064576775256200,
+    "word_count": 2856
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\presets\\real-estate.ts": {
+    "size": 8560,
+    "mtime_ns": 1786064576829542100,
+    "word_count": 951
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\registry.ts": {
+    "size": 1341,
+    "mtime_ns": 1786064576841922600,
+    "word_count": 109
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\training-pack.ts": {
+    "size": 6825,
+    "mtime_ns": 1786064576893840700,
+    "word_count": 517
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\organization\\types.ts": {
+    "size": 2315,
+    "mtime_ns": 1786064576912139200,
+    "word_count": 239
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\permissions\\index.ts": {
+    "size": 1983,
+    "mtime_ns": 1786064576934173600,
+    "word_count": 154
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\client.server.ts": {
+    "size": 5401,
+    "mtime_ns": 1786064576974766700,
+    "word_count": 574
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\errors.ts": {
+    "size": 764,
+    "mtime_ns": 1786064576991542600,
+    "word_count": 78
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\llm.server.ts": {
+    "size": 3264,
+    "mtime_ns": 1786064577011355900,
+    "word_count": 313
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\schemas.ts": {
+    "size": 1040,
+    "mtime_ns": 1786064577026438500,
+    "word_count": 62
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\stt.server.ts": {
+    "size": 967,
+    "mtime_ns": 1786064577041033500,
+    "word_count": 111
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\tts.server.ts": {
+    "size": 1841,
+    "mtime_ns": 1786064577054799200,
+    "word_count": 178
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\cloudflare\\usage.ts": {
+    "size": 756,
+    "mtime_ns": 1786064577065700800,
+    "word_count": 67
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\elevenlabs-tts.server.ts": {
+    "size": 1979,
+    "mtime_ns": 1786064577083342200,
+    "word_count": 172
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\livekit\\client.server.ts": {
+    "size": 1369,
+    "mtime_ns": 1786064577097401500,
+    "word_count": 122
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\livekit\\realtime-agent.ts": {
+    "size": 3718,
+    "mtime_ns": 1786064577120821800,
+    "word_count": 360
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\providers\\openrouter.server.ts": {
+    "size": 9760,
+    "mtime_ns": 1786064577172944700,
+    "word_count": 1006
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\security\\encryption.ts": {
+    "size": 2992,
+    "mtime_ns": 1786064577205613300,
+    "word_count": 320
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\security\\session-token.ts": {
+    "size": 1461,
+    "mtime_ns": 1786064577223089800,
+    "word_count": 136
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice-agent\\build-agent-configuration.server.ts": {
+    "size": 3942,
+    "mtime_ns": 1786064577249302000,
+    "word_count": 478
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice-agent\\northstar-agent-config.server.ts": {
+    "size": 2252,
+    "mtime_ns": 1786064577259461800,
+    "word_count": 305
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\demo-provider.ts": {
+    "size": 2915,
+    "mtime_ns": 1786064577290474300,
+    "word_count": 258
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\factory.ts": {
+    "size": 754,
+    "mtime_ns": 1786064577299294000,
+    "word_count": 75
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\interface.ts": {
+    "size": 1812,
+    "mtime_ns": 1786064577312711900,
+    "word_count": 154
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\livekit-provider.ts": {
+    "size": 2855,
+    "mtime_ns": 1786064577333018900,
+    "word_count": 257
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\retell-provider.ts": {
+    "size": 2615,
+    "mtime_ns": 1786064577351432000,
+    "word_count": 231
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\twilio-provider.ts": {
+    "size": 3073,
+    "mtime_ns": 1786064577370961300,
+    "word_count": 270
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\lib\\voice\\providers\\vapi-provider.ts": {
+    "size": 2844,
+    "mtime_ns": 1786064577388162100,
+    "word_count": 258
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\middleware.ts": {
+    "size": 646,
+    "mtime_ns": 1786064577396685600,
+    "word_count": 62
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\next-env.d.ts": {
+    "size": 262,
+    "mtime_ns": 1786062981568444000,
+    "word_count": 26
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\next.config.ts": {
+    "size": 3196,
+    "mtime_ns": 1786064577421299400,
+    "word_count": 242
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\package.json": {
+    "size": 3022,
+    "mtime_ns": 1786062981663085700,
+    "word_count": 254,
+    "hash": "1ea2fa5ac87a2824b941bf073fb16fb321213750425c889ad21098b30e32b028"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\playwright.config.ts": {
+    "size": 678,
+    "mtime_ns": 1786064577589928600,
+    "word_count": 73
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\portfolio\\fiverr\\GALLERY_PLAN.md": {
+    "size": 1458,
+    "mtime_ns": 1786062981678765900,
+    "word_count": 211,
+    "hash": "07dee26b8005596f4dc50a2beeee24c80a0c598d8d092030b3e5e90b69c32e90"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\portfolio\\video\\SHOT_LIST.md": {
+    "size": 623,
+    "mtime_ns": 1786062981691072600,
+    "word_count": 91,
+    "hash": "176eb01969cd7f083f7e766d66d6753990a99b1552fac68ce4089f5d86e7cbd6"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\portfolio\\video\\VIDEO_SCRIPT.md": {
+    "size": 1091,
+    "mtime_ns": 1786062981696858400,
+    "word_count": 146,
+    "hash": "d7d14d523280bd28a96df64c288809d7eccecb2b02a990cffb6bf86a8b824fa2"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\postcss.config.mjs": {
+    "size": 111,
+    "mtime_ns": 1786062745721765700,
+    "word_count": 15
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\prisma\\seed\\seed.ts": {
+    "size": 5677,
+    "mtime_ns": 1786064577674426200,
+    "word_count": 577
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\audit-routes.ts": {
+    "size": 5305,
+    "mtime_ns": 1786064577722125600,
+    "word_count": 582
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\demo-call.ts": {
+    "size": 689,
+    "mtime_ns": 1786064577732637800,
+    "word_count": 49
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\demo-reset.ts": {
+    "size": 380,
+    "mtime_ns": 1786064577739473400,
+    "word_count": 45
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\demo-seed.ts": {
+    "size": 542,
+    "mtime_ns": 1786064577747815000,
+    "word_count": 43
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\demo-story.ts": {
+    "size": 1124,
+    "mtime_ns": 1786064577756798700,
+    "word_count": 97
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\demo-verify.ts": {
+    "size": 1715,
+    "mtime_ns": 1786064577766857000,
+    "word_count": 164
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\provision-elevenlabs-agents.ts": {
+    "size": 2458,
+    "mtime_ns": 1786064577783001000,
+    "word_count": 191
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\test-live-full-flow.ts": {
+    "size": 2930,
+    "mtime_ns": 1786064577815217000,
+    "word_count": 269
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\test-live-response.ts": {
+    "size": 2596,
+    "mtime_ns": 1786064577830596500,
+    "word_count": 220
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\test-live-session.ts": {
+    "size": 1264,
+    "mtime_ns": 1786064577842538700,
+    "word_count": 118
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\scripts\\verify-elevenlabs-agent.ts": {
+    "size": 1120,
+    "mtime_ns": 1786064577847876800,
+    "word_count": 100
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tailwind.config.ts": {
+    "size": 852,
+    "mtime_ns": 1786064577855358000,
+    "word_count": 77
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\e2e\\demo-flow.spec.ts": {
+    "size": 1827,
+    "mtime_ns": 1786064577878453500,
+    "word_count": 180
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\e2e\\routes.spec.ts": {
+    "size": 1721,
+    "mtime_ns": 1786064577889996300,
+    "word_count": 161
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\integration\\booking-workflow.test.ts": {
+    "size": 928,
+    "mtime_ns": 1786064577905688300,
+    "word_count": 78
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\integration\\three-minute-call.test.ts": {
+    "size": 3081,
+    "mtime_ns": 1786064577919270000,
+    "word_count": 287
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\mocks\\empty.js": {
+    "size": 22,
+    "mtime_ns": 1786062745732010100,
+    "word_count": 3
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\security\\cloudflare-security.test.ts": {
+    "size": 725,
+    "mtime_ns": 1786064577934311200,
+    "word_count": 68
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\security\\demo-protection.test.ts": {
+    "size": 1559,
+    "mtime_ns": 1786064577947396600,
+    "word_count": 141
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\security\\tenant-isolation.test.ts": {
+    "size": 2133,
+    "mtime_ns": 1786064577964487200,
+    "word_count": 192
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\canonical-schema.test.ts": {
+    "size": 1436,
+    "mtime_ns": 1786064577984207400,
+    "word_count": 132
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\cloudflare-ai.test.ts": {
+    "size": 2020,
+    "mtime_ns": 1786064577999347300,
+    "word_count": 159
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\conversation-token-route.test.ts": {
+    "size": 1163,
+    "mtime_ns": 1786064578015395400,
+    "word_count": 96
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\demo-layout.test.ts": {
+    "size": 573,
+    "mtime_ns": 1786064578032196100,
+    "word_count": 54
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\encryption-test.test.ts": {
+    "size": 994,
+    "mtime_ns": 1786064578046318000,
+    "word_count": 87
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\encryption.test.ts": {
+    "size": 910,
+    "mtime_ns": 1786064578060900100,
+    "word_count": 85
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\northstar-legal-eval.test.ts": {
+    "size": 3812,
+    "mtime_ns": 1786064578079618200,
+    "word_count": 483
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\organization-profiles.test.ts": {
+    "size": 1711,
+    "mtime_ns": 1786064578091296600,
+    "word_count": 142
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\qualification.test.ts": {
+    "size": 975,
+    "mtime_ns": 1786064578099096200,
+    "word_count": 82
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\state-machine.test.ts": {
+    "size": 711,
+    "mtime_ns": 1786064578104709700,
+    "word_count": 59
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tests\\unit\\voice-bootstrap.test.ts": {
+    "size": 2619,
+    "mtime_ns": 1786064578121498400,
+    "word_count": 235
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\tsconfig.json": {
+    "size": 598,
+    "mtime_ns": 1786062982077518800,
+    "word_count": 52,
+    "hash": "246ae18bc430f06b622f28e93862e04d85e8d1414dcfa76e09e254e2a474e0a2"
+  },
+  "C:\\Users\\laptopzone\\voxdesk-ai\\vitest.config.ts": {
+    "size": 278,
+    "mtime_ns": 1786064578147143900,
+    "word_count": 28
+  }
+}
