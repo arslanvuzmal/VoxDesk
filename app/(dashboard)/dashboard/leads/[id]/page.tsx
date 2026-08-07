@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { prisma } from "@/lib/database";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { prisma } from '@/lib/database';
 import {
   Users,
   PhoneCall,
@@ -16,13 +16,9 @@ import {
   Mail,
   Phone,
   Briefcase,
-} from "lucide-react";
+} from 'lucide-react';
 
-export default async function LeadDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
   let lead = null;
@@ -75,20 +71,18 @@ export default async function LeadDetailPage({
               <span>/</span>
               <span className="font-mono text-[11px] text-[#C9D1D9]">{lead.id.slice(0, 8)}</span>
             </div>
-            <h1 className="text-xl font-bold text-white tracking-tight">
-              {lead.name}
-            </h1>
+            <h1 className="text-xl font-bold text-white tracking-tight">{lead.name}</h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <span
             className={`px-2.5 py-1 rounded text-xs font-mono font-semibold border ${
-              lead.category === "HOT"
-                ? "bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30"
-                : lead.category === "WARM"
-                ? "bg-[#D29922]/15 text-[#D29922] border-[#D29922]/30"
-                : "bg-[#58A6FF]/15 text-[#58A6FF] border-[#58A6FF]/30"
+              lead.category === 'HOT'
+                ? 'bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30'
+                : lead.category === 'WARM'
+                  ? 'bg-[#D29922]/15 text-[#D29922] border-[#D29922]/30'
+                  : 'bg-[#58A6FF]/15 text-[#58A6FF] border-[#58A6FF]/30'
             }`}
           >
             {lead.category} ({lead.score}/100)
@@ -111,7 +105,7 @@ export default async function LeadDetailPage({
                 <Building2 className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Company / Business</p>
-                  <p className="font-medium text-white">{lead.company || "Northstar Client"}</p>
+                  <p className="font-medium text-white">{lead.company || 'Northstar Client'}</p>
                 </div>
               </div>
 
@@ -119,7 +113,9 @@ export default async function LeadDetailPage({
                 <Briefcase className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Service Interest</p>
-                  <p className="font-medium text-white">{lead.serviceInterest || "Commercial Consultation"}</p>
+                  <p className="font-medium text-white">
+                    {lead.serviceInterest || 'Commercial Consultation'}
+                  </p>
                 </div>
               </div>
 
@@ -127,7 +123,9 @@ export default async function LeadDetailPage({
                 <Clock className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Record Created</p>
-                  <p className="font-mono text-white">{new Date(lead.createdAt).toLocaleDateString()}</p>
+                  <p className="font-mono text-white">
+                    {new Date(lead.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
 
@@ -151,7 +149,8 @@ export default async function LeadDetailPage({
             </div>
 
             <div className="p-3.5 rounded-md bg-[#0D1117] border border-[#30363D] text-xs text-[#C9D1D9] leading-relaxed">
-              Prospect called inquiring about commercial legal retainer terms and fee structures. Stated immediate consultation required for contract dispute.
+              Prospect called inquiring about commercial legal retainer terms and fee structures.
+              Stated immediate consultation required for contract dispute.
             </div>
 
             {/* Linked Call */}
@@ -194,7 +193,7 @@ export default async function LeadDetailPage({
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Budget</span>
-                  <span className="font-mono text-white">{lead.budgetRange || "High"}</span>
+                  <span className="font-mono text-white">{lead.budgetRange || 'High'}</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-[#21262D]">
                   <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
@@ -204,7 +203,7 @@ export default async function LeadDetailPage({
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Timeline</span>
-                  <span className="font-mono text-white">{lead.timeline || "Immediate"}</span>
+                  <span className="font-mono text-white">{lead.timeline || 'Immediate'}</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-[#21262D]">
                   <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
@@ -214,7 +213,7 @@ export default async function LeadDetailPage({
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Authority</span>
-                  <span className="font-mono text-white">{lead.authority || "Decision Maker"}</span>
+                  <span className="font-mono text-white">{lead.authority || 'Decision Maker'}</span>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-[#21262D]">
                   <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
@@ -231,7 +230,7 @@ export default async function LeadDetailPage({
             <div className="flex items-center gap-2 text-white">
               <UserCheck className="w-4 h-4 text-[#58A6FF]" />
               <span className="font-semibold">Assigned Owner:</span>
-              <span className="font-mono">{lead.assignedTo || "Senior Counsel"}</span>
+              <span className="font-mono">{lead.assignedTo || 'Senior Counsel'}</span>
             </div>
             <p className="text-[11px] text-[#8B949E]">
               Qualified via Maya automated intake. Ready for partner review.

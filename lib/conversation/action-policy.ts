@@ -1,10 +1,10 @@
-import { BusinessActionType } from "./schemas/voice-agent-output";
-import { OrganizationProfile } from "@/lib/organization/types";
-import { generateRealAvailableSlots, AppointmentSlot } from "./availability";
+import { BusinessActionType } from './schemas/voice-agent-output';
+import { OrganizationProfile } from '@/lib/organization/types';
+import { generateRealAvailableSlots, AppointmentSlot } from './availability';
 
 export interface PendingConfirmation {
   id: string;
-  actionType: "RESERVE_APPOINTMENT";
+  actionType: 'RESERVE_APPOINTMENT';
   offeredAt: number;
   expiresAt: number;
   payload: {
@@ -37,9 +37,7 @@ export interface ActionPolicyContext {
   executedActions?: string[];
 }
 
-export function evaluateSuggestedAction(
-  ctx: ActionPolicyContext,
-): ActionDecision {
+export function evaluateSuggestedAction(ctx: ActionPolicyContext): ActionDecision {
   const {
     suggestedAction,
     scenario,
@@ -50,41 +48,36 @@ export function evaluateSuggestedAction(
     executedActions = [],
   } = ctx;
 
-  if (suggestedAction === "NONE") {
+  if (suggestedAction === 'NONE') {
     return {
       execute: false,
-      reason: "Model suggested no business action (NONE).",
+      reason: 'Model suggested no business action (NONE).',
     };
   }
 
-  if (suggestedAction === "ANSWER_APPROVED_QUESTION") {
-    return { execute: true, action: "ANSWER_APPROVED_QUESTION" };
+  if (suggestedAction === 'ANSWER_APPROVED_QUESTION') {
+    return { execute: true, action: 'ANSWER_APPROVED_QUESTION' };
   }
 
-  if (
-    suggestedAction === "PREPARE_HANDOFF" ||
-    suggestedAction === "REQUEST_HUMAN_REVIEW"
-  ) {
+  if (suggestedAction === 'PREPARE_HANDOFF' || suggestedAction === 'REQUEST_HUMAN_REVIEW') {
     return { execute: true, action: suggestedAction };
   }
 
   // Routine scenario policy: Never create sales lead or reserve appointment automatically for FAQ
   if (
-    scenario === "ROUTINE" &&
-    (suggestedAction === "CREATE_LEAD" || suggestedAction === "SCORE_LEAD")
+    scenario === 'ROUTINE' &&
+    (suggestedAction === 'CREATE_LEAD' || suggestedAction === 'SCORE_LEAD')
   ) {
     return {
       execute: false,
-      reason: "Routine FAQ scenario prohibits sales lead creation.",
+      reason: 'Routine FAQ scenario prohibits sales lead creation.',
     };
   }
 
   // Reserve appointment policy: Requires explicit caller confirmation against real offered slot
-  if (suggestedAction === "RESERVE_APPOINTMENT") {
+  if (suggestedAction === 'RESERVE_APPOINTMENT') {
     const isExplicitConfirmation =
-      /yes|yeah|sure|confirm|book that|that works|perfect|book it|go ahead/i.test(
-        userMessage,
-      );
+      /yes|yeah|sure|confirm|book that|that works|perfect|book it|go ahead/i.test(userMessage);
 
     // If caller has not explicitly confirmed an offered slot, offer real slots and create pending confirmation
     if (!isExplicitConfirmation || !pendingConfirmation) {
@@ -95,7 +88,7 @@ export function evaluateSuggestedAction(
         execute: false,
         pendingConfirmation: {
           id: `pending_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-          actionType: "RESERVE_APPOINTMENT",
+          actionType: 'RESERVE_APPOINTMENT',
           payload: {
             slotId: chosenSlot.slotId,
             startTime: chosenSlot.startTime,
@@ -110,33 +103,32 @@ export function evaluateSuggestedAction(
       };
     }
 
-    if (executedActions.includes("RESERVE_APPOINTMENT")) {
+    if (executedActions.includes('RESERVE_APPOINTMENT')) {
       return {
         execute: false,
-        reason:
-          "Appointment reservation has already been executed for session.",
+        reason: 'Appointment reservation has already been executed for session.',
       };
     }
 
     return {
       execute: true,
-      action: "RESERVE_APPOINTMENT",
+      action: 'RESERVE_APPOINTMENT',
       pendingConfirmation,
     };
   }
 
   // Lead creation policy: Requires minimum contact name/phone or explicit qualification scenario
-  if (suggestedAction === "CREATE_LEAD" || suggestedAction === "SCORE_LEAD") {
+  if (suggestedAction === 'CREATE_LEAD' || suggestedAction === 'SCORE_LEAD') {
     const hasNameOrContact =
       accumulatedFields.fullName ||
       accumulatedFields.customerName ||
       accumulatedFields.contactPhone ||
       accumulatedFields.phone;
 
-    if (!hasNameOrContact && scenario !== "QUALIFICATION") {
+    if (!hasNameOrContact && scenario !== 'QUALIFICATION') {
       return {
         execute: false,
-        reason: "Insufficient contact information for lead creation.",
+        reason: 'Insufficient contact information for lead creation.',
       };
     }
 

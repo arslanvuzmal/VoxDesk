@@ -1,15 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createDemoSession } from "@/lib/demo/session";
-import {
-  validateSessionEligibility,
-  generateIPHash,
-} from "@/lib/demo/rate-limit";
-import { getDemoSessionStoreStatus } from "@/lib/demo/store";
-import { env } from "@/lib/config/env";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createDemoSession } from '@/lib/demo/session';
+import { validateSessionEligibility, generateIPHash } from '@/lib/demo/rate-limit';
+import { getDemoSessionStoreStatus } from '@/lib/demo/store';
+import { env } from '@/lib/config/env';
 
 const SessionStartSchema = z.object({
-  scenario: z.enum(["BOOKING", "QUALIFICATION", "ESCALATION", "ROUTINE"]),
+  scenario: z.enum(['BOOKING', 'QUALIFICATION', 'ESCALATION', 'ROUTINE']),
   presetKey: z.string().optional(),
   language: z.string().optional(),
 });
@@ -23,33 +20,33 @@ export async function POST(req: NextRequest) {
     if (!storeStatus.ready) {
       return NextResponse.json(
         {
-          error: "The live demo is temporarily unavailable.",
-          code: "DEMO_SESSION_STORE_UNAVAILABLE",
+          error: 'The live demo is temporarily unavailable.',
+          code: 'DEMO_SESSION_STORE_UNAVAILABLE',
           correlationId,
           recoverable: false,
-          guidedDemoUrl: "/demo/story",
+          guidedDemoUrl: '/demo/story',
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
     // 2. Check Global Kill Switch
-    if (env.DEMO_LIVE_PROVIDER_KILL_SWITCH === "true") {
+    if (env.DEMO_LIVE_PROVIDER_KILL_SWITCH === 'true') {
       return NextResponse.json(
         {
           error:
-            "The live voice demo is currently undergoing scheduled maintenance. Please try our guided walkthrough.",
-          code: "PROVIDER_KILL_SWITCH",
+            'The live voice demo is currently undergoing scheduled maintenance. Please try our guided walkthrough.',
+          code: 'PROVIDER_KILL_SWITCH',
           correlationId,
           recoverable: false,
-          guidedDemoUrl: "/demo/story",
+          guidedDemoUrl: '/demo/story',
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
-    const ua = req.headers.get("user-agent") || "unknown-ua";
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
+    const ua = req.headers.get('user-agent') || 'unknown-ua';
     const ipHash = generateIPHash(ip);
 
     // 3. Rate Limit & Cooldown Validation
@@ -61,9 +58,9 @@ export async function POST(req: NextRequest) {
           code: eligibility.code,
           correlationId,
           recoverable: true,
-          guidedDemoUrl: "/demo/story",
+          guidedDemoUrl: '/demo/story',
         },
-        { status: 429 },
+        { status: 429 }
       );
     }
 
@@ -74,19 +71,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Invalid demo scenario. Allowed scenarios are BOOKING, QUALIFICATION, ESCALATION, or ROUTINE.",
-          code: "INVALID_SCENARIO",
+            'Invalid demo scenario. Allowed scenarios are BOOKING, QUALIFICATION, ESCALATION, or ROUTINE.',
+          code: 'INVALID_SCENARIO',
           correlationId,
           recoverable: true,
-          guidedDemoUrl: "/demo/story",
+          guidedDemoUrl: '/demo/story',
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const scenario = parseResult.data.scenario;
-    const presetKey = parseResult.data.presetKey || "LEGAL";
-    const language = parseResult.data.language || "en-US";
+    const presetKey = parseResult.data.presetKey || 'LEGAL';
+    const language = parseResult.data.language || 'en-US';
 
     const { token, session } = await createDemoSession(scenario, ip, ua, {
       presetKey,
@@ -104,29 +101,26 @@ export async function POST(req: NextRequest) {
       correlationId,
     });
 
-    response.cookies.set("voxdesk_demo_session", token, {
+    response.cookies.set('voxdesk_demo_session', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
       maxAge: 1800,
     });
 
     return response;
   } catch (error) {
-    console.error(
-      `[SESSION START ERROR] correlationId=${correlationId}:`,
-      error,
-    );
+    console.error(`[SESSION START ERROR] correlationId=${correlationId}:`, error);
     return NextResponse.json(
       {
-        error: "Failed to initialize demo session.",
-        code: "SESSION_START_FAILED",
+        error: 'Failed to initialize demo session.',
+        code: 'SESSION_START_FAILED',
         correlationId,
         recoverable: true,
-        guidedDemoUrl: "/demo/story",
+        guidedDemoUrl: '/demo/story',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

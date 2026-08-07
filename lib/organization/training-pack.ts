@@ -1,19 +1,13 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const SupportedLanguageEnum = z.enum(["en-US", "ur-PK", "es-ES"]);
+export const SupportedLanguageEnum = z.enum(['en-US', 'ur-PK', 'es-ES']);
 export type SupportedLanguage = z.infer<typeof SupportedLanguageEnum>;
 
 export const BusinessIdentitySchema = z.object({
   id: z.string(),
   name: z.string().min(1),
   industry: z.string().min(1),
-  presetKey: z.enum([
-    "LEGAL",
-    "HEALTHCARE",
-    "REAL_ESTATE",
-    "HOME_SERVICES",
-    "B2B_SERVICES",
-  ]),
+  presetKey: z.enum(['LEGAL', 'HEALTHCARE', 'REAL_ESTATE', 'HOME_SERVICES', 'B2B_SERVICES']),
   tagline: z.string(),
   description: z.string(),
   timeZone: z.string(),
@@ -24,7 +18,7 @@ export const BusinessIdentitySchema = z.object({
 export type BusinessIdentity = z.infer<typeof BusinessIdentitySchema>;
 
 export const BusinessVoiceConfigurationSchema = z.object({
-  provider: z.literal("ELEVENLABS"),
+  provider: z.literal('ELEVENLABS'),
   voiceId: z.string().min(1),
   displayName: z.string().min(1),
   supportedLanguages: z.array(SupportedLanguageEnum).min(1),
@@ -37,9 +31,7 @@ export const BusinessVoiceConfigurationSchema = z.object({
   pronunciationDictionaryId: z.string().optional(),
   speakingStyle: z.string(),
 });
-export type BusinessVoiceConfiguration = z.infer<
-  typeof BusinessVoiceConfigurationSchema
->;
+export type BusinessVoiceConfiguration = z.infer<typeof BusinessVoiceConfigurationSchema>;
 
 export const ServiceDefinitionSchema = z.object({
   id: z.string(),
@@ -75,9 +67,9 @@ export type WorkingHoursPolicy = z.infer<typeof WorkingHoursPolicySchema>;
 
 export const PricingPolicySchema = z.object({
   serviceId: z.string(),
-  pricingType: z.enum(["FIXED", "HOURLY", "CUSTOM", "FREE_CONSULTATION"]),
+  pricingType: z.enum(['FIXED', 'HOURLY', 'CUSTOM', 'FREE_CONSULTATION']),
   amount: z.number().optional(),
-  currency: z.string().default("USD"),
+  currency: z.string().default('USD'),
   description: z.string(),
   disclaimer: z.string().optional(),
 });
@@ -100,14 +92,12 @@ export const ApprovedKnowledgeEntrySchema = z.object({
   sourceId: z.string().optional(),
   citation: z.string().optional(),
 });
-export type ApprovedKnowledgeEntry = z.infer<
-  typeof ApprovedKnowledgeEntrySchema
->;
+export type ApprovedKnowledgeEntry = z.infer<typeof ApprovedKnowledgeEntrySchema>;
 
 export const IntakeFieldDefinitionSchema = z.object({
   key: z.string(),
   label: z.string(),
-  type: z.enum(["text", "phone", "email", "date", "number", "select"]),
+  type: z.enum(['text', 'phone', 'email', 'date', 'number', 'select']),
   required: z.boolean(),
   description: z.string(),
   options: z.array(z.string()).optional(),
@@ -123,7 +113,7 @@ export const QualificationPolicySchema = z.object({
       weight: z.number(),
       condition: z.string(),
       scoringGuide: z.string(),
-    }),
+    })
   ),
   thresholds: z.object({
     hot: z.number(),
@@ -153,8 +143,8 @@ export const EscalationPolicySchema = z.object({
       id: z.string(),
       condition: z.string(),
       reason: z.string(),
-      urgency: z.enum(["HIGH", "CRITICAL"]),
-    }),
+      urgency: z.enum(['HIGH', 'CRITICAL']),
+    })
   ),
 });
 export type EscalationPolicy = z.infer<typeof EscalationPolicySchema>;
@@ -171,7 +161,7 @@ export const LocalizedDisclaimerSchema = z.object({
   id: z.string(),
   category: z.string(),
   text: z.record(SupportedLanguageEnum, z.string()),
-  mandatoryPosition: z.enum(["GREETING", "INTAKE", "BOOKING", "EVERY_TURN"]),
+  mandatoryPosition: z.enum(['GREETING', 'INTAKE', 'BOOKING', 'EVERY_TURN']),
 });
 export type LocalizedDisclaimer = z.infer<typeof LocalizedDisclaimerSchema>;
 
@@ -185,7 +175,7 @@ export type PronunciationEntry = z.infer<typeof PronunciationEntrySchema>;
 export const KnowledgeSourceSchema = z.object({
   id: z.string(),
   title: z.string(),
-  type: z.enum(["PDF", "DOCX", "TXT", "MARKDOWN", "URL", "STRUCTURED_FAQ"]),
+  type: z.enum(['PDF', 'DOCX', 'TXT', 'MARKDOWN', 'URL', 'STRUCTURED_FAQ']),
   sourceUrlOrPath: z.string().optional(),
   indexedAt: z.string(),
   version: z.string(),
@@ -216,8 +206,6 @@ export const BusinessTrainingPackSchema = z.object({
 
 export type BusinessTrainingPack = z.infer<typeof BusinessTrainingPackSchema>;
 
-export function validateBusinessTrainingPack(
-  pack: unknown,
-): BusinessTrainingPack {
+export function validateBusinessTrainingPack(pack: unknown): BusinessTrainingPack {
   return BusinessTrainingPackSchema.parse(pack);
 }

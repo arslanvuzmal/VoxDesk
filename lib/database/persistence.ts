@@ -1,20 +1,20 @@
-import { prisma } from "./index";
-import { FinalCallResult } from "@/lib/conversation/types/final-call-result";
-import { encryptSensitiveValue } from "@/lib/security/encryption";
+import { prisma } from './index';
+import { FinalCallResult } from '@/lib/conversation/types/final-call-result';
+import { encryptSensitiveValue } from '@/lib/security/encryption';
 
 export function formatMaskedPhoneNumber(phone: string): string {
-  if (!phone) return "+1 (555) ***-2834";
-  const digits = phone.replace(/\D/g, "");
+  if (!phone) return '+1 (555) ***-2834';
+  const digits = phone.replace(/\D/g, '');
   if (digits.length >= 4) {
     const last4 = digits.slice(-4);
     return `+1 (555) ***-${last4}`;
   }
-  return "+1 (555) ***-2834";
+  return '+1 (555) ***-2834';
 }
 
 export async function persistFinalCallResult(
   result: FinalCallResult,
-  targetWorkspaceId?: string,
+  targetWorkspaceId?: string
 ): Promise<{
   success: boolean;
   persisted: boolean;
@@ -32,17 +32,17 @@ export async function persistFinalCallResult(
       (result.accumulatedFields.fullName as string) ||
       (result.accumulatedFields.patientName as string) ||
       (result.accumulatedFields.customerName as string) ||
-      "Anonymous Caller";
+      'Anonymous Caller';
 
     const rawPhone =
       (result.accumulatedFields.contactPhone as string) ||
       (result.accumulatedFields.phone as string) ||
-      "+15550192834";
+      '+15550192834';
 
     const rawEmail =
       (result.accumulatedFields.workEmail as string) ||
       (result.accumulatedFields.email as string) ||
-      "caller@demo.voxdesk.ai";
+      'caller@demo.voxdesk.ai';
 
     const maskedPhone = formatMaskedPhoneNumber(rawPhone);
     const encryptedPhone = encryptSensitiveValue(rawPhone);
@@ -52,7 +52,7 @@ export async function persistFinalCallResult(
       (result.accumulatedFields.serviceInterest as string) ||
       (result.accumulatedFields.legalCategory as string) ||
       (result.accumulatedFields.issueCategory as string) ||
-      "General Service Consultation";
+      'General Service Consultation';
 
     // Use Prisma transaction to persist full record graph atomically
     const txResult = await prisma.$transaction(async (tx: any) => {
@@ -63,18 +63,18 @@ export async function persistFinalCallResult(
 
       if (!workspace) {
         workspace = await tx.workspace.findFirst({
-          where: { slug: "demo-workspace" },
+          where: { slug: 'demo-workspace' },
         });
       }
 
       if (!workspace) {
         workspace = await tx.workspace.create({
           data: {
-            id: targetWorkspaceId || "ws_demo_default",
-            name: "Northstar Legal Workspace",
-            slug: "demo-workspace",
-            industry: "LEGAL",
-            timezone: "America/New_York",
+            id: targetWorkspaceId || 'ws_demo_default',
+            name: 'Northstar Legal Workspace',
+            slug: 'demo-workspace',
+            industry: 'LEGAL',
+            timezone: 'America/New_York',
           },
         });
       }
@@ -88,11 +88,11 @@ export async function persistFinalCallResult(
       if (!agent) {
         agent = await tx.voiceAgent.create({
           data: {
-            id: "agent_demo_default",
+            id: 'agent_demo_default',
             workspaceId,
-            name: "Maya (Northstar Legal)",
-            greeting: "Hello, thank you for calling Northstar Legal.",
-            systemInstructions: "You are Maya, senior legal receptionist.",
+            name: 'Maya (Northstar Legal)',
+            greeting: 'Hello, thank you for calling Northstar Legal.',
+            systemInstructions: 'You are Maya, senior legal receptionist.',
           },
         });
       }
@@ -104,17 +104,15 @@ export async function persistFinalCallResult(
         data: {
           workspaceId,
           agentId,
-          provider: "ELEVENLABS",
-          direction: "INBOUND",
+          provider: 'ELEVENLABS',
+          direction: 'INBOUND',
           callerNumberMasked: maskedPhone,
           callerName,
-          status: "COMPLETED",
+          status: 'COMPLETED',
           startedAt: new Date(result.startedAt),
           endedAt: new Date(result.endedAt),
           durationSeconds: result.durationSeconds,
-          outcome: result.qualification
-            ? "LEAD_QUALIFIED"
-            : "QUESTION_ANSWERED",
+          outcome: result.qualification ? 'LEAD_QUALIFIED' : 'QUESTION_ANSWERED',
           qualificationCategory: result.qualification?.category as any,
           qualificationScore: result.qualification?.score,
         },
@@ -125,7 +123,7 @@ export async function persistFinalCallResult(
         await tx.transcriptSegment.createMany({
           data: result.transcript.map((t, idx) => ({
             callId: call.id,
-            speaker: t.role.toLowerCase() === "caller" ? "caller" : "agent",
+            speaker: t.role.toLowerCase() === 'caller' ? 'caller' : 'agent',
             text: t.text,
             startMs: idx * 3000,
             endMs: (idx + 1) * 3000,
@@ -139,8 +137,8 @@ export async function persistFinalCallResult(
           callId: call.id,
           summary: result.summary,
           intent: result.scenario,
-          sentiment: "neutral",
-          urgency: "medium",
+          sentiment: 'neutral',
+          urgency: 'medium',
           actionItems: result.businessActions as any,
           commitments: [],
           followUpRecommendation: result.qualification?.recommendedAction,
@@ -160,7 +158,7 @@ export async function persistFinalCallResult(
             serviceInterest,
             score: result.qualification.score,
             category: result.qualification.category as any,
-            status: "NEW",
+            status: 'NEW',
           },
         });
         leadId = lead.id;
@@ -169,7 +167,7 @@ export async function persistFinalCallResult(
       let appointmentId: string | undefined;
       // 6. Create Appointment Record if appointment action succeeded
       const apptAction = result.businessActions?.find(
-        (a: any) => a.actionType === "RESERVE_APPOINTMENT",
+        (a: any) => a.actionType === 'RESERVE_APPOINTMENT'
       ) as any;
 
       if (apptAction) {
@@ -189,8 +187,8 @@ export async function persistFinalCallResult(
             service: serviceInterest,
             startTime,
             endTime,
-            timezone: result.organization.id || "America/New_York",
-            status: "CONFIRMED",
+            timezone: result.organization.id || 'America/New_York',
+            status: 'CONFIRMED',
           },
         });
         appointmentId = appt.id;
@@ -200,13 +198,13 @@ export async function persistFinalCallResult(
       const activity = await tx.cRMActivity.create({
         data: {
           workspaceId,
-          activityType: "CALL_LOG",
+          activityType: 'CALL_LOG',
           details: {
             callId: call.id,
             duration: result.durationSeconds,
             summary: result.summary,
           },
-          status: "SYNCED",
+          status: 'SYNCED',
         },
       });
 
@@ -214,8 +212,8 @@ export async function persistFinalCallResult(
       const audit = await tx.auditLog.create({
         data: {
           workspaceId,
-          action: "VOICE_CALL_COMPLETED",
-          entityType: "CALL",
+          action: 'VOICE_CALL_COMPLETED',
+          entityType: 'CALL',
           entityId: call.id,
           metadata: {
             turns: result.turnsCompleted,
@@ -239,12 +237,12 @@ export async function persistFinalCallResult(
       recordIds: txResult,
     };
   } catch (error: any) {
-    console.error("[DATABASE PERSISTENCE ERROR]:", error?.message || error);
+    console.error('[DATABASE PERSISTENCE ERROR]:', error?.message || error);
     return {
       success: false,
       persisted: false,
       recordIds: {},
-      error: error?.message || "Database transaction failed",
+      error: error?.message || 'Database transaction failed',
     };
   }
 }

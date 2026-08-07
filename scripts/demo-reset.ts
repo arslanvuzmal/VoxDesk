@@ -1,14 +1,12 @@
-import { demoSessionStore } from "../lib/demo/store";
+import { demoSessionStore } from '../lib/demo/store';
 
 async function main() {
-  console.log(
-    "🧹 Resetting VoxDesk AI demo session stores and rate limit counters...",
-  );
+  console.log('🧹 Resetting VoxDesk AI demo session stores and rate limit counters...');
   try {
     await demoSessionStore.clearAllSessions();
-    console.log("✅ Demo session store successfully reset.");
+    console.log('✅ Demo session store successfully reset.');
   } catch (err) {
-    console.error("❌ Failed to reset demo store:", err);
+    console.error('❌ Failed to reset demo store:', err);
   }
 }
 

@@ -3,25 +3,25 @@ import {
   AvailableSlot,
   AppointmentCreateInput,
   CalendarAppointmentRecord,
-} from "./interface";
+} from './interface';
 
 export class DemoCalendarProvider implements CalendarProvider {
-  public readonly providerType = "DEMO";
+  public readonly providerType = 'DEMO';
   private appointments: Map<string, CalendarAppointmentRecord> = new Map();
 
   async listServices(): Promise<string[]> {
     return [
-      "Initial Legal Consultation (30 mins)",
-      "Contract Review & Advice (60 mins)",
-      "Dental Examination & Hygiene (45 mins)",
-      "Property Valuation Inspection (60 mins)",
+      'Initial Legal Consultation (30 mins)',
+      'Contract Review & Advice (60 mins)',
+      'Dental Examination & Hygiene (45 mins)',
+      'Property Valuation Inspection (60 mins)',
     ];
   }
 
   async checkAvailability(
     _service: string,
     targetDate: Date,
-    _timezone: string,
+    _timezone: string
   ): Promise<AvailableSlot[]> {
     const base = new Date(targetDate);
     base.setHours(14, 0, 0, 0); // 2:00 PM
@@ -36,21 +36,19 @@ export class DemoCalendarProvider implements CalendarProvider {
       {
         startTime: base,
         endTime: slot1End,
-        formattedTime: "Tuesday at 2:00 PM EST",
+        formattedTime: 'Tuesday at 2:00 PM EST',
         available: true,
       },
       {
         startTime: slot2,
         endTime: slot2End,
-        formattedTime: "Tuesday at 3:30 PM EST",
+        formattedTime: 'Tuesday at 3:30 PM EST',
         available: true,
       },
     ];
   }
 
-  async createAppointment(
-    input: AppointmentCreateInput,
-  ): Promise<CalendarAppointmentRecord> {
+  async createAppointment(input: AppointmentCreateInput): Promise<CalendarAppointmentRecord> {
     const id = `demo-appt-${Date.now()}`;
     const record: CalendarAppointmentRecord = {
       id,
@@ -60,7 +58,7 @@ export class DemoCalendarProvider implements CalendarProvider {
       startTime: input.startTime,
       endTime: input.endTime,
       timezone: input.timezone,
-      status: "CONFIRMED",
+      status: 'CONFIRMED',
     };
     this.appointments.set(id, record);
     return record;
@@ -69,7 +67,7 @@ export class DemoCalendarProvider implements CalendarProvider {
   async rescheduleAppointment(
     appointmentId: string,
     newStartTime: Date,
-    _timezone: string,
+    _timezone: string
   ): Promise<CalendarAppointmentRecord> {
     const existing = this.appointments.get(appointmentId);
     if (!existing) {
@@ -77,22 +75,20 @@ export class DemoCalendarProvider implements CalendarProvider {
     }
     existing.startTime = newStartTime;
     existing.endTime = new Date(newStartTime.getTime() + 30 * 60 * 1000);
-    existing.status = "RESCHEDULED";
+    existing.status = 'RESCHEDULED';
     return existing;
   }
 
   async cancelAppointment(appointmentId: string): Promise<boolean> {
     const existing = this.appointments.get(appointmentId);
     if (existing) {
-      existing.status = "CANCELLED";
+      existing.status = 'CANCELLED';
       return true;
     }
     return false;
   }
 
-  async getAppointment(
-    appointmentId: string,
-  ): Promise<CalendarAppointmentRecord | null> {
+  async getAppointment(appointmentId: string): Promise<CalendarAppointmentRecord | null> {
     return this.appointments.get(appointmentId) || null;
   }
 }

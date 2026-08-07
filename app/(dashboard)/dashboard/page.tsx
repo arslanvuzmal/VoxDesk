@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from 'next/link';
 import {
   PhoneCall,
   Calendar,
@@ -12,7 +12,7 @@ import {
   Download,
   Building2,
   UserCheck,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function DashboardOverviewPage() {
   return (
@@ -26,9 +26,7 @@ export default function DashboardOverviewPage() {
             <span>•</span>
             <span>English (en-US) Workspace</span>
           </div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
-            Operational Dashboard
-          </h1>
+          <h1 className="text-xl font-bold text-white tracking-tight">Operational Dashboard</h1>
           <p className="text-xs text-[#8B949E]">
             Real-time inbound call metrics, qualified leads, and appointment booking activity.
           </p>
@@ -67,9 +65,7 @@ export default function DashboardOverviewPage() {
               <TrendingUp className="w-3 h-3" /> +14% vs yesterday
             </span>
           </div>
-          <p className="text-[11px] text-[#8B949E]">
-            Automated intake conversations
-          </p>
+          <p className="text-[11px] text-[#8B949E]">Automated intake conversations</p>
         </div>
 
         {/* Appointments Booked */}
@@ -88,9 +84,7 @@ export default function DashboardOverviewPage() {
               <TrendingUp className="w-3 h-3" /> 42.8% conversion
             </span>
           </div>
-          <p className="text-[11px] text-[#8B949E]">
-            Calendar slots booked automatically
-          </p>
+          <p className="text-[11px] text-[#8B949E]">Calendar slots booked automatically</p>
         </div>
 
         {/* Qualified Enquiries */}
@@ -105,13 +99,9 @@ export default function DashboardOverviewPage() {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-bold text-white font-mono">14</span>
-            <span className="text-[11px] font-mono text-[#79C0FF]">
-              Score ≥ 75
-            </span>
+            <span className="text-[11px] font-mono text-[#79C0FF]">Score ≥ 75</span>
           </div>
-          <p className="text-[11px] text-[#8B949E]">
-            Verified intake requirements
-          </p>
+          <p className="text-[11px] text-[#8B949E]">Verified intake requirements</p>
         </div>
 
         {/* Escalations Needing Review */}
@@ -126,13 +116,9 @@ export default function DashboardOverviewPage() {
           </div>
           <div className="flex items-baseline justify-between">
             <span className="text-2xl font-bold text-white font-mono">3</span>
-            <span className="text-[11px] font-mono text-[#D29922]">
-              Requires Operator Action
-            </span>
+            <span className="text-[11px] font-mono text-[#D29922]">Requires Operator Action</span>
           </div>
-          <p className="text-[11px] text-[#8B949E]">
-            Pending legal counsel review
-          </p>
+          <p className="text-[11px] text-[#8B949E]">Pending legal counsel review</p>
         </div>
       </div>
 

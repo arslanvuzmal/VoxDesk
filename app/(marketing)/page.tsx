@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
-import { IndustrySelector } from "@/components/home/industry-selector";
-import { ImpactEstimator } from "@/components/home/impact-estimator";
+import Link from 'next/link';
+import { Navbar } from '@/components/ui/navbar';
+import { Footer } from '@/components/ui/footer';
+import { IndustrySelector } from '@/components/home/industry-selector';
+import { ImpactEstimator } from '@/components/home/impact-estimator';
 import {
   ArrowRight,
   Phone,
@@ -23,7 +23,7 @@ import {
   Server,
   Zap,
   Bot,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -44,7 +44,9 @@ export default function LandingPage() {
             </h1>
 
             <p className="text-base sm:text-lg text-[#475569] font-normal leading-relaxed">
-              VoxDesk connects voice conversations with your website, phone system, calendar and CRM. It can handle routine enquiries, qualify sales opportunities, schedule appointments and prepare human handoffs from one operational workspace.
+              VoxDesk connects voice conversations with your website, phone system, calendar and
+              CRM. It can handle routine enquiries, qualify sales opportunities, schedule
+              appointments and prepare human handoffs from one operational workspace.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
@@ -79,7 +81,9 @@ export default function LandingPage() {
                   <span className="w-3 h-3 rounded-full bg-[#EF4444]" />
                   <span className="w-3 h-3 rounded-full bg-[#F59E0B]" />
                   <span className="w-3 h-3 rounded-full bg-[#10B981]" />
-                  <span className="text-xs font-mono text-[#64748B] ml-2">VoxDesk Live Call Inbox</span>
+                  <span className="text-xs font-mono text-[#64748B] ml-2">
+                    VoxDesk Live Call Inbox
+                  </span>
                 </div>
                 <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#15803D]/20">
                   Active Session
@@ -91,7 +95,9 @@ export default function LandingPage() {
                 <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
                   <div>
                     <p className="font-bold text-[#0F172A] text-sm">Sarah Miller</p>
-                    <p className="text-[11px] text-[#64748B] font-mono">+1 (555) 234-5678 • Corporate Retainer Inquiry</p>
+                    <p className="text-[11px] text-[#64748B] font-mono">
+                      +1 (555) 234-5678 • Corporate Retainer Inquiry
+                    </p>
                   </div>
                   <span className="px-2.5 py-1 rounded bg-[#EFF6FF] text-[#1D4ED8] font-mono font-semibold border border-[#1D4ED8]/20">
                     BANT Score: 85/100
@@ -99,15 +105,21 @@ export default function LandingPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[11px] font-bold text-[#64748B] uppercase">Live Voice Transcript Summary</p>
+                  <p className="text-[11px] font-bold text-[#64748B] uppercase">
+                    Live Voice Transcript Summary
+                  </p>
                   <p className="p-3 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-[#334155] leading-relaxed">
-                    &quot;Caller requested legal representation for a commercial contract dispute. Verified budget authority and booked consultation slot for Thursday 2:00 PM.&quot;
+                    &quot;Caller requested legal representation for a commercial contract dispute.
+                    Verified budget authority and booked consultation slot for Thursday 2:00
+                    PM.&quot;
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div className="p-2.5 rounded bg-[#F8FAFC] border border-[#E2E8F0]">
-                    <span className="text-[10px] text-[#64748B] uppercase block">Appointment Status</span>
+                    <span className="text-[10px] text-[#64748B] uppercase block">
+                      Appointment Status
+                    </span>
                     <span className="font-bold text-[#15803D] flex items-center gap-1 mt-0.5">
                       <CheckCircle2 className="w-3.5 h-3.5" /> Confirmed (Aug 8)
                     </span>
@@ -183,15 +195,46 @@ export default function LandingPage() {
           {/* 7-Step Horizontal Workflow Visualization */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 text-xs">
             {[
-              { step: "1", title: "Customer Call", desc: "Inbound phone or web voice" },
-              { step: "2", title: "Intent Identification", desc: "AI maps caller need" },
-              { step: "3", title: "Approved Knowledge", desc: "Grounded RAG retrieval" },
-              { step: "4", title: "Detail Collection", desc: "BANT qualification fields" },
-              { step: "5", title: "Action Selection", desc: "Booking or escalation" },
-              { step: "6", title: "CRM Sync", desc: "Record written to workspace" },
-              { step: "7", title: "Human Handoff", desc: "Team takes over if needed" },
-            ].map((item) => (
-              <div key={item.step} className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] space-y-1">
+              {
+                step: '1',
+                title: 'Customer Call',
+                desc: 'Inbound phone or web voice',
+              },
+              {
+                step: '2',
+                title: 'Intent Identification',
+                desc: 'AI maps caller need',
+              },
+              {
+                step: '3',
+                title: 'Approved Knowledge',
+                desc: 'Grounded RAG retrieval',
+              },
+              {
+                step: '4',
+                title: 'Detail Collection',
+                desc: 'BANT qualification fields',
+              },
+              {
+                step: '5',
+                title: 'Action Selection',
+                desc: 'Booking or escalation',
+              },
+              {
+                step: '6',
+                title: 'CRM Sync',
+                desc: 'Record written to workspace',
+              },
+              {
+                step: '7',
+                title: 'Human Handoff',
+                desc: 'Team takes over if needed',
+              },
+            ].map(item => (
+              <div
+                key={item.step}
+                className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] space-y-1"
+              >
                 <span className="w-5 h-5 rounded-full bg-[#1D4ED8] text-white text-[10px] font-bold flex items-center justify-center">
                   {item.step}
                 </span>
@@ -239,7 +282,8 @@ export default function LandingPage() {
               See how VoxDesk fits your operation.
             </h2>
             <p className="text-sm text-[#64748B]">
-              Explore pre-configured operational templates, information requirements, and human handoff rules.
+              Explore pre-configured operational templates, information requirements, and human
+              handoff rules.
             </p>
           </div>
 
@@ -255,7 +299,8 @@ export default function LandingPage() {
               Understand the operational effect before you deploy.
             </h2>
             <p className="text-sm text-[#64748B]">
-              Adjust your monthly call parameters below to calculate transparent operational estimates.
+              Adjust your monthly call parameters below to calculate transparent operational
+              estimates.
             </p>
           </div>
 
@@ -280,13 +325,24 @@ export default function LandingPage() {
                 <h3 className="text-sm font-bold text-[#0F172A]">Inbound Answering Workflows</h3>
               </div>
               <p className="text-[#64748B] leading-relaxed">
-                Customer calls &rarr; VoxDesk answers immediately &rarr; intent identified &rarr; approved questions answered &rarr; intake details collected &rarr; appointment or handoff prepared &rarr; conversation added to CRM.
+                Customer calls &rarr; VoxDesk answers immediately &rarr; intent identified &rarr;
+                approved questions answered &rarr; intake details collected &rarr; appointment or
+                handoff prepared &rarr; conversation added to CRM.
               </p>
               <ul className="space-y-2 text-[#475569]">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> 24/7 Enquiry Handling</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Automated Consultation Booking</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Lead BANT Qualification</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Immediate Operator Handoff</li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> 24/7 Enquiry Handling
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Automated Consultation
+                  Booking
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Lead BANT Qualification
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#15803D]" /> Immediate Operator Handoff
+                </li>
               </ul>
             </div>
 
@@ -297,13 +353,25 @@ export default function LandingPage() {
                 <h3 className="text-sm font-bold text-[#0F172A]">Approved Outbound Workflows</h3>
               </div>
               <p className="text-[#64748B] leading-relaxed">
-                Approved trigger &rarr; contact & consent validated &rarr; call initiated &rarr; conversation completed &rarr; outcome recorded &rarr; follow-up or escalation created.
+                Approved trigger &rarr; contact & consent validated &rarr; call initiated &rarr;
+                conversation completed &rarr; outcome recorded &rarr; follow-up or escalation
+                created.
               </p>
               <ul className="space-y-2 text-[#475569]">
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Appointment Reminder Alerts</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Approved Lead Callback Follow-ups</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Missing Document Reminders</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Post-Consultation Surveys</li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Appointment Reminder
+                  Alerts
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Approved Lead Callback
+                  Follow-ups
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Missing Document Reminders
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#1D4ED8]" /> Post-Consultation Surveys
+                </li>
               </ul>
             </div>
           </div>
@@ -311,7 +379,9 @@ export default function LandingPage() {
           <div className="p-4 rounded-lg bg-[#FFFBEB] border border-[#FCD34D] text-xs text-[#78350F] flex items-center gap-3">
             <ShieldCheck className="w-5 h-5 text-[#B45309] shrink-0" />
             <p>
-              <strong>Compliance Notice:</strong> Outbound calling must follow applicable consent, disclosure, do-not-call and jurisdictional requirements. VoxDesk does not initiate automated campaigns without explicit system authorization.
+              <strong>Compliance Notice:</strong> Outbound calling must follow applicable consent,
+              disclosure, do-not-call and jurisdictional requirements. VoxDesk does not initiate
+              automated campaigns without explicit system authorization.
             </p>
           </div>
         </div>
@@ -325,30 +395,49 @@ export default function LandingPage() {
               Add voice assistance to an existing website without rebuilding it.
             </h2>
             <p className="text-sm text-[#64748B]">
-              Integrated into compatible websites through a widget, SDK or custom web implementation.
+              Integrated into compatible websites through a widget, SDK or custom web
+              implementation.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
             <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
-              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">1</span>
+              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">
+                1
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Website Widget</h3>
-              <p className="text-[#64748B]">Compact, lightweight voice control component added to any site via script tag.</p>
-              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">Live in Demo</span>
+              <p className="text-[#64748B]">
+                Compact, lightweight voice control component added to any site via script tag.
+              </p>
+              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">
+                Live in Demo
+              </span>
             </div>
 
             <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
-              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">2</span>
+              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">
+                2
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Custom React SDK</h3>
-              <p className="text-[#64748B]">Fully branded conversation experience embedded within custom React web apps.</p>
-              <span className="inline-block font-mono text-[10px] text-[#1D4ED8] px-2 py-0.5 rounded bg-[#EFF6FF] border border-[#1D4ED8]/20">Configurable</span>
+              <p className="text-[#64748B]">
+                Fully branded conversation experience embedded within custom React web apps.
+              </p>
+              <span className="inline-block font-mono text-[10px] text-[#1D4ED8] px-2 py-0.5 rounded bg-[#EFF6FF] border border-[#1D4ED8]/20">
+                Configurable
+              </span>
             </div>
 
             <div className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-3">
-              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">3</span>
+              <span className="w-6 h-6 rounded bg-[#1D4ED8] text-white font-bold flex items-center justify-center text-xs">
+                3
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Secure Signed Sessions</h3>
-              <p className="text-[#64748B]">Server-authorized WebRTC token sessions for controlled enterprise deployment.</p>
-              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">Live in Demo</span>
+              <p className="text-[#64748B]">
+                Server-authorized WebRTC token sessions for controlled enterprise deployment.
+              </p>
+              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">
+                Live in Demo
+              </span>
             </div>
           </div>
         </div>
@@ -367,7 +456,9 @@ export default function LandingPage() {
             <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#0F172A]">Twilio Phone Number</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20">Configurable</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20">
+                  Configurable
+                </span>
               </div>
               <p className="text-[#64748B]">Direct inbound telephone line connected via webhook.</p>
             </div>
@@ -375,15 +466,21 @@ export default function LandingPage() {
             <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#0F172A]">Existing Telephony</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#FFFBEB] text-[#B45309] border border-[#B45309]/20">Requires Setup</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#FFFBEB] text-[#B45309] border border-[#B45309]/20">
+                  Requires Setup
+                </span>
               </div>
-              <p className="text-[#64748B]">Forward existing office lines to VoxDesk voice agent.</p>
+              <p className="text-[#64748B]">
+                Forward existing office lines to VoxDesk voice agent.
+              </p>
             </div>
 
             <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#0F172A]">SIP Trunk Integration</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]">Planned</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#F1F5F9] text-[#64748B] border border-[#CBD5E1]">
+                  Planned
+                </span>
               </div>
               <p className="text-[#64748B]">Enterprise PBX & Voice Gateway connection.</p>
             </div>
@@ -391,9 +488,13 @@ export default function LandingPage() {
             <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-[#0F172A]">Browser Voice Demo</span>
-                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#15803D]/20">Live</span>
+                <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[#F0FDF4] text-[#15803D] border border-[#15803D]/20">
+                  Live
+                </span>
               </div>
-              <p className="text-[#64748B]">Test immediate voice calls directly inside web browser.</p>
+              <p className="text-[#64748B]">
+                Test immediate voice calls directly inside web browser.
+              </p>
             </div>
           </div>
         </div>
@@ -411,7 +512,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
             {/* START */}
             <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-3">
-              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">STAGE 1: START</span>
+              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">
+                STAGE 1: START
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Single Business Answering</h3>
               <ul className="space-y-1.5 text-[#475569]">
                 <li>• One business profile & agent</li>
@@ -419,12 +522,16 @@ export default function LandingPage() {
                 <li>• Simple booking or BANT intake</li>
                 <li>• Shared conversation inbox</li>
               </ul>
-              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">Implemented</span>
+              <span className="inline-block font-mono text-[10px] text-[#15803D] px-2 py-0.5 rounded bg-[#F0FDF4] border border-[#15803D]/20">
+                Implemented
+              </span>
             </div>
 
             {/* GROW */}
             <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-3">
-              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">STAGE 2: GROW</span>
+              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">
+                STAGE 2: GROW
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Multi-Department Operations</h3>
               <ul className="space-y-1.5 text-[#475569]">
                 <li>• Multiple departments & agents</li>
@@ -432,12 +539,16 @@ export default function LandingPage() {
                 <li>• Team member assignment</li>
                 <li>• Structured review queues</li>
               </ul>
-              <span className="inline-block font-mono text-[10px] text-[#1D4ED8] px-2 py-0.5 rounded bg-[#EFF6FF] border border-[#1D4ED8]/20">Configured</span>
+              <span className="inline-block font-mono text-[10px] text-[#1D4ED8] px-2 py-0.5 rounded bg-[#EFF6FF] border border-[#1D4ED8]/20">
+                Configured
+              </span>
             </div>
 
             {/* ENTERPRISE */}
             <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-3">
-              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">STAGE 3: ENTERPRISE</span>
+              <span className="px-2 py-0.5 rounded bg-[#1D4ED8]/10 text-[#1D4ED8] font-bold uppercase text-[10px]">
+                STAGE 3: ENTERPRISE
+              </span>
               <h3 className="font-bold text-[#0F172A] text-sm">Organization Governance</h3>
               <ul className="space-y-1.5 text-[#475569]">
                 <li>• Multi-workspace isolation</li>
@@ -445,7 +556,9 @@ export default function LandingPage() {
                 <li>• Provider monitoring & failover</li>
                 <li>• Regional compliance controls</li>
               </ul>
-              <span className="inline-block font-mono text-[10px] text-[#64748B] px-2 py-0.5 rounded bg-[#F1F5F9] border border-[#CBD5E1]">Architecture Target</span>
+              <span className="inline-block font-mono text-[10px] text-[#64748B] px-2 py-0.5 rounded bg-[#F1F5F9] border border-[#CBD5E1]">
+                Architecture Target
+              </span>
             </div>
           </div>
         </div>

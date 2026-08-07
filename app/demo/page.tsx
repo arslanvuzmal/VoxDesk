@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import dynamic from "next/dynamic";
-import { Navbar } from "@/components/ui/navbar";
-import { Briefcase, AlertTriangle } from "lucide-react";
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
+import { Navbar } from '@/components/ui/navbar';
+import { Briefcase, AlertTriangle } from 'lucide-react';
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
 const ElevenLabsVoiceController = dynamic(
   () =>
-    import("@/components/calls/elevenlabs-voice-controller").then(
-      (mod) => mod.ElevenLabsVoiceController
+    import('@/components/calls/elevenlabs-voice-controller').then(
+      mod => mod.ElevenLabsVoiceController
     ),
   {
     ssr: false,
@@ -23,39 +23,39 @@ const ElevenLabsVoiceController = dynamic(
 );
 
 export default function DemoPage() {
-  const [selectedPresetKey, setSelectedPresetKey] = useState<string>("LEGAL");
-  const [selectedLanguage, setSelectedLanguage] = useState<string>("en-US");
+  const [selectedPresetKey, setSelectedPresetKey] = useState<string>('LEGAL');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en-US');
   const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
 
   const presets = [
     {
-      presetKey: "LEGAL",
-      name: "Northstar Legal Consultations",
-      tagline: "Legal intake, appointment assistance & attorney inquiry routing",
+      presetKey: 'LEGAL',
+      name: 'Northstar Legal Consultations',
+      tagline: 'Legal intake, appointment assistance & attorney inquiry routing',
       supported: true,
     },
     {
-      presetKey: "HEALTHCARE",
-      name: "Aura Health Clinic",
-      tagline: "Medical consultation & specialist booking",
+      presetKey: 'HEALTHCARE',
+      name: 'Aura Health Clinic',
+      tagline: 'Medical consultation & specialist booking',
       supported: false,
     },
     {
-      presetKey: "REAL_ESTATE",
-      name: "Meridian Prime Realty",
-      tagline: "Property inquiry & tour scheduling",
+      presetKey: 'REAL_ESTATE',
+      name: 'Meridian Prime Realty',
+      tagline: 'Property inquiry & tour scheduling',
       supported: false,
     },
     {
-      presetKey: "HOME_SERVICES",
-      name: "Apex Home Services",
-      tagline: "Emergency repair & service dispatch",
+      presetKey: 'HOME_SERVICES',
+      name: 'Apex Home Services',
+      tagline: 'Emergency repair & service dispatch',
       supported: false,
     },
     {
-      presetKey: "B2B_SERVICES",
-      name: "Cortex AI Enterprise",
-      tagline: "B2B software demo & sales intake",
+      presetKey: 'B2B_SERVICES',
+      name: 'Cortex AI Enterprise',
+      tagline: 'B2B software demo & sales intake',
       supported: false,
     },
   ];
@@ -63,9 +63,9 @@ export default function DemoPage() {
   const handleSelectPreset = (key: string, supported: boolean) => {
     if (!supported) {
       setSelectionNotice(
-        "Not configured for the live provider yet. Please select Northstar Legal Consultations (English)."
+        'Not configured for the live provider yet. Please select Northstar Legal Consultations (English).'
       );
-      setSelectedPresetKey("LEGAL");
+      setSelectedPresetKey('LEGAL');
     } else {
       setSelectionNotice(null);
       setSelectedPresetKey(key);
@@ -75,9 +75,9 @@ export default function DemoPage() {
   const handleSelectLanguage = (lang: string, supported: boolean) => {
     if (!supported) {
       setSelectionNotice(
-        "Not configured for the live provider yet. Only English (en-US) is supported in this deployment."
+        'Not configured for the live provider yet. Only English (en-US) is supported in this deployment.'
       );
-      setSelectedLanguage("en-US");
+      setSelectedLanguage('en-US');
     } else {
       setSelectionNotice(null);
       setSelectedLanguage(lang);
@@ -99,7 +99,8 @@ export default function DemoPage() {
               Live Voice Agent Sandbox
             </h1>
             <p className="text-sm text-[#64748B] max-w-xl mx-auto">
-              Test real-time speech conversation over WebRTC powered by ElevenLabs Conversational AI.
+              Test real-time speech conversation over WebRTC powered by ElevenLabs Conversational
+              AI.
             </p>
           </div>
 
@@ -117,7 +118,7 @@ export default function DemoPage() {
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {presets.map((p) => {
+              {presets.map(p => {
                 const isSelected = selectedPresetKey === p.presetKey;
                 return (
                   <button
@@ -126,25 +127,19 @@ export default function DemoPage() {
                     onClick={() => handleSelectPreset(p.presetKey, p.supported)}
                     className={`p-4 rounded-xl border text-left transition-all space-y-2 relative shadow-sm ${
                       isSelected
-                        ? "bg-white border-[#1D4ED8] shadow-md ring-2 ring-[#1D4ED8]/10"
+                        ? 'bg-white border-[#1D4ED8] shadow-md ring-2 ring-[#1D4ED8]/10'
                         : p.supported
-                        ? "bg-white border-[#E2E8F0] hover:border-[#CBD5E1]"
-                        : "bg-[#F1F5F9] border-[#E2E8F0] opacity-60 cursor-not-allowed"
+                          ? 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
+                          : 'bg-[#F1F5F9] border-[#E2E8F0] opacity-60 cursor-not-allowed'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#0F172A] text-sm">
-                        {p.name}
-                      </span>
+                      <span className="font-bold text-[#0F172A] text-sm">{p.name}</span>
                       <Briefcase
-                        className={`w-4 h-4 ${
-                          isSelected ? "text-[#1D4ED8]" : "text-[#64748B]"
-                        }`}
+                        className={`w-4 h-4 ${isSelected ? 'text-[#1D4ED8]' : 'text-[#64748B]'}`}
                       />
                     </div>
-                    <p className="text-xs text-[#64748B] line-clamp-2">
-                      {p.tagline}
-                    </p>
+                    <p className="text-xs text-[#64748B] line-clamp-2">{p.tagline}</p>
                     {!p.supported && (
                       <span className="inline-block mt-1 text-[10px] font-mono text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded border border-[#FCD34D]">
                         Not configured for live provider
@@ -165,11 +160,11 @@ export default function DemoPage() {
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
-                onClick={() => handleSelectLanguage("en-US", true)}
+                onClick={() => handleSelectLanguage('en-US', true)}
                 className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all shadow-sm ${
-                  selectedLanguage === "en-US"
-                    ? "bg-white border-[#1D4ED8] text-[#1D4ED8] ring-2 ring-[#1D4ED8]/10"
-                    : "bg-white border-[#E2E8F0] text-[#475569]"
+                  selectedLanguage === 'en-US'
+                    ? 'bg-white border-[#1D4ED8] text-[#1D4ED8] ring-2 ring-[#1D4ED8]/10'
+                    : 'bg-white border-[#E2E8F0] text-[#475569]'
                 }`}
               >
                 🇬🇧 English (en-US)
@@ -177,24 +172,20 @@ export default function DemoPage() {
 
               <button
                 type="button"
-                onClick={() => handleSelectLanguage("ur-PK", false)}
+                onClick={() => handleSelectLanguage('ur-PK', false)}
                 className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
                 <span>🇵🇰 Urdu (اردو)</span>
-                <span className="text-[9px] text-[#B45309]">
-                  Not configured for live provider
-                </span>
+                <span className="text-[9px] text-[#B45309]">Not configured for live provider</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleSelectLanguage("es-ES", false)}
+                onClick={() => handleSelectLanguage('es-ES', false)}
                 className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
               >
                 <span>🇪🇸 Spanish (Español)</span>
-                <span className="text-[9px] text-[#B45309]">
-                  Not configured for live provider
-                </span>
+                <span className="text-[9px] text-[#B45309]">Not configured for live provider</span>
               </button>
             </div>
           </div>

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Sliders, TrendingUp, Clock, Users, DollarSign, Calendar, Info } from "lucide-react";
+import { useState } from 'react';
+import { Sliders, TrendingUp, Clock, Users, DollarSign, Calendar, Info } from 'lucide-react';
 
 export function ImpactEstimator() {
   const [monthlyCalls, setMonthlyCalls] = useState(250);
@@ -23,7 +23,8 @@ export function ImpactEstimator() {
       <div className="p-3.5 rounded-lg bg-[#EFF6FF] border border-[#1D4ED8]/20 flex items-center gap-2.5 text-xs text-[#1D4ED8]">
         <Info className="w-4 h-4 shrink-0" />
         <span className="font-semibold">
-          Illustrative operational estimate based on your inputs. Not a guarantee of business results.
+          Illustrative operational estimate based on your inputs. Not a guarantee of business
+          results.
         </span>
       </div>
 
@@ -50,7 +51,7 @@ export function ImpactEstimator() {
               max="2000"
               step="25"
               value={monthlyCalls}
-              onChange={(e) => setMonthlyCalls(Number(e.target.value))}
+              onChange={e => setMonthlyCalls(Number(e.target.value))}
               className="w-full accent-[#1D4ED8]"
             />
           </div>
@@ -67,7 +68,7 @@ export function ImpactEstimator() {
               max="50"
               step="5"
               value={unansweredPct}
-              onChange={(e) => setUnansweredPct(Number(e.target.value))}
+              onChange={e => setUnansweredPct(Number(e.target.value))}
               className="w-full accent-[#1D4ED8]"
             />
           </div>
@@ -84,7 +85,7 @@ export function ImpactEstimator() {
               max="15"
               step="1"
               value={handlingMins}
-              onChange={(e) => setHandlingMins(Number(e.target.value))}
+              onChange={e => setHandlingMins(Number(e.target.value))}
               className="w-full accent-[#1D4ED8]"
             />
           </div>
@@ -101,7 +102,7 @@ export function ImpactEstimator() {
               max="5000"
               step="100"
               value={dealValue}
-              onChange={(e) => setDealValue(Number(e.target.value))}
+              onChange={e => setDealValue(Number(e.target.value))}
               className="w-full accent-[#1D4ED8]"
             />
           </div>
@@ -118,7 +119,7 @@ export function ImpactEstimator() {
               max="70"
               step="5"
               value={bookingPct}
-              onChange={(e) => setBookingPct(Number(e.target.value))}
+              onChange={e => setBookingPct(Number(e.target.value))}
               className="w-full accent-[#1D4ED8]"
             />
           </div>
@@ -156,7 +157,9 @@ export function ImpactEstimator() {
               <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider">
                 Pipeline Value
               </span>
-              <p className="text-2xl font-bold text-[#1D4ED8] font-mono">${potentialValue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-[#1D4ED8] font-mono">
+                ${potentialValue.toLocaleString()}
+              </p>
               <p className="text-[11px] text-[#64748B]">Est. monthly value</p>
             </div>
           </div>

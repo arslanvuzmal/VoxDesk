@@ -1,49 +1,42 @@
-import { Navbar } from "@/components/ui/navbar";
-import {
-  Building2,
-  Stethoscope,
-  Scale,
-  Home,
-  Wrench,
-  Sparkles,
-} from "lucide-react";
+import { Navbar } from '@/components/ui/navbar';
+import { Building2, Stethoscope, Scale, Home, Wrench, Sparkles } from 'lucide-react';
 
 const TEMPLATES = [
   {
-    title: "Dental & Medical Clinics",
+    title: 'Dental & Medical Clinics',
     icon: Stethoscope,
     description:
-      "Patient appointment booking, after-hours intake, emergency triage escalation, hygiene appointment scheduling.",
+      'Patient appointment booking, after-hours intake, emergency triage escalation, hygiene appointment scheduling.',
   },
   {
-    title: "Law Offices & Legal Consultations",
+    title: 'Law Offices & Legal Consultations',
     icon: Scale,
     description:
-      "Client consultation scheduling, practice-area qualification, conflict-check disclaimer, urgent legal transfer.",
+      'Client consultation scheduling, practice-area qualification, conflict-check disclaimer, urgent legal transfer.',
   },
   {
-    title: "Real Estate Agencies",
+    title: 'Real Estate Agencies',
     icon: Home,
     description:
-      "Buyer/seller lead classification, property interest intake, viewing appointment scheduling, agent handoff.",
+      'Buyer/seller lead classification, property interest intake, viewing appointment scheduling, agent handoff.',
   },
   {
-    title: "Home Services & Contractors",
+    title: 'Home Services & Contractors',
     icon: Wrench,
     description:
-      "Service request intake, emergency dispatch qualification, quote consultation booking, callback task creation.",
+      'Service request intake, emergency dispatch qualification, quote consultation booking, callback task creation.',
   },
   {
-    title: "Salons & Spas",
+    title: 'Salons & Spas',
     icon: Sparkles,
     description:
-      "Service selection, staff preference management, appointment booking, rescheduling, and cancellation.",
+      'Service selection, staff preference management, appointment booking, rescheduling, and cancellation.',
   },
   {
-    title: "SaaS & Corporate Consulting",
+    title: 'SaaS & Corporate Consulting',
     icon: Building2,
     description:
-      "High-value commercial lead qualification, budget evaluation, instant partner consultation scheduling.",
+      'High-value commercial lead qualification, budget evaluation, instant partner consultation scheduling.',
   },
 ];
 
@@ -56,12 +49,10 @@ export default function IndustriesPage() {
           <span className="px-3 py-1 rounded-full bg-teal-950 text-teal-400 border border-teal-800/60 font-mono text-xs font-semibold">
             INDUSTRY TEMPLATES
           </span>
-          <h1 className="text-4xl font-extrabold text-white">
-            Pre-Configured Industry Workflows
-          </h1>
+          <h1 className="text-4xl font-extrabold text-white">Pre-Configured Industry Workflows</h1>
           <p className="text-gray-400 max-w-2xl mx-auto text-sm">
-            Deploy tailored voice receptionist templates designed for specific
-            business operational rules.
+            Deploy tailored voice receptionist templates designed for specific business operational
+            rules.
           </p>
         </div>
 
@@ -77,9 +68,7 @@ export default function IndustriesPage() {
                   <Icon className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-white">{t.title}</h3>
-                <p className="text-xs text-gray-300 leading-relaxed">
-                  {t.description}
-                </p>
+                <p className="text-xs text-gray-300 leading-relaxed">{t.description}</p>
               </div>
             );
           })}

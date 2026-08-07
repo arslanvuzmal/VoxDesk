@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/ui/navbar";
-import { GuidedClientStory } from "@/components/demo/guided-story";
+import { Navbar } from '@/components/ui/navbar';
+import { GuidedClientStory } from '@/components/demo/guided-story';
 
 export default function DemoStoryPage() {
   return (

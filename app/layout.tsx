@@ -1,26 +1,26 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next';
+import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://voxdesk-ai.vercel.app"),
-  title: "VoxDesk — Voice Operations Platform",
+  metadataBase: new URL('https://voxdesk-ai.vercel.app'),
+  title: 'VoxDesk — Voice Operations Platform',
   description:
-    "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
-  authors: [{ name: "Arslan Vuzmal Lone" }],
+    'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
+  authors: [{ name: 'Arslan Vuzmal Lone' }],
   openGraph: {
-    title: "VoxDesk — Voice Operations Platform",
+    title: 'VoxDesk — Voice Operations Platform',
     description:
-      "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
-    url: "https://voxdesk-ai.vercel.app",
-    siteName: "VoxDesk",
-    locale: "en_US",
-    type: "website",
+      'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
+    url: 'https://voxdesk-ai.vercel.app',
+    siteName: 'VoxDesk',
+    locale: 'en_US',
+    type: 'website',
   },
   twitter: {
-    card: "summary_large_image",
-    title: "VoxDesk — Voice Operations Platform",
+    card: 'summary_large_image',
+    title: 'VoxDesk — Voice Operations Platform',
     description:
-      "VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.",
+      'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
   },
 };
 

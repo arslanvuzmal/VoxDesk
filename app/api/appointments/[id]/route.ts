@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/database';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -25,10 +22,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "DATABASE_UNAVAILABLE",
-          message: "Appointment detail data is temporarily unavailable.",
+          code: 'DATABASE_UNAVAILABLE',
+          message: 'Appointment detail data is temporarily unavailable.',
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -36,10 +33,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "APPOINTMENT_NOT_FOUND",
+          code: 'APPOINTMENT_NOT_FOUND',
           message: `Appointment record '${id}' was not found.`,
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -51,10 +48,10 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        code: "INTERNAL_ERROR",
-        message: error?.message || "Failed to fetch appointment detail",
+        code: 'INTERNAL_ERROR',
+        message: error?.message || 'Failed to fetch appointment detail',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

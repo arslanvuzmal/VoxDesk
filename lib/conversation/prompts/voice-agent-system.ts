@@ -1,38 +1,31 @@
-import "server-only";
-import {
-  OrganizationProfile,
-  SupportedLanguage,
-} from "@/lib/organization/types";
-import { getOrganizationProfile } from "@/lib/organization/registry";
-import { FEW_SHOT_EXAMPLES } from "./few-shot-examples";
+import 'server-only';
+import { OrganizationProfile, SupportedLanguage } from '@/lib/organization/types';
+import { getOrganizationProfile } from '@/lib/organization/registry';
+import { FEW_SHOT_EXAMPLES } from './few-shot-examples';
 
 export function buildVoiceAgentSystemPrompt(
   profile?: OrganizationProfile,
-  language: SupportedLanguage = "en-US",
+  language: SupportedLanguage = 'en-US'
 ): string {
   const org = profile || getOrganizationProfile();
   const voice = org.voiceIdentity;
-  const disclaimer =
-    org.complianceDisclaimer[language] || org.complianceDisclaimer["en-US"];
+  const disclaimer = org.complianceDisclaimer[language] || org.complianceDisclaimer['en-US'];
 
   const knowledgeSummary = org.approvedKnowledge
     .map(
-      (k) =>
-        `- Q: "${k.question}" -> A: "${k.answer[language] || k.answer["en-US"]}" (Citation: ${k.citation || "Approved Knowledge"})`,
+      k =>
+        `- Q: "${k.question}" -> A: "${k.answer[language] || k.answer['en-US']}" (Citation: ${k.citation || 'Approved Knowledge'})`
     )
-    .join("\n");
+    .join('\n');
 
-  const restrictedSummary = org.restrictedTopics
-    .map((t) => `- ${t}`)
-    .join("\n");
+  const restrictedSummary = org.restrictedTopics.map(t => `- ${t}`).join('\n');
   const fieldsSummary = org.requiredIntakeFields
-    .map((f) => `- ${f.label} (${f.key}): ${f.description}`)
-    .join("\n");
+    .map(f => `- ${f.label} (${f.key}): ${f.description}`)
+    .join('\n');
 
   const examplesText = FEW_SHOT_EXAMPLES.map(
-    (ex) =>
-      `Caller: "${ex.caller}"\nAgent: "${ex.agentReply}"\nIntent: ${ex.intent}`,
-  ).join("\n\n");
+    ex => `Caller: "${ex.caller}"\nAgent: "${ex.agentReply}"\nIntent: ${ex.intent}`
+  ).join('\n\n');
 
   return `You are ${voice.name}, a warm, senior intake specialist at ${org.name} (${org.industry}). You are NOT a robot—you are a real person having a genuine conversation.
 

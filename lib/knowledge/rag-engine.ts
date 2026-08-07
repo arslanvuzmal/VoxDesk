@@ -1,5 +1,5 @@
-import { SupportedLanguage } from "@/lib/organization/types";
-import { getOrganizationProfile } from "@/lib/organization/registry";
+import { SupportedLanguage } from '@/lib/organization/types';
+import { getOrganizationProfile } from '@/lib/organization/registry';
 
 export interface KnowledgeDocumentChunk {
   id: string;
@@ -23,20 +23,19 @@ export interface RetrievalResult {
   uncertaintyTriggered: boolean;
 }
 
-export const MANDATORY_UNCERTAINTY_RESPONSE: Record<SupportedLanguage, string> =
-  {
-    "en-US":
-      "I don’t have an approved answer for that in the business information available to me. I can record the question and arrange for a team member to follow up.",
-    "ur-PK":
-      "میرا پاس دستیاب کاروبار کی معلومات میں اس کا کوئی منظور شدہ جواب نہیں ہے۔ میں آپ کا سوال ریکارڈ کر کے کسی ٹیم ممبر کو رابطے کی درخواست بھیج سکتی ہوں۔",
-    "es-ES":
-      "No tengo una respuesta aprobada para eso en la información comercial disponible. Puedo registrar la pregunta y organizar que un miembro del equipo se comunique con usted.",
-  };
+export const MANDATORY_UNCERTAINTY_RESPONSE: Record<SupportedLanguage, string> = {
+  'en-US':
+    'I don’t have an approved answer for that in the business information available to me. I can record the question and arrange for a team member to follow up.',
+  'ur-PK':
+    'میرا پاس دستیاب کاروبار کی معلومات میں اس کا کوئی منظور شدہ جواب نہیں ہے۔ میں آپ کا سوال ریکارڈ کر کے کسی ٹیم ممبر کو رابطے کی درخواست بھیج سکتی ہوں۔',
+  'es-ES':
+    'No tengo una respuesta aprobada para eso en la información comercial disponible. Puedo registrar la pregunta y organizar que un miembro del equipo se comunique con usted.',
+};
 
 export async function searchApprovedKnowledge(
   presetKey: string,
   userQuery: string,
-  language: SupportedLanguage = "en-US",
+  language: SupportedLanguage = 'en-US'
 ): Promise<RetrievalResult> {
   const profile = getOrganizationProfile(presetKey);
   const normalizedQuery = userQuery.trim().toLowerCase();
@@ -52,25 +51,18 @@ export async function searchApprovedKnowledge(
     };
   }
 
-  const matches = profile.approvedKnowledge.map((item) => {
+  const matches = profile.approvedKnowledge.map(item => {
     let score = 0;
     const itemQuestion = item.question.toLowerCase();
-    const itemAns = (
-      item.answer[language] ||
-      item.answer["en-US"] ||
-      ""
-    ).toLowerCase();
+    const itemAns = (item.answer[language] || item.answer['en-US'] || '').toLowerCase();
 
     // 1. Direct Question Match
-    if (
-      normalizedQuery.includes(itemQuestion) ||
-      itemQuestion.includes(normalizedQuery)
-    ) {
+    if (normalizedQuery.includes(itemQuestion) || itemQuestion.includes(normalizedQuery)) {
       score += 40;
     }
 
     // 2. Keyword Matches
-    item.keywords.forEach((kw) => {
+    item.keywords.forEach(kw => {
       const kwLower = kw.toLowerCase();
       if (normalizedQuery.includes(kwLower)) {
         score += 20;
@@ -78,10 +70,8 @@ export async function searchApprovedKnowledge(
     });
 
     // 3. Token Overlap Score
-    const queryTokens = normalizedQuery
-      .split(/\s+/)
-      .filter((t) => t.length > 2);
-    queryTokens.forEach((token) => {
+    const queryTokens = normalizedQuery.split(/\s+/).filter(t => t.length > 2);
+    queryTokens.forEach(token => {
       if (itemQuestion.includes(token)) score += 5;
       if (itemAns.includes(token)) score += 3;
     });
@@ -93,8 +83,7 @@ export async function searchApprovedKnowledge(
   const bestMatch = matches[0];
 
   if (bestMatch && bestMatch.score >= 20) {
-    const selectedAnswer =
-      bestMatch.item.answer[language] || bestMatch.item.answer["en-US"];
+    const selectedAnswer = bestMatch.item.answer[language] || bestMatch.item.answer['en-US'];
 
     return {
       query: userQuery,
@@ -112,7 +101,7 @@ export async function searchApprovedKnowledge(
           content: selectedAnswer,
           keywords: bestMatch.item.keywords,
           language,
-          version: "2.5.0",
+          version: '2.5.0',
         },
       ],
       uncertaintyTriggered: false,

@@ -1,28 +1,28 @@
-import { prisma } from "@/lib/database";
-import { OrganizationProfile } from "@/lib/organization/types";
+import { prisma } from '@/lib/database';
+import { OrganizationProfile } from '@/lib/organization/types';
 
 export interface AvailableSlot {
   startTime: string;
   endTime: string;
   timezone: string;
   displayText: string;
-  source: "DATABASE_CALENDAR" | "EXTERNAL_CALENDAR";
+  source: 'DATABASE_CALENDAR' | 'EXTERNAL_CALENDAR';
 }
 
 export async function getAvailableSlots(
   profile: OrganizationProfile,
   preferredDate?: string,
-  workspaceId: string = "ws_demo_default",
+  workspaceId: string = 'ws_demo_default'
 ): Promise<AvailableSlot[]> {
   const slots: AvailableSlot[] = [];
-  const tz = profile.timeZone || "America/New_York";
+  const tz = profile.timeZone || 'America/New_York';
   const durationMins = profile.appointmentSettings?.slotDurationMinutes || 45;
 
   // Query database appointments
   const existingAppts = await prisma.appointment.findMany({
     where: {
       workspaceId,
-      status: { in: ["CONFIRMED", "PENDING"] },
+      status: { in: ['CONFIRMED', 'PENDING'] },
       startTime: { gte: new Date() },
     },
     select: { startTime: true, endTime: true },
@@ -47,9 +47,7 @@ export async function getAvailableSlots(
       // Enforce 4-hour advance notice
       if (candidateStart.getTime() - Date.now() < 4 * 3600 * 1000) continue;
 
-      const candidateEnd = new Date(
-        candidateStart.getTime() + durationMins * 60000,
-      );
+      const candidateEnd = new Date(candidateStart.getTime() + durationMins * 60000);
 
       // Check overlap collision
       const hasCollision = existingAppts.some((appt: any) => {
@@ -58,13 +56,13 @@ export async function getAvailableSlots(
 
       if (!hasCollision) {
         const timeStr = candidateStart.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
+          hour: '2-digit',
+          minute: '2-digit',
         });
         const dateStr = candidateStart.toLocaleDateString([], {
-          weekday: "short",
-          month: "short",
-          day: "numeric",
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
         });
 
         slots.push({
@@ -72,7 +70,7 @@ export async function getAvailableSlots(
           endTime: candidateEnd.toISOString(),
           timezone: tz,
           displayText: `${dateStr} at ${timeStr} (${tz})`,
-          source: "DATABASE_CALENDAR",
+          source: 'DATABASE_CALENDAR',
         });
 
         if (slots.length >= 4) break;

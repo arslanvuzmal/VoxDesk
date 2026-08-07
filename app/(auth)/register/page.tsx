@@ -1,39 +1,39 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [name, setName] = useState("Arslan Vuzmal Lone");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [workspaceName, setWorkspaceName] = useState("");
+  const [name, setName] = useState('Arslan Vuzmal Lone');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [workspaceName, setWorkspaceName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setError('');
 
     try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, workspaceName }),
       });
 
       if (res.ok) {
-        router.push("/dashboard");
+        router.push('/dashboard');
       } else {
         const data = await res.json();
-        setError(data.error || "Registration failed");
+        setError(data.error || 'Registration failed');
       }
     } catch {
-      setError("An unexpected error occurred");
+      setError('An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -62,26 +62,22 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block font-semibold text-[#0F172A] mb-1">
-              Full Name
-            </label>
+            <label className="block font-semibold text-[#0F172A] mb-1">Full Name</label>
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-[#0F172A] mb-1">
-              Workspace Name
-            </label>
+            <label className="block font-semibold text-[#0F172A] mb-1">Workspace Name</label>
             <input
               type="text"
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={e => setWorkspaceName(e.target.value)}
               placeholder="e.g. Northstar Legal Consultations"
               className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
@@ -89,13 +85,11 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block font-semibold text-[#0F172A] mb-1">
-              Work Email
-            </label>
+            <label className="block font-semibold text-[#0F172A] mb-1">Work Email</label>
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               placeholder="arslan@example.com"
               className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
@@ -103,13 +97,11 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block font-semibold text-[#0F172A] mb-1">
-              Password
-            </label>
+            <label className="block font-semibold text-[#0F172A] mb-1">Password</label>
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               className="w-full p-2.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#0F172A] focus:outline-none focus:border-[#1D4ED8]"
               required
             />
@@ -120,17 +112,14 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full bg-[#1D4ED8] hover:bg-[#1E40AF] text-white font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm"
           >
-            <span>{loading ? "Creating..." : "Create Workspace"}</span>
+            <span>{loading ? 'Creating...' : 'Create Workspace'}</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
         <p className="text-center text-xs text-[#64748B]">
-          Already registered?{" "}
-          <Link
-            href="/login"
-            className="text-[#1D4ED8] font-semibold hover:underline"
-          >
+          Already registered?{' '}
+          <Link href="/login" className="text-[#1D4ED8] font-semibold hover:underline">
             Sign In
           </Link>
         </p>

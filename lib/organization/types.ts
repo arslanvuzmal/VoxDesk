@@ -1,16 +1,10 @@
 export type IndustryType =
-  "LEGAL" | "HEALTHCARE" | "REAL_ESTATE" | "HOME_SERVICES" | "B2B_SERVICES";
+  'LEGAL' | 'HEALTHCARE' | 'REAL_ESTATE' | 'HOME_SERVICES' | 'B2B_SERVICES';
 
-export type SupportedLanguage = "en-US" | "ur-PK" | "es-ES";
+export type SupportedLanguage = 'en-US' | 'ur-PK' | 'es-ES';
 
 export type VoiceTone =
-  | "PROFESSIONAL"
-  | "WARM"
-  | "WARM_SALES"
-  | "CALM"
-  | "EMPATHETIC"
-  | "CONFIDENT"
-  | "ENERGETIC";
+  'PROFESSIONAL' | 'WARM' | 'WARM_SALES' | 'CALM' | 'EMPATHETIC' | 'CONFIDENT' | 'ENERGETIC';
 
 export interface ApprovedKnowledgeItem {
   id: string;
@@ -25,7 +19,7 @@ export interface RequiredIntakeField {
   key: string;
   label: string;
   required: boolean;
-  type: "text" | "phone" | "email" | "date" | "number" | "select";
+  type: 'text' | 'phone' | 'email' | 'date' | 'number' | 'select';
   description: string;
 }
 
@@ -41,7 +35,7 @@ export interface EscalationTrigger {
   id: string;
   condition: string;
   reason: string;
-  urgency: "HIGH" | "CRITICAL";
+  urgency: 'HIGH' | 'CRITICAL';
 }
 
 export interface OrganizationProfile {
@@ -61,7 +55,7 @@ export interface OrganizationProfile {
   defaultLanguage: SupportedLanguage;
   voiceIdentity: {
     name: string;
-    gender: "female" | "male";
+    gender: 'female' | 'male';
     accent: string;
     defaultTone: VoiceTone;
   };

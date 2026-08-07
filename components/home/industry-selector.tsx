@@ -1,7 +1,17 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { CheckCircle2, ShieldAlert, ArrowRight, Building2, Stethoscope, Home, Wrench, Briefcase, Users } from "lucide-react";
+import { useState } from 'react';
+import {
+  CheckCircle2,
+  ShieldAlert,
+  ArrowRight,
+  Building2,
+  Stethoscope,
+  Home,
+  Wrench,
+  Briefcase,
+  Users,
+} from 'lucide-react';
 
 interface IndustryProfile {
   id: string;
@@ -12,164 +22,171 @@ interface IndustryProfile {
   informationCollected: string[];
   humanHandoffConditions: string[];
   connectedSystems: string[];
-  statusLabel: "Available in demo" | "Configurable deployment template" | "Requires integration" | "Planned";
+  statusLabel:
+    'Available in demo' | 'Configurable deployment template' | 'Requires integration' | 'Planned';
   statusColor: string;
 }
 
 const industryProfiles: IndustryProfile[] = [
   {
-    id: "legal",
-    name: "Legal Services",
+    id: 'legal',
+    name: 'Legal Services',
     icon: Building2,
     inboundWorkflows: [
-      "New client consultation enquiry",
-      "Practice-area identification & BANT intake",
-      "Administrative consultation scheduling",
-      "Urgent court deadline escalation",
+      'New client consultation enquiry',
+      'Practice-area identification & BANT intake',
+      'Administrative consultation scheduling',
+      'Urgent court deadline escalation',
     ],
     outboundWorkflows: [
-      "Consultation reminder notifications",
-      "Missing document request follow-up",
-      "Approved retainer follow-up",
+      'Consultation reminder notifications',
+      'Missing document request follow-up',
+      'Approved retainer follow-up',
     ],
-    informationCollected: ["Contact name & number", "Legal matter type", "Jurisdiction", "Case urgency level", "Preferred appointment slot"],
+    informationCollected: [
+      'Contact name & number',
+      'Legal matter type',
+      'Jurisdiction',
+      'Case urgency level',
+      'Preferred appointment slot',
+    ],
     humanHandoffConditions: [
-      "Substantive legal advice requested",
-      "Immediate court filing deadline",
-      "Adverse party conflict check uncertainty",
-      "Unsupported practice area",
+      'Substantive legal advice requested',
+      'Immediate court filing deadline',
+      'Adverse party conflict check uncertainty',
+      'Unsupported practice area',
     ],
-    connectedSystems: ["Clio / LawPay CRM", "Google Calendar / Outlook", "WebRTC Voice Gateway"],
-    statusLabel: "Available in demo",
-    statusColor: "bg-[#15803D]/10 text-[#15803D] border-[#15803D]/20",
+    connectedSystems: ['Clio / LawPay CRM', 'Google Calendar / Outlook', 'WebRTC Voice Gateway'],
+    statusLabel: 'Available in demo',
+    statusColor: 'bg-[#15803D]/10 text-[#15803D] border-[#15803D]/20',
   },
   {
-    id: "healthcare",
-    name: "Healthcare & Clinics",
+    id: 'healthcare',
+    name: 'Healthcare & Clinics',
     icon: Stethoscope,
     inboundWorkflows: [
-      "Patient appointment booking",
-      "Clinic hours & location enquiry",
-      "Insurance verification intake",
-      "Urgent triage routing",
+      'Patient appointment booking',
+      'Clinic hours & location enquiry',
+      'Insurance verification intake',
+      'Urgent triage routing',
     ],
-    outboundWorkflows: [
-      "Preventative appointment reminders",
-      "Post-visit satisfaction follow-up",
+    outboundWorkflows: ['Preventative appointment reminders', 'Post-visit satisfaction follow-up'],
+    informationCollected: [
+      'Patient full name',
+      'Date of birth',
+      'Insurance carrier',
+      'Symptoms summary',
+      'Provider preference',
     ],
-    informationCollected: ["Patient full name", "Date of birth", "Insurance carrier", "Symptoms summary", "Provider preference"],
     humanHandoffConditions: [
-      "Acute medical emergency reported",
-      "Prescription refill request",
-      "Complex clinical question",
+      'Acute medical emergency reported',
+      'Prescription refill request',
+      'Complex clinical question',
     ],
-    connectedSystems: ["AthenaHealth / Epic EHR", "Google Calendar", "HIPAA Proxy Layer"],
-    statusLabel: "Configurable deployment template",
-    statusColor: "bg-[#1D4ED8]/10 text-[#1D4ED8] border-[#1D4ED8]/20",
+    connectedSystems: ['AthenaHealth / Epic EHR', 'Google Calendar', 'HIPAA Proxy Layer'],
+    statusLabel: 'Configurable deployment template',
+    statusColor: 'bg-[#1D4ED8]/10 text-[#1D4ED8] border-[#1D4ED8]/20',
   },
   {
-    id: "realestate",
-    name: "Real Estate & Housing",
+    id: 'realestate',
+    name: 'Real Estate & Housing',
     icon: Home,
     inboundWorkflows: [
-      "Property listing enquiry",
-      "Agent showing scheduling",
-      "Tenant maintenance request",
-      "Rental application screening",
+      'Property listing enquiry',
+      'Agent showing scheduling',
+      'Tenant maintenance request',
+      'Rental application screening',
     ],
     outboundWorkflows: [
-      "Showing confirmation alerts",
-      "Price reduction notification to active buyers",
+      'Showing confirmation alerts',
+      'Price reduction notification to active buyers',
     ],
-    informationCollected: ["Buyer/Tenant budget", "Preferred location/zip", "Move-in timeline", "Financing pre-approval status"],
+    informationCollected: [
+      'Buyer/Tenant budget',
+      'Preferred location/zip',
+      'Move-in timeline',
+      'Financing pre-approval status',
+    ],
     humanHandoffConditions: [
-      "High-value commercial transaction",
-      "Lease dispute / legal issue",
-      "Unlisted property offer",
+      'High-value commercial transaction',
+      'Lease dispute / legal issue',
+      'Unlisted property offer',
     ],
-    connectedSystems: ["HubSpot CRM", "Zillow API", "Calendly"],
-    statusLabel: "Configurable deployment template",
-    statusColor: "bg-[#1D4ED8]/10 text-[#1D4ED8] border-[#1D4ED8]/20",
+    connectedSystems: ['HubSpot CRM', 'Zillow API', 'Calendly'],
+    statusLabel: 'Configurable deployment template',
+    statusColor: 'bg-[#1D4ED8]/10 text-[#1D4ED8] border-[#1D4ED8]/20',
   },
   {
-    id: "homeservices",
-    name: "Home & Field Services",
+    id: 'homeservices',
+    name: 'Home & Field Services',
     icon: Wrench,
     inboundWorkflows: [
-      "Emergency HVAC / Plumbing dispatch",
-      "Service estimate scheduling",
-      "Job status inquiry",
+      'Emergency HVAC / Plumbing dispatch',
+      'Service estimate scheduling',
+      'Job status inquiry',
     ],
-    outboundWorkflows: [
-      "Technician arrival time notification",
-      "Seasonal maintenance reminder",
+    outboundWorkflows: ['Technician arrival time notification', 'Seasonal maintenance reminder'],
+    informationCollected: [
+      'Property address',
+      'Service needed',
+      'Urgency level',
+      'Access instructions',
     ],
-    informationCollected: ["Property address", "Service needed", "Urgency level", "Access instructions"],
-    humanHandoffConditions: [
-      "Active water leak / fire hazard",
-      "Commercial contract negotiation",
-    ],
-    connectedSystems: ["Housecall Pro / ServiceTitan", "Twilio Voice"],
-    statusLabel: "Requires integration",
-    statusColor: "bg-[#B45309]/10 text-[#B45309] border-[#B45309]/20",
+    humanHandoffConditions: ['Active water leak / fire hazard', 'Commercial contract negotiation'],
+    connectedSystems: ['Housecall Pro / ServiceTitan', 'Twilio Voice'],
+    statusLabel: 'Requires integration',
+    statusColor: 'bg-[#B45309]/10 text-[#B45309] border-[#B45309]/20',
   },
   {
-    id: "sales",
-    name: "B2B Sales Operations",
+    id: 'sales',
+    name: 'B2B Sales Operations',
     icon: Briefcase,
     inboundWorkflows: [
-      "Inbound demo request qualification",
-      "SaaS plan comparison enquiry",
-      "Enterprise pricing routing",
+      'Inbound demo request qualification',
+      'SaaS plan comparison enquiry',
+      'Enterprise pricing routing',
     ],
-    outboundWorkflows: [
-      "Inbound lead callback within 5 minutes",
-      "No-show demo follow-up",
+    outboundWorkflows: ['Inbound lead callback within 5 minutes', 'No-show demo follow-up'],
+    informationCollected: [
+      'Company size',
+      'Current tech stack',
+      'Annual budget',
+      'Decision timeline',
     ],
-    informationCollected: ["Company size", "Current tech stack", "Annual budget", "Decision timeline"],
-    humanHandoffConditions: [
-      "Enterprise ARR opportunity",
-      "Custom procurement terms",
-    ],
-    connectedSystems: ["Salesforce / HubSpot", "Outreach", "Stripe"],
-    statusLabel: "Available in demo",
-    statusColor: "bg-[#15803D]/10 text-[#15803D] border-[#15803D]/20",
+    humanHandoffConditions: ['Enterprise ARR opportunity', 'Custom procurement terms'],
+    connectedSystems: ['Salesforce / HubSpot', 'Outreach', 'Stripe'],
+    statusLabel: 'Available in demo',
+    statusColor: 'bg-[#15803D]/10 text-[#15803D] border-[#15803D]/20',
   },
   {
-    id: "agency",
-    name: "Agencies & Consultancies",
+    id: 'agency',
+    name: 'Agencies & Consultancies',
     icon: Users,
     inboundWorkflows: [
-      "Client project inquiry",
-      "Discovery call scheduling",
-      "Billing & invoice query routing",
+      'Client project inquiry',
+      'Discovery call scheduling',
+      'Billing & invoice query routing',
     ],
-    outboundWorkflows: [
-      "Proposal delivery follow-up",
-      "Client review reminder",
-    ],
-    informationCollected: ["Project scope", "Estimated budget", "Target launch date"],
-    humanHandoffConditions: [
-      "Scope dispute",
-      "Retainer cancellation risk",
-    ],
-    connectedSystems: ["Notion", "Asana", "Google Workspace"],
-    statusLabel: "Planned",
-    statusColor: "bg-[#64748B]/10 text-[#64748B] border-[#64748B]/20",
+    outboundWorkflows: ['Proposal delivery follow-up', 'Client review reminder'],
+    informationCollected: ['Project scope', 'Estimated budget', 'Target launch date'],
+    humanHandoffConditions: ['Scope dispute', 'Retainer cancellation risk'],
+    connectedSystems: ['Notion', 'Asana', 'Google Workspace'],
+    statusLabel: 'Planned',
+    statusColor: 'bg-[#64748B]/10 text-[#64748B] border-[#64748B]/20',
   },
 ];
 
 export function IndustrySelector() {
-  const [selectedId, setSelectedId] = useState("legal");
+  const [selectedId, setSelectedId] = useState('legal');
 
-  const current = industryProfiles.find((p) => p.id === selectedId) || industryProfiles[0];
+  const current = industryProfiles.find(p => p.id === selectedId) || industryProfiles[0];
   const Icon = current.icon;
 
   return (
     <div className="space-y-8 select-none">
       {/* Industry Tabs Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[#E2E8F0]">
-        {industryProfiles.map((p) => {
+        {industryProfiles.map(p => {
           const TabIcon = p.icon;
           const isSelected = p.id === selectedId;
           return (
@@ -179,11 +196,11 @@ export function IndustrySelector() {
               onClick={() => setSelectedId(p.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-semibold transition-all shrink-0 border ${
                 isSelected
-                  ? "bg-[#1D4ED8] text-white border-[#1D4ED8] shadow-sm"
-                  : "bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC] hover:text-[#0F172A]"
+                  ? 'bg-[#1D4ED8] text-white border-[#1D4ED8] shadow-sm'
+                  : 'bg-white text-[#475569] border-[#E2E8F0] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
               }`}
             >
-              <TabIcon className={`w-4 h-4 ${isSelected ? "text-white" : "text-[#64748B]"}`} />
+              <TabIcon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#64748B]'}`} />
               <span>{p.name}</span>
             </button>
           );
@@ -199,7 +216,9 @@ export function IndustrySelector() {
             </div>
             <div>
               <h3 className="text-base font-bold text-[#0F172A]">{current.name}</h3>
-              <p className="text-xs text-[#64748B]">Operational profile & automated voice routing rules</p>
+              <p className="text-xs text-[#64748B]">
+                Operational profile & automated voice routing rules
+              </p>
             </div>
           </div>
 

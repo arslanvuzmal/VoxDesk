@@ -1,15 +1,8 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import {
-  Calendar,
-  RefreshCw,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  UserCheck,
-} from "lucide-react";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Calendar, RefreshCw, ArrowRight, CheckCircle2, Clock, UserCheck } from 'lucide-react';
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -18,7 +11,7 @@ export default function AppointmentsPage() {
   const fetchAppointments = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/appointments");
+      const res = await fetch('/api/appointments');
       const data = await res.json();
       if (data.appointments) {
         setAppointments(data.appointments);
@@ -52,9 +45,7 @@ export default function AppointmentsPage() {
           onClick={fetchAppointments}
           className="px-3 py-1.5 rounded-md bg-[#21262D] hover:bg-[#30363D] text-xs font-medium text-white border border-[#30363D] flex items-center gap-1.5 transition-colors"
         >
-          <RefreshCw
-            className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
-          />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Refresh Bookings</span>
         </button>
       </div>
@@ -87,20 +78,17 @@ export default function AppointmentsPage() {
                   </td>
                 </tr>
               ) : (
-                appointments.map((a) => (
-                  <tr
-                    key={a.id}
-                    className="hover:bg-[#1C2129] transition-colors"
-                  >
+                appointments.map(a => (
+                  <tr key={a.id} className="hover:bg-[#1C2129] transition-colors">
                     <td className="px-4 py-3">
                       <p className="font-semibold text-white">{a.callerName}</p>
                       <p className="text-[11px] text-[#8B949E] font-mono">
-                        {a.timezone || "America/New_York"}
+                        {a.timezone || 'America/New_York'}
                       </p>
                     </td>
 
                     <td className="px-4 py-3 font-medium text-white">
-                      {a.service || "Initial Legal Consultation"}
+                      {a.service || 'Initial Legal Consultation'}
                     </td>
 
                     <td className="px-4 py-3">
@@ -113,9 +101,7 @@ export default function AppointmentsPage() {
                       {new Date(a.startTime).toLocaleString()}
                     </td>
 
-                    <td className="px-4 py-3 font-medium text-[#C9D1D9]">
-                      Senior Legal Partner
-                    </td>
+                    <td className="px-4 py-3 font-medium text-[#C9D1D9]">Senior Legal Partner</td>
 
                     <td className="px-4 py-3 text-right">
                       <Link

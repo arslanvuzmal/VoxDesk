@@ -1,15 +1,15 @@
-import "server-only";
-import { env } from "@/lib/config/env";
-import { getDemoSessionStoreStatus } from "@/lib/demo/store";
-import { prisma } from "@/lib/database";
+import 'server-only';
+import { env } from '@/lib/config/env';
+import { getDemoSessionStoreStatus } from '@/lib/demo/store';
+import { prisma } from '@/lib/database';
 
 export interface InfrastructureStatus {
   sessionStore: {
-    provider: "redis" | "memory" | "unavailable";
+    provider: 'redis' | 'memory' | 'unavailable';
     ready: boolean;
   };
   database: {
-    provider: "postgresql";
+    provider: 'postgresql';
     ready: boolean;
   };
   cloudflareAI: {
@@ -30,11 +30,8 @@ export async function getDemoInfrastructureStatus(): Promise<InfrastructureStatu
     dbReady = false;
   }
 
-  const cloudflareConfigured = !!(
-    env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN
-  );
-  const cloudflareReady =
-    cloudflareConfigured && env.CLOUDFLARE_AI_KILL_SWITCH !== "true";
+  const cloudflareConfigured = !!(env.CLOUDFLARE_ACCOUNT_ID && env.CLOUDFLARE_API_TOKEN);
+  const cloudflareReady = cloudflareConfigured && env.CLOUDFLARE_AI_KILL_SWITCH !== 'true';
 
   return {
     sessionStore: {
@@ -42,7 +39,7 @@ export async function getDemoInfrastructureStatus(): Promise<InfrastructureStatu
       ready: storeStatus.ready,
     },
     database: {
-      provider: "postgresql",
+      provider: 'postgresql',
       ready: dbReady,
     },
     cloudflareAI: {

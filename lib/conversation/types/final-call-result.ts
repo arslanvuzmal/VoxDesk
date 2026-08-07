@@ -1,9 +1,8 @@
-import { SupportedLanguage, DemoIntent } from "../schemas/voice-agent-output";
+import { SupportedLanguage, DemoIntent } from '../schemas/voice-agent-output';
 
 export interface ProviderExecutionResult {
-  layer: "STT" | "LLM" | "TTS";
-  provider:
-    "CLOUDFLARE" | "OPENROUTER" | "ELEVENLABS" | "BROWSER" | "DETERMINISTIC";
+  layer: 'STT' | 'LLM' | 'TTS';
+  provider: 'CLOUDFLARE' | 'OPENROUTER' | 'ELEVENLABS' | 'BROWSER' | 'DETERMINISTIC';
   model?: string;
   language: SupportedLanguage;
   success: boolean;
@@ -30,7 +29,7 @@ export interface FinalCallResult {
   summary: string;
   qualification?: {
     score: number;
-    category: "HOT" | "WARM" | "REVIEW" | "COLD";
+    category: 'HOT' | 'WARM' | 'REVIEW' | 'COLD';
     breakdown: Array<{
       criterion: string;
       score: number;

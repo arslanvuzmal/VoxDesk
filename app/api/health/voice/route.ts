@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
-import { ElevenLabsClient } from "@elevenlabs/elevenlabs-js";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/database';
+import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 
 export async function GET() {
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   const apiKeyConfigured = Boolean(apiKey);
-  const agentId = process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+  const agentId =
+    process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
   const agentConfigured = Boolean(agentId);
 
   let agentVerified = false;
@@ -42,8 +43,10 @@ export async function GET() {
   if (redisConfigured) {
     try {
       const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/ping`, {
-        headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}` },
-        cache: "no-store",
+        headers: {
+          Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`,
+        },
+        cache: 'no-store',
       });
       redisReachable = res.ok;
     } catch {
@@ -54,7 +57,7 @@ export async function GET() {
   const deploymentCommit =
     process.env.VERCEL_GIT_COMMIT_SHA ||
     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
-    "local-development";
+    'local-development';
 
   return NextResponse.json(
     {
@@ -72,14 +75,14 @@ export async function GET() {
         redisReachable,
       },
       supportedConfiguration: {
-        presetKey: "LEGAL",
-        language: "en-US",
+        presetKey: 'LEGAL',
+        language: 'en-US',
       },
     },
     {
       status: 200,
       headers: {
-        "Cache-Control": "no-store, private",
+        'Cache-Control': 'no-store, private',
       },
     }
   );

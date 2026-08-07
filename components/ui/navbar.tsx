@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Link from "next/link";
-import { ArrowRight, Menu, X, PhoneCall } from "lucide-react";
+import { useState } from 'react';
+import Link from 'next/link';
+import { ArrowRight, Menu, X, PhoneCall } from 'lucide-react';
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -16,9 +16,7 @@ export function Navbar() {
             V
           </div>
           <div>
-            <span className="text-base font-bold text-[#0F172A] tracking-tight">
-              VoxDesk
-            </span>
+            <span className="text-base font-bold text-[#0F172A] tracking-tight">VoxDesk</span>
             <span className="text-[11px] text-[#64748B] block -mt-1 font-medium">
               Voice Operations Platform
             </span>
@@ -27,28 +25,16 @@ export function Navbar() {
 
         {/* Primary Desktop Navigation (Max 5 items) */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-[#475569]">
-          <Link
-            href="/#product"
-            className="hover:text-[#1D4ED8] transition-colors"
-          >
+          <Link href="/#product" className="hover:text-[#1D4ED8] transition-colors">
             Product
           </Link>
-          <Link
-            href="/#solutions"
-            className="hover:text-[#1D4ED8] transition-colors"
-          >
+          <Link href="/#solutions" className="hover:text-[#1D4ED8] transition-colors">
             Solutions
           </Link>
-          <Link
-            href="/#integrations"
-            className="hover:text-[#1D4ED8] transition-colors"
-          >
+          <Link href="/#integrations" className="hover:text-[#1D4ED8] transition-colors">
             Integrations
           </Link>
-          <Link
-            href="/#enterprise"
-            className="hover:text-[#1D4ED8] transition-colors"
-          >
+          <Link href="/#enterprise" className="hover:text-[#1D4ED8] transition-colors">
             Enterprise
           </Link>
           <Link

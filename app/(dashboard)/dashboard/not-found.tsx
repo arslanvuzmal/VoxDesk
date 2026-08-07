@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { FileSearch, LayoutDashboard, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { FileSearch, LayoutDashboard, ArrowLeft } from 'lucide-react';
 
 export default function DashboardNotFound() {
   return (
@@ -17,8 +17,7 @@ export default function DashboardNotFound() {
             Dashboard Record Not Found
           </h1>
           <p className="text-xs text-[#8B949E]">
-            The requested call, agent, lead, or resource does not exist in this
-            workspace.
+            The requested call, agent, lead, or resource does not exist in this workspace.
           </p>
         </div>
 

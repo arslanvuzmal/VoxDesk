@@ -1,13 +1,9 @@
-import "server-only";
+import 'server-only';
 
-export type SupportedLanguage = "en-US" | "ur-PK" | "es-ES";
+export type SupportedLanguage = 'en-US' | 'ur-PK' | 'es-ES';
 
 export type VoxDeskPreset =
-  | "LEGAL"
-  | "HEALTHCARE"
-  | "REAL_ESTATE"
-  | "HOME_SERVICES"
-  | "B2B_SERVICES";
+  'LEGAL' | 'HEALTHCARE' | 'REAL_ESTATE' | 'HOME_SERVICES' | 'B2B_SERVICES';
 
 export interface AgentRegistration {
   presetKey: VoxDeskPreset;
@@ -24,10 +20,9 @@ export function isElevenLabsConfigured(
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) return false;
 
-  if (presetKey === "LEGAL" && language === "en-US") {
+  if (presetKey === 'LEGAL' && language === 'en-US') {
     const agentId =
-      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() ||
-      process.env.ELEVENLABS_AGENT_ID?.trim();
+      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
     return Boolean(agentId);
   }
 
@@ -43,21 +38,18 @@ export function resolveElevenLabsAgent(
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) return null;
 
-  if (presetKey === "LEGAL" && language === "en-US") {
+  if (presetKey === 'LEGAL' && language === 'en-US') {
     const agentId =
-      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() ||
-      process.env.ELEVENLABS_AGENT_ID?.trim();
+      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
 
     if (!agentId) return null;
 
     return {
-      presetKey: "LEGAL",
-      language: "en-US",
+      presetKey: 'LEGAL',
+      language: 'en-US',
       agentId,
-      displayName: "Maya (Northstar Legal Receptionist)",
-      voiceId:
-        process.env.ELEVENLABS_VOICE_ID_LEGAL_EN?.trim() ||
-        "EXAVITQu4vr4xnSDxMaL",
+      displayName: 'Maya (Northstar Legal Receptionist)',
+      voiceId: process.env.ELEVENLABS_VOICE_ID_LEGAL_EN?.trim() || 'EXAVITQu4vr4xnSDxMaL',
     };
   }
 
@@ -69,11 +61,11 @@ export function resolveElevenLabsAgent(
   }
 
   const names: Record<VoxDeskPreset, string> = {
-    LEGAL: "Northstar Legal Receptionist",
-    HEALTHCARE: "CarePoint Health Coordinator",
-    REAL_ESTATE: "Apex Realty Specialist",
-    HOME_SERVICES: "Apex Home Services Dispatcher",
-    B2B_SERVICES: "Nexus B2B Solutions Consultant",
+    LEGAL: 'Northstar Legal Receptionist',
+    HEALTHCARE: 'CarePoint Health Coordinator',
+    REAL_ESTATE: 'Apex Realty Specialist',
+    HOME_SERVICES: 'Apex Home Services Dispatcher',
+    B2B_SERVICES: 'Nexus B2B Solutions Consultant',
   };
 
   return {

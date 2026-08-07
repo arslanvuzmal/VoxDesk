@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 export default function DemoError({
   error,
@@ -10,7 +10,7 @@ export default function DemoError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[VOXDESK_DEMO_CLIENT_ERROR]", error);
+    console.error('[VOXDESK_DEMO_CLIENT_ERROR]', error);
   }, [error]);
 
   return (
@@ -25,8 +25,8 @@ export default function DemoError({
         </h1>
 
         <p className="mt-3 text-sm leading-6 text-slate-400">
-          Reload the voice module. If the problem continues, the production
-          logs and browser console must be inspected before retrying.
+          Reload the voice module. If the problem continues, the production logs and browser console
+          must be inspected before retrying.
         </p>
 
         <button

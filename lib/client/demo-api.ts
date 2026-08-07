@@ -9,7 +9,7 @@ export interface ApiErrorResponse {
 export interface DemoSessionStartResponse {
   success: boolean;
   sessionId: string;
-  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE';
   presetKey?: string;
   language?: string;
   expiresAt: number;
@@ -58,10 +58,10 @@ export class DemoApiError extends Error {
     code: string,
     status: number,
     correlationId?: string,
-    guidedDemoUrl?: string,
+    guidedDemoUrl?: string
   ) {
     super(message);
-    this.name = "DemoApiError";
+    this.name = 'DemoApiError';
     this.code = code;
     this.status = status;
     this.correlationId = correlationId;
@@ -79,11 +79,11 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 
   if (!response.ok) {
     throw new DemoApiError(
-      data.error || "An unexpected error occurred during the demo session.",
+      data.error || 'An unexpected error occurred during the demo session.',
       data.code || `HTTP_${response.status}`,
       response.status,
       data.correlationId,
-      data.guidedDemoUrl || "/demo/story",
+      data.guidedDemoUrl || '/demo/story'
     );
   }
 
@@ -91,21 +91,21 @@ async function handleJsonResponse<T>(response: Response): Promise<T> {
 }
 
 export async function startDemoSession(
-  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
-  options?: { presetKey?: string; language?: string },
+  scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE',
+  options?: { presetKey?: string; language?: string }
 ): Promise<DemoSessionStartResponse> {
-  const response = await fetch("/api/demo/session/start", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/session/start', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify({
       scenario,
-      presetKey: options?.presetKey || "LEGAL",
-      language: options?.language || "en-US",
+      presetKey: options?.presetKey || 'LEGAL',
+      language: options?.language || 'en-US',
     }),
   });
 
@@ -116,12 +116,12 @@ export async function getDemoSessionStatus(): Promise<{
   success: boolean;
   session: any;
 }> {
-  const response = await fetch("/api/demo/session/status", {
-    method: "GET",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/session/status', {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 
@@ -134,13 +134,13 @@ export async function submitDemoTurn(input: {
   presetKey?: string;
   language?: string;
 }): Promise<TurnResponse> {
-  const response = await fetch("/api/demo/respond", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/respond', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify(input),
   });
@@ -149,12 +149,12 @@ export async function submitDemoTurn(input: {
 }
 
 export async function requestSTTToken(): Promise<STTTokenResponse> {
-  const response = await fetch("/api/demo/stt-token", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/stt-token', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 
@@ -162,12 +162,12 @@ export async function requestSTTToken(): Promise<STTTokenResponse> {
 }
 
 export async function disconnectSTTConnection(): Promise<{ success: boolean }> {
-  const response = await fetch("/api/demo/stt-disconnect", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/stt-disconnect', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 
@@ -175,12 +175,12 @@ export async function disconnectSTTConnection(): Promise<{ success: boolean }> {
 }
 
 export async function requestTTS(responseId: string): Promise<TTSResponse> {
-  const response = await fetch("/api/demo/tts", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/tts', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({ responseId }),
   });
@@ -191,15 +191,15 @@ export async function requestTTS(responseId: string): Promise<TTSResponse> {
       data = await response.json();
     } catch {}
     throw new DemoApiError(
-      data.error || "Failed to synthesize voice response.",
+      data.error || 'Failed to synthesize voice response.',
       data.code || `HTTP_${response.status}`,
       response.status,
-      data.correlationId,
+      data.correlationId
     );
   }
 
   const audioBuffer = await response.arrayBuffer();
-  const contentType = response.headers.get("content-type") || "audio/mpeg";
+  const contentType = response.headers.get('content-type') || 'audio/mpeg';
 
   return { audioBuffer, contentType };
 }
@@ -209,12 +209,12 @@ export async function endDemoSession(): Promise<{
   summary: any;
   finalCallResult?: any;
 }> {
-  const response = await fetch("/api/demo/session/end", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/session/end', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 
@@ -222,12 +222,12 @@ export async function endDemoSession(): Promise<{
 }
 
 export async function deleteDemoSession(): Promise<{ success: boolean }> {
-  const response = await fetch("/api/demo/session/delete", {
-    method: "POST",
-    credentials: "include",
-    cache: "no-store",
+  const response = await fetch('/api/demo/session/delete', {
+    method: 'POST',
+    credentials: 'include',
+    cache: 'no-store',
     headers: {
-      Accept: "application/json",
+      Accept: 'application/json',
     },
   });
 

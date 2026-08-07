@@ -1,30 +1,23 @@
-import { MetadataRoute } from "next";
+import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: "*",
+      userAgent: '*',
       allow: [
-        "/",
-        "/features",
-        "/industries",
-        "/architecture",
-        "/demo",
-        "/demo/story",
-        "/docs",
-        "/status",
-        "/privacy",
-        "/terms",
+        '/',
+        '/features',
+        '/industries',
+        '/architecture',
+        '/demo',
+        '/demo/story',
+        '/docs',
+        '/status',
+        '/privacy',
+        '/terms',
       ],
-      disallow: [
-        "/dashboard",
-        "/dashboard/",
-        "/dashboard/*",
-        "/api/",
-        "/login",
-        "/register",
-      ],
+      disallow: ['/dashboard', '/dashboard/', '/dashboard/*', '/api/', '/login', '/register'],
     },
-    sitemap: "https://voxdesk-ai.vercel.app/sitemap.xml",
+    sitemap: 'https://voxdesk-ai.vercel.app/sitemap.xml',
   };
 }

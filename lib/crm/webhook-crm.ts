@@ -1,18 +1,18 @@
-import crypto from "crypto";
+import crypto from 'crypto';
 import {
   CRMProvider,
   CRMContactInput,
   CRMContactRecord,
   CRMActivityInput,
   CRMProviderHealth,
-} from "./interface";
+} from './interface';
 
 export class GenericWebhookCRMProvider implements CRMProvider {
-  public readonly providerType = "GENERIC_WEBHOOK";
+  public readonly providerType = 'GENERIC_WEBHOOK';
   private webhookSecret: string;
 
   constructor() {
-    this.webhookSecret = process.env.WEBHOOK_SIGNING_SECRET || "whsec_default";
+    this.webhookSecret = process.env.WEBHOOK_SIGNING_SECRET || 'whsec_default';
   }
 
   async findContact(_phoneOrEmail: string): Promise<CRMContactRecord | null> {
@@ -31,12 +31,12 @@ export class GenericWebhookCRMProvider implements CRMProvider {
 
   async updateContact(
     contactId: string,
-    input: Partial<CRMContactInput>,
+    input: Partial<CRMContactInput>
   ): Promise<CRMContactRecord> {
     return {
       id: contactId,
       externalId: `wh-${contactId}`,
-      name: input.name || "Webhook Contact",
+      name: input.name || 'Webhook Contact',
     };
   }
 
@@ -44,19 +44,15 @@ export class GenericWebhookCRMProvider implements CRMProvider {
     return `wh-event-${input.activityType}-${Date.now()}`;
   }
 
-  async createTask(
-    _title: string,
-    _priority: string,
-    _dueDate: Date,
-  ): Promise<string> {
+  async createTask(_title: string, _priority: string, _dueDate: Date): Promise<string> {
     return `wh-task-${Date.now()}`;
   }
 
   async healthCheck(): Promise<CRMProviderHealth> {
     return {
-      providerType: "GENERIC_WEBHOOK",
-      status: "OPERATIONAL",
-      message: "Generic Webhook CRM Adapter ready",
+      providerType: 'GENERIC_WEBHOOK',
+      status: 'OPERATIONAL',
+      message: 'Generic Webhook CRM Adapter ready',
     };
   }
 }

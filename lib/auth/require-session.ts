@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/database';
 
 export interface AuthenticatedUserSession {
   userId: string;
@@ -8,23 +8,20 @@ export interface AuthenticatedUserSession {
 }
 
 export async function requireAuthUser(
-  req: NextRequest,
-): Promise<
-  { user: AuthenticatedUserSession } | { errorResponse: NextResponse }
-> {
+  req: NextRequest
+): Promise<{ user: AuthenticatedUserSession } | { errorResponse: NextResponse }> {
   // Allow explicit public demo mode header
   const isDemoSandbox =
-    req.headers.get("x-demo-sandbox") === "true" ||
-    req.headers.get("x-voxdesk-demo") === "true";
-  const authHeader = req.headers.get("authorization");
-  const sessionCookie = req.cookies.get("voxdesk_session")?.value;
+    req.headers.get('x-demo-sandbox') === 'true' || req.headers.get('x-voxdesk-demo') === 'true';
+  const authHeader = req.headers.get('authorization');
+  const sessionCookie = req.cookies.get('voxdesk_session')?.value;
 
   if (isDemoSandbox) {
     return {
       user: {
-        userId: "usr_demo_operator",
-        email: "operator@voxdesk.ai",
-        name: "Demo Operator",
+        userId: 'usr_demo_operator',
+        email: 'operator@voxdesk.ai',
+        name: 'Demo Operator',
       },
     };
   }
@@ -32,14 +29,14 @@ export async function requireAuthUser(
   if (!authHeader && !sessionCookie) {
     return {
       errorResponse: NextResponse.json(
-        { error: "Authentication required.", code: "UNAUTHORIZED" },
-        { status: 401 },
+        { error: 'Authentication required.', code: 'UNAUTHORIZED' },
+        { status: 401 }
       ),
     };
   }
 
   try {
-    const token = sessionCookie || authHeader?.replace("Bearer ", "");
+    const token = sessionCookie || authHeader?.replace('Bearer ', '');
     if (token) {
       const session = await prisma.session.findUnique({
         where: { tokenHash: token },
@@ -59,37 +56,37 @@ export async function requireAuthUser(
   } catch (err) {
     return {
       errorResponse: NextResponse.json(
-        { error: "Invalid or expired session token.", code: "INVALID_TOKEN" },
-        { status: 401 },
+        { error: 'Invalid or expired session token.', code: 'INVALID_TOKEN' },
+        { status: 401 }
       ),
     };
   }
 
   return {
     errorResponse: NextResponse.json(
-      { error: "Invalid or expired session token.", code: "INVALID_TOKEN" },
-      { status: 401 },
+      { error: 'Invalid or expired session token.', code: 'INVALID_TOKEN' },
+      { status: 401 }
     ),
   };
 }
 
 export async function requireWorkspaceAccess(
   req: NextRequest,
-  requestedWorkspaceId?: string,
+  requestedWorkspaceId?: string
 ): Promise<{ workspaceId: string } | { errorResponse: NextResponse }> {
   const auth = await requireAuthUser(req);
-  if ("errorResponse" in auth) {
+  if ('errorResponse' in auth) {
     return { errorResponse: auth.errorResponse };
   }
 
   const user = auth.user;
-  const isDemoSandbox = user.userId === "usr_demo_operator";
+  const isDemoSandbox = user.userId === 'usr_demo_operator';
 
   if (isDemoSandbox) {
-    return { workspaceId: "ws_demo_default" };
+    return { workspaceId: 'ws_demo_default' };
   }
 
-  const targetWorkspaceId = requestedWorkspaceId || "ws_demo_default";
+  const targetWorkspaceId = requestedWorkspaceId || 'ws_demo_default';
 
   try {
     const member = await prisma.workspaceMember.findFirst({
@@ -99,14 +96,14 @@ export async function requireWorkspaceAccess(
       },
     });
 
-    if (!member && targetWorkspaceId !== "ws_demo_default") {
+    if (!member && targetWorkspaceId !== 'ws_demo_default') {
       return {
         errorResponse: NextResponse.json(
           {
-            error: "Forbidden: You do not have access to this workspace.",
-            code: "FORBIDDEN_WORKSPACE",
+            error: 'Forbidden: You do not have access to this workspace.',
+            code: 'FORBIDDEN_WORKSPACE',
           },
-          { status: 403 },
+          { status: 403 }
         ),
       };
     }

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Bot,
   Volume2,
@@ -12,10 +12,10 @@ import {
   CheckCircle2,
   Plus,
   RefreshCw,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function AgentSetupPage() {
-  const [activeTab, setActiveTab] = useState("PROFILE");
+  const [activeTab, setActiveTab] = useState('PROFILE');
 
   return (
     <div className="space-y-6 select-none">
@@ -26,7 +26,8 @@ export default function AgentSetupPage() {
             Voice Agent Configuration Workspace
           </h1>
           <p className="text-xs text-[#64748B]">
-            Configure agent identity, ElevenLabs voice model, business knowledge base, and automated rules.
+            Configure agent identity, ElevenLabs voice model, business knowledge base, and automated
+            rules.
           </p>
         </div>
 
@@ -41,22 +42,22 @@ export default function AgentSetupPage() {
       {/* 7 AGENT CONFIGURATION TABS */}
       <div className="p-1 rounded-lg bg-white border border-[#E2E8F0] flex items-center gap-1 text-xs shadow-sm overflow-x-auto">
         {[
-          { id: "PROFILE", label: "Profile" },
-          { id: "VOICE", label: "Voice Model" },
-          { id: "BUSINESS", label: "Business Info" },
-          { id: "KNOWLEDGE", label: "Knowledge Base" },
-          { id: "RULES", label: "Conversation Rules" },
-          { id: "ACTIONS", label: "System Actions" },
-          { id: "TESTING", label: "Testing & Inspector" },
-        ].map((tab) => (
+          { id: 'PROFILE', label: 'Profile' },
+          { id: 'VOICE', label: 'Voice Model' },
+          { id: 'BUSINESS', label: 'Business Info' },
+          { id: 'KNOWLEDGE', label: 'Knowledge Base' },
+          { id: 'RULES', label: 'Conversation Rules' },
+          { id: 'ACTIONS', label: 'System Actions' },
+          { id: 'TESTING', label: 'Testing & Inspector' },
+        ].map(tab => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
             className={`px-3 py-1.5 rounded-md font-semibold transition-colors shrink-0 ${
               activeTab === tab.id
-                ? "bg-[#1D4ED8] text-white shadow-sm"
-                : "text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]"
+                ? 'bg-[#1D4ED8] text-white shadow-sm'
+                : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
             }`}
           >
             {tab.label}
@@ -65,7 +66,7 @@ export default function AgentSetupPage() {
       </div>
 
       {/* TAB CONTENT PANELS */}
-      {activeTab === "PROFILE" && (
+      {activeTab === 'PROFILE' && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-5 shadow-sm max-w-3xl">
           <h2 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider border-b border-[#E2E8F0] pb-2">
             Agent Profile Settings
@@ -82,7 +83,9 @@ export default function AgentSetupPage() {
             </div>
 
             <div>
-              <label className="block font-semibold text-[#0F172A] mb-1">Role & Business Persona</label>
+              <label className="block font-semibold text-[#0F172A] mb-1">
+                Role & Business Persona
+              </label>
               <input
                 type="text"
                 defaultValue="Inbound Legal Intake Specialist — Northstar Legal Consultations"
@@ -91,7 +94,9 @@ export default function AgentSetupPage() {
             </div>
 
             <div>
-              <label className="block font-semibold text-[#0F172A] mb-1">System Prompt / Instructions</label>
+              <label className="block font-semibold text-[#0F172A] mb-1">
+                System Prompt / Instructions
+              </label>
               <textarea
                 rows={5}
                 defaultValue="You are Maya, an AI voice receptionist for Northstar Legal Consultations. Answer caller inquiries professionally, collect BANT qualification fields, and offer consultation bookings."
@@ -102,7 +107,7 @@ export default function AgentSetupPage() {
         </div>
       )}
 
-      {activeTab === "VOICE" && (
+      {activeTab === 'VOICE' && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-5 shadow-sm max-w-3xl">
           <h2 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider border-b border-[#E2E8F0] pb-2">
             ElevenLabs Voice Model Settings
@@ -137,13 +142,18 @@ export default function AgentSetupPage() {
         </div>
       )}
 
-      {(activeTab === "KNOWLEDGE" || activeTab === "BUSINESS" || activeTab === "RULES" || activeTab === "ACTIONS" || activeTab === "TESTING") && (
+      {(activeTab === 'KNOWLEDGE' ||
+        activeTab === 'BUSINESS' ||
+        activeTab === 'RULES' ||
+        activeTab === 'ACTIONS' ||
+        activeTab === 'TESTING') && (
         <div className="bg-white rounded-xl border border-[#E2E8F0] p-6 space-y-4 shadow-sm max-w-3xl">
           <h2 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider border-b border-[#E2E8F0] pb-2">
             {activeTab} Settings
           </h2>
           <p className="text-xs text-[#64748B] leading-relaxed">
-            Configure {activeTab.toLowerCase()} properties and system grounding settings for voice agent execution.
+            Configure {activeTab.toLowerCase()} properties and system grounding settings for voice
+            agent execution.
           </p>
           <div className="p-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#475569]">
             Active configuration loaded for Maya receptionist workspace.

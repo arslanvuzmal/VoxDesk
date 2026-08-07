@@ -1,6 +1,6 @@
-import Link from "next/link";
-import { Navbar } from "@/components/ui/navbar";
-import { CheckCircle2, Shield, Info, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { Navbar } from '@/components/ui/navbar';
+import { CheckCircle2, Shield, Info, ArrowLeft } from 'lucide-react';
 
 export default function SystemStatusPage() {
   return (
@@ -14,8 +14,7 @@ export default function SystemStatusPage() {
               System Status & Environment Health
             </h1>
             <p className="text-xs text-[#8B949E]">
-              Current operational state of system components and provider
-              connections.
+              Current operational state of system components and provider connections.
             </p>
           </div>
 
@@ -32,12 +31,9 @@ export default function SystemStatusPage() {
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-[#60A5FA]"></div>
             <div>
-              <span className="text-sm font-bold text-white">
-                Environment Mode: Demo Sandbox
-              </span>
+              <span className="text-sm font-bold text-white">Environment Mode: Demo Sandbox</span>
               <p className="text-xs text-[#8B949E]">
-                Operating with deterministic Demo Voice Provider & fictional
-                business data.
+                Operating with deterministic Demo Voice Provider & fictional business data.
               </p>
             </div>
           </div>
@@ -48,16 +44,12 @@ export default function SystemStatusPage() {
 
         {/* System Components Table */}
         <div className="p-4 rounded-lg bg-[#13171C] border border-[#272D35] space-y-4">
-          <h2 className="text-sm font-bold text-white">
-            Component Health Checks
-          </h2>
+          <h2 className="text-sm font-bold text-white">Component Health Checks</h2>
 
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
               <div>
-                <span className="font-semibold text-white block">
-                  16-State Conversation Engine
-                </span>
+                <span className="font-semibold text-white block">16-State Conversation Engine</span>
                 <span className="text-[#8B949E] text-[11px]">
                   Server-enforced state machine & Zod summary validation
                 </span>
@@ -69,9 +61,7 @@ export default function SystemStatusPage() {
 
             <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
               <div>
-                <span className="font-semibold text-white block">
-                  Demo Telephony Adapter
-                </span>
+                <span className="font-semibold text-white block">Demo Telephony Adapter</span>
                 <span className="text-[#8B949E] text-[11px]">
                   Deterministic browser/server call simulation
                 </span>
@@ -83,9 +73,7 @@ export default function SystemStatusPage() {
 
             <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
               <div>
-                <span className="font-semibold text-white block">
-                  Prisma PostgreSQL Database
-                </span>
+                <span className="font-semibold text-white block">Prisma PostgreSQL Database</span>
                 <span className="text-[#8B949E] text-[11px]">
                   22 relational schema models & workspace scoping
                 </span>
@@ -100,13 +88,9 @@ export default function SystemStatusPage() {
                 <span className="font-semibold text-white block">
                   Twilio / Vapi / LiveKit Adapters
                 </span>
-                <span className="text-[#8B949E] text-[11px]">
-                  Live PSTN telephony connections
-                </span>
+                <span className="text-[#8B949E] text-[11px]">Live PSTN telephony connections</span>
               </div>
-              <span className="text-[#8B949E] font-mono">
-                Not Configured (Demo Mode)
-              </span>
+              <span className="text-[#8B949E] font-mono">Not Configured (Demo Mode)</span>
             </div>
           </div>
         </div>

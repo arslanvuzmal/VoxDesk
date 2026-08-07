@@ -1,17 +1,15 @@
-import { CalendarProvider } from "./interface";
-import { DemoCalendarProvider } from "./demo-calendar";
-import { GoogleCalendarProvider } from "./google-calendar";
-import { CalComProvider } from "./calcom-calendar";
+import { CalendarProvider } from './interface';
+import { DemoCalendarProvider } from './demo-calendar';
+import { GoogleCalendarProvider } from './google-calendar';
+import { CalComProvider } from './calcom-calendar';
 
-export function getCalendarProvider(
-  providerType: string = "DEMO",
-): CalendarProvider {
+export function getCalendarProvider(providerType: string = 'DEMO'): CalendarProvider {
   switch (providerType.toUpperCase()) {
-    case "GOOGLE_CALENDAR":
+    case 'GOOGLE_CALENDAR':
       return new GoogleCalendarProvider();
-    case "CALCOM":
+    case 'CALCOM':
       return new CalComProvider();
-    case "DEMO":
+    case 'DEMO':
     default:
       return new DemoCalendarProvider();
   }

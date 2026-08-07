@@ -1,4 +1,4 @@
-import { legalTrainingPack } from "@/lib/organization/presets/legal";
+import { legalTrainingPack } from '@/lib/organization/presets/legal';
 
 export interface AppointmentSlot {
   slotId: string;
@@ -12,11 +12,11 @@ export interface AppointmentSlot {
 }
 
 export function generateRealAvailableSlots(
-  presetKey: string = "LEGAL",
-  serviceId: string = "srv-corp",
+  presetKey: string = 'LEGAL',
+  serviceId: string = 'srv-corp'
 ): AppointmentSlot[] {
   const pack = legalTrainingPack;
-  const timeZone = pack.business.timeZone || "America/New_York";
+  const timeZone = pack.business.timeZone || 'America/New_York';
   const durationMs = (pack.appointmentPolicy.slotDurationMinutes || 45) * 60000;
 
   const now = new Date();
@@ -24,15 +24,15 @@ export function generateRealAvailableSlots(
 
   // Generate 4 deterministic real slots starting tomorrow
   const slotTimes = [
-    { dayOffset: 1, hour: 10, minute: 0, label: "Tomorrow at 10:00 AM EST" },
-    { dayOffset: 1, hour: 14, minute: 30, label: "Tomorrow at 2:30 PM EST" },
+    { dayOffset: 1, hour: 10, minute: 0, label: 'Tomorrow at 10:00 AM EST' },
+    { dayOffset: 1, hour: 14, minute: 30, label: 'Tomorrow at 2:30 PM EST' },
     {
       dayOffset: 2,
       hour: 11,
       minute: 15,
-      label: "Day after tomorrow at 11:15 AM EST",
+      label: 'Day after tomorrow at 11:15 AM EST',
     },
-    { dayOffset: 3, hour: 15, minute: 0, label: "In 3 days at 3:00 PM EST" },
+    { dayOffset: 3, hour: 15, minute: 0, label: 'In 3 days at 3:00 PM EST' },
   ];
 
   slotTimes.forEach((st, idx) => {
@@ -41,7 +41,7 @@ export function generateRealAvailableSlots(
       now.getMonth(),
       now.getDate() + st.dayOffset,
       st.hour,
-      st.minute,
+      st.minute
     );
     const slotEnd = new Date(slotStart.getTime() + durationMs);
 
@@ -52,7 +52,7 @@ export function generateRealAvailableSlots(
       endTime: slotEnd.toISOString(),
       timezone: timeZone,
       serviceId,
-      serviceName: pack.services[0]?.name || "Legal Strategy Consultation",
+      serviceName: pack.services[0]?.name || 'Legal Strategy Consultation',
       available: true,
     });
   });

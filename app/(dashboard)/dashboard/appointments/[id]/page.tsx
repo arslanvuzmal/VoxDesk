@@ -1,21 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect, use } from "react";
-import Link from "next/link";
-import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  User,
-  CheckCircle2,
-  AlertTriangle,
-} from "lucide-react";
+import { useState, useEffect, use } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, Calendar, Clock, User, CheckCircle2, AlertTriangle } from 'lucide-react';
 
-export default function AppointmentDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default function AppointmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [appointment, setAppointment] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,9 +39,7 @@ export default function AppointmentDetailPage({
     return (
       <div className="py-20 text-center space-y-4">
         <AlertTriangle className="w-8 h-8 text-[#EF4444] mx-auto" />
-        <h2 className="text-lg font-bold text-white">
-          Appointment Record Not Found
-        </h2>
+        <h2 className="text-lg font-bold text-white">Appointment Record Not Found</h2>
         <Link
           href="/dashboard/appointments"
           className="text-xs text-[#2DD4BF] hover:underline inline-flex items-center gap-1"
@@ -73,37 +60,27 @@ export default function AppointmentDetailPage({
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Appointments Log</span>
         </Link>
-        <span className="text-xs font-mono text-[#8B949E]">
-          ID: {appointment.id}
-        </span>
+        <span className="text-xs font-mono text-[#8B949E]">ID: {appointment.id}</span>
       </div>
 
       <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#272D35] pb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">
-              {appointment.callerName}
-            </h1>
-            <p className="text-xs text-[#8B949E]">
-              Service: {appointment.service}
-            </p>
+            <h1 className="text-2xl font-bold text-white">{appointment.callerName}</h1>
+            <p className="text-xs text-[#8B949E]">Service: {appointment.service}</p>
           </div>
 
           <div className="px-4 py-2 rounded-xl bg-[#2DD4BF]/10 border border-[#2DD4BF]/30 text-right">
             <span className="text-[10px] font-mono text-[#8B949E] uppercase block">
               Confirmation
             </span>
-            <span className="text-sm font-bold text-[#2DD4BF]">
-              {appointment.status}
-            </span>
+            <span className="text-sm font-bold text-[#2DD4BF]">{appointment.status}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
           <div className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] space-y-1">
-            <span className="text-[#8B949E] uppercase font-mono text-[10px]">
-              Start Time
-            </span>
+            <span className="text-[#8B949E] uppercase font-mono text-[10px]">Start Time</span>
             <p className="text-white font-semibold text-sm">
               {new Date(appointment.startTime).toLocaleString()}
             </p>
@@ -111,15 +88,11 @@ export default function AppointmentDetailPage({
           </div>
 
           <div className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] space-y-1">
-            <span className="text-[#8B949E] uppercase font-mono text-[10px]">
-              End Time
-            </span>
+            <span className="text-[#8B949E] uppercase font-mono text-[10px]">End Time</span>
             <p className="text-white font-semibold text-sm">
               {new Date(appointment.endTime).toLocaleString()}
             </p>
-            <p className="text-[#8B949E]">
-              Status: {appointment.confirmationStatus}
-            </p>
+            <p className="text-[#8B949E]">Status: {appointment.confirmationStatus}</p>
           </div>
         </div>
 

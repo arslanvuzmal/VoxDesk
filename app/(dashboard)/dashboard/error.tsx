@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import Link from "next/link";
-import { AlertTriangle, RotateCcw, LayoutDashboard } from "lucide-react";
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { AlertTriangle, RotateCcw, LayoutDashboard } from 'lucide-react';
 
 export default function DashboardError({
   error,
@@ -12,7 +12,7 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error("[DASHBOARD ERROR]:", error);
+    console.error('[DASHBOARD ERROR]:', error);
   }, [error]);
 
   return (
@@ -25,8 +25,7 @@ export default function DashboardError({
               Dashboard Component Error
             </h2>
             <p className="text-xs text-red-200">
-              {error.message ||
-                "An unexpected error occurred while loading this dashboard view."}
+              {error.message || 'An unexpected error occurred while loading this dashboard view.'}
             </p>
           </div>
         </div>

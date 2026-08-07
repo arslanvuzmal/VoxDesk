@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import bcrypt from "bcryptjs";
-import { prisma } from "@/lib/database";
-import { createSession, SESSION_COOKIE_NAME, verifyPassword } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { prisma } from '@/lib/database';
+import { createSession, SESSION_COOKIE_NAME, verifyPassword } from '@/lib/auth';
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -11,9 +11,8 @@ const LoginSchema = z.object({
 
 // Demo Owner credentials hash for offline / serverless demo access
 // Email: owner@northstarlegal.com | Password: password123
-const DEMO_OWNER_EMAIL = "owner@northstarlegal.com";
-const DEMO_OWNER_PASSWORD_HASH =
-  "$2a$10$w8T02Wb5F3zJ.O4eL.OQde0pLqL0JkK9J4.X5X5X5X5X5X5X5X5X5"; // bcrypt for password123
+const DEMO_OWNER_EMAIL = 'owner@northstarlegal.com';
+const DEMO_OWNER_PASSWORD_HASH = '$2a$10$w8T02Wb5F3zJ.O4eL.OQde0pLqL0JkK9J4.X5X5X5X5X5X5X5X5X5'; // bcrypt for password123
 
 export async function POST(req: NextRequest) {
   try {
@@ -21,10 +20,7 @@ export async function POST(req: NextRequest) {
     const parsed = LoginSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid email or password format" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Invalid email or password format' }, { status: 400 });
     }
 
     const { email, password } = parsed.data;
@@ -32,31 +28,27 @@ export async function POST(req: NextRequest) {
     // Check exact Demo Owner credentials
     if (email === DEMO_OWNER_EMAIL) {
       const isDemoPasswordValid =
-        password === "password123" ||
-        (await bcrypt.compare(password, DEMO_OWNER_PASSWORD_HASH));
+        password === 'password123' || (await bcrypt.compare(password, DEMO_OWNER_PASSWORD_HASH));
       if (isDemoPasswordValid) {
         const response = NextResponse.json({
           user: {
-            id: "demo-user-owner",
-            name: "Arslan Vuzmal Lone",
+            id: 'demo-user-owner',
+            name: 'Arslan Vuzmal Lone',
             email: DEMO_OWNER_EMAIL,
-            activeWorkspaceId: "northstar-legal-ws",
-            activeWorkspaceRole: "OWNER",
+            activeWorkspaceId: 'northstar-legal-ws',
+            activeWorkspaceRole: 'OWNER',
           },
         });
-        response.cookies.set(SESSION_COOKIE_NAME, "demo-session-token-owner", {
+        response.cookies.set(SESSION_COOKIE_NAME, 'demo-session-token-owner', {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
           maxAge: 7 * 24 * 3600,
         });
         return response;
       } else {
-        return NextResponse.json(
-          { error: "Invalid email or password" },
-          { status: 401 },
-        );
+        return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
       }
     }
 
@@ -81,16 +73,16 @@ export async function POST(req: NextRequest) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                activeWorkspaceId: user.memberships[0]?.workspaceId || "",
-                activeWorkspaceRole: user.memberships[0]?.role || "OPERATOR",
+                activeWorkspaceId: user.memberships[0]?.workspaceId || '',
+                activeWorkspaceRole: user.memberships[0]?.role || 'OPERATOR',
               },
             });
 
             response.cookies.set(SESSION_COOKIE_NAME, token, {
               httpOnly: true,
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "lax",
-              path: "/",
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              path: '/',
               maxAge: 7 * 24 * 3600,
             });
 
@@ -100,19 +92,13 @@ export async function POST(req: NextRequest) {
       }
     } catch {
       return NextResponse.json(
-        { error: "The demo dashboard is temporarily unavailable." },
-        { status: 503 },
+        { error: 'The demo dashboard is temporarily unavailable.' },
+        { status: 503 }
       );
     }
 
-    return NextResponse.json(
-      { error: "Invalid email or password" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
   } catch (error) {
-    return NextResponse.json(
-      { error: "Authentication failed" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Authentication failed' }, { status: 500 });
   }
 }

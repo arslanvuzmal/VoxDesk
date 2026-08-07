@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Users,
   Search,
@@ -14,22 +14,22 @@ import {
   Building2,
   Clock,
   UserCheck,
-} from "lucide-react";
+} from 'lucide-react';
 
 export default function LeadsPage() {
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
-  const [urgencyFilter, setUrgencyFilter] = useState("ALL");
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [urgencyFilter, setUrgencyFilter] = useState('ALL');
 
   const fetchLeads = async () => {
     setLoading(true);
     try {
       const query = new URLSearchParams();
-      if (search) query.set("search", search);
-      if (categoryFilter !== "ALL") query.set("category", categoryFilter);
-      if (urgencyFilter !== "ALL") query.set("urgency", urgencyFilter);
+      if (search) query.set('search', search);
+      if (categoryFilter !== 'ALL') query.set('category', categoryFilter);
+      if (urgencyFilter !== 'ALL') query.set('urgency', urgencyFilter);
 
       const res = await fetch(`/api/leads?${query.toString()}`);
       const data = await res.json();
@@ -48,10 +48,10 @@ export default function LeadsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter, urgencyFilter]);
 
-  const hotCount = leads.filter((l) => l.category === "HOT").length;
-  const warmCount = leads.filter((l) => l.category === "WARM").length;
-  const reviewCount = leads.filter((l) => l.category === "REVIEW").length;
-  const coldCount = leads.filter((l) => l.category === "COLD").length;
+  const hotCount = leads.filter(l => l.category === 'HOT').length;
+  const warmCount = leads.filter(l => l.category === 'WARM').length;
+  const reviewCount = leads.filter(l => l.category === 'REVIEW').length;
+  const coldCount = leads.filter(l => l.category === 'COLD').length;
 
   return (
     <div className="space-y-6 select-none">
@@ -72,9 +72,7 @@ export default function LeadsPage() {
             onClick={fetchLeads}
             className="px-3 py-1.5 rounded-md bg-[#21262D] hover:bg-[#30363D] text-xs font-medium text-white border border-[#30363D] flex items-center gap-1.5 transition-colors"
           >
-            <RefreshCw
-              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
-            />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh Data</span>
           </button>
         </div>
@@ -128,20 +126,20 @@ export default function LeadsPage() {
         {/* Category Tabs */}
         <div className="flex items-center gap-1 overflow-x-auto text-xs">
           {[
-            { id: "ALL", label: "All Leads" },
-            { id: "HOT", label: "Hot (≥75)" },
-            { id: "WARM", label: "Warm (≥50)" },
-            { id: "REVIEW", label: "Review Needed" },
-            { id: "COLD", label: "Cold" },
-          ].map((tab) => (
+            { id: 'ALL', label: 'All Leads' },
+            { id: 'HOT', label: 'Hot (≥75)' },
+            { id: 'WARM', label: 'Warm (≥50)' },
+            { id: 'REVIEW', label: 'Review Needed' },
+            { id: 'COLD', label: 'Cold' },
+          ].map(tab => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setCategoryFilter(tab.id)}
               className={`px-3 py-1.5 rounded-md font-medium transition-colors shrink-0 ${
                 categoryFilter === tab.id
-                  ? "bg-[#21262D] text-white border border-[#30363D]"
-                  : "text-[#8B949E] hover:text-white hover:bg-[#161B22]"
+                  ? 'bg-[#21262D] text-white border border-[#30363D]'
+                  : 'text-[#8B949E] hover:text-white hover:bg-[#161B22]'
               }`}
             >
               {tab.label}
@@ -157,15 +155,15 @@ export default function LeadsPage() {
               type="text"
               placeholder="Filter by lead name or email..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && fetchLeads()}
+              onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchLeads()}
               className="bg-[#0D1117] border border-[#30363D] rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-[#6E7681] focus:outline-none focus:border-[#58A6FF]"
             />
           </div>
 
           <select
             value={urgencyFilter}
-            onChange={(e) => setUrgencyFilter(e.target.value)}
+            onChange={e => setUrgencyFilter(e.target.value)}
             className="bg-[#0D1117] border border-[#30363D] rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-[#58A6FF]"
           >
             <option value="ALL">All Urgency</option>
@@ -205,11 +203,8 @@ export default function LeadsPage() {
                   </td>
                 </tr>
               ) : (
-                leads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="hover:bg-[#1C2129] transition-colors"
-                  >
+                leads.map(lead => (
+                  <tr key={lead.id} className="hover:bg-[#1C2129] transition-colors">
                     <td className="px-4 py-3">
                       <Link
                         href={`/dashboard/leads/${lead.id}`}
@@ -217,25 +212,21 @@ export default function LeadsPage() {
                       >
                         {lead.name}
                       </Link>
-                      <p className="text-[11px] text-[#8B949E] font-mono">
-                        {lead.email}
-                      </p>
+                      <p className="text-[11px] text-[#8B949E] font-mono">{lead.email}</p>
                     </td>
 
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white font-mono text-sm">
-                          {lead.score}
-                        </span>
+                        <span className="font-bold text-white font-mono text-sm">{lead.score}</span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                            lead.category === "HOT"
-                              ? "bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30"
-                              : lead.category === "WARM"
-                              ? "bg-[#D29922]/15 text-[#D29922] border-[#D29922]/30"
-                              : lead.category === "REVIEW"
-                              ? "bg-[#58A6FF]/15 text-[#58A6FF] border-[#58A6FF]/30"
-                              : "bg-[#6E7681]/15 text-[#6E7681] border-[#6E7681]/30"
+                            lead.category === 'HOT'
+                              ? 'bg-[#F85149]/15 text-[#F85149] border-[#F85149]/30'
+                              : lead.category === 'WARM'
+                                ? 'bg-[#D29922]/15 text-[#D29922] border-[#D29922]/30'
+                                : lead.category === 'REVIEW'
+                                  ? 'bg-[#58A6FF]/15 text-[#58A6FF] border-[#58A6FF]/30'
+                                  : 'bg-[#6E7681]/15 text-[#6E7681] border-[#6E7681]/30'
                           }`}
                         >
                           {lead.category}
@@ -244,17 +235,17 @@ export default function LeadsPage() {
                     </td>
 
                     <td className="px-4 py-3 font-medium text-[#C9D1D9]">
-                      {lead.legalServiceNeeded || lead.practiceArea || "Legal Inquiry"}
+                      {lead.legalServiceNeeded || lead.practiceArea || 'Legal Inquiry'}
                     </td>
 
                     <td className="px-4 py-3">
                       <span
                         className={`text-[11px] font-mono ${
-                          lead.urgency === "URGENT"
-                            ? "text-[#F85149] font-bold"
-                            : lead.urgency === "HIGH"
-                            ? "text-[#D29922] font-semibold"
-                            : "text-[#8B949E]"
+                          lead.urgency === 'URGENT'
+                            ? 'text-[#F85149] font-bold'
+                            : lead.urgency === 'HIGH'
+                              ? 'text-[#D29922] font-semibold'
+                              : 'text-[#8B949E]'
                         }`}
                       >
                         {lead.urgency}

@@ -1,10 +1,10 @@
-import Link from "next/link";
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
-import { FileQuestion, Home, PhoneCall, LogIn, LayoutDashboard } from "lucide-react";
+import Link from 'next/link';
+import { Navbar } from '@/components/ui/navbar';
+import { Footer } from '@/components/ui/footer';
+import { FileQuestion, Home, PhoneCall, LogIn, LayoutDashboard } from 'lucide-react';
 
 export const metadata = {
-  title: "Page Not Found (404) — VoxDesk",
+  title: 'Page Not Found (404) — VoxDesk',
   robots: {
     index: false,
     follow: false,
@@ -23,9 +23,7 @@ export default function NotFound() {
           </div>
 
           <div className="space-y-2">
-            <span className="text-xs font-mono text-[#1D4ED8] font-bold uppercase">
-              Error 404
-            </span>
+            <span className="text-xs font-mono text-[#1D4ED8] font-bold uppercase">Error 404</span>
             <h1 className="text-2xl font-extrabold text-[#0F172A] tracking-tight">
               Page not found
             </h1>

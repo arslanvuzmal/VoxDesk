@@ -1,12 +1,12 @@
-import Link from "next/link";
-import { Navbar } from "@/components/ui/navbar";
-import { Footer } from "@/components/ui/footer";
-import { Shield, Lock, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { Navbar } from '@/components/ui/navbar';
+import { Footer } from '@/components/ui/footer';
+import { Shield, Lock, ArrowLeft } from 'lucide-react';
 
 export const metadata = {
-  title: "Privacy Policy — VoxDesk",
+  title: 'Privacy Policy — VoxDesk',
   description:
-    "Privacy Policy and data processing disclosures for VoxDesk Voice Operations Platform.",
+    'Privacy Policy and data processing disclosures for VoxDesk Voice Operations Platform.',
 };
 
 export default function PrivacyPage() {
@@ -43,7 +43,9 @@ export default function PrivacyPage() {
             <span>Fictional Business Demonstration Disclosure</span>
           </div>
           <p className="leading-relaxed">
-            The public demonstration of VoxDesk uses fictional business data (&quot;Northstar Legal Consultations&quot;). Visitors should not provide confidential, sensitive, medical, legal, or financial information during voice or text interactions.
+            The public demonstration of VoxDesk uses fictional business data (&quot;Northstar Legal
+            Consultations&quot;). Visitors should not provide confidential, sensitive, medical,
+            legal, or financial information during voice or text interactions.
           </p>
         </div>
 
@@ -53,7 +55,9 @@ export default function PrivacyPage() {
               1. Information Processed During Voice Demonstration
             </h2>
             <p>
-              When participating in the interactive voice sandbox, VoxDesk processes microphone audio in your web browser for real-time Speech-to-Text transcription. Speech data is processed transiently over WebRTC token sessions for demonstration purposes.
+              When participating in the interactive voice sandbox, VoxDesk processes microphone
+              audio in your web browser for real-time Speech-to-Text transcription. Speech data is
+              processed transiently over WebRTC token sessions for demonstration purposes.
             </p>
           </section>
 
@@ -62,7 +66,8 @@ export default function PrivacyPage() {
               2. Data Protection & Security Controls
             </h2>
             <p>
-              VoxDesk implements server-authorized token sessions, role-based workspace access, and encrypted transport protocols (HTTPS/WSS) for platform operations.
+              VoxDesk implements server-authorized token sessions, role-based workspace access, and
+              encrypted transport protocols (HTTPS/WSS) for platform operations.
             </p>
           </section>
         </div>

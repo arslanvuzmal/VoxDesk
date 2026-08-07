@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/database";
-import { getOrganizationProfile } from "@/lib/organization/registry";
-import { calculateLeadQualification } from "./qualification";
-import { getAvailableSlots } from "@/lib/calendar/availability-service";
-import { encryptSensitiveValue } from "@/lib/security/encryption";
-import { BusinessActionType } from "./schemas/voice-agent-output";
+import { prisma } from '@/lib/database';
+import { getOrganizationProfile } from '@/lib/organization/registry';
+import { calculateLeadQualification } from './qualification';
+import { getAvailableSlots } from '@/lib/calendar/availability-service';
+import { encryptSensitiveValue } from '@/lib/security/encryption';
+import { BusinessActionType } from './schemas/voice-agent-output';
 
 export { type BusinessActionType };
 
@@ -29,7 +29,7 @@ export interface BusinessActionResult {
   success: boolean;
   persisted: boolean;
   actionType: BusinessActionType;
-  status: "COMPLETED" | "PENDING_CONFIRMATION" | "SKIPPED" | "FAILED";
+  status: 'COMPLETED' | 'PENDING_CONFIRMATION' | 'SKIPPED' | 'FAILED';
   message: string;
   recordIds: {
     callId?: string;
@@ -51,29 +51,23 @@ function assertNever(x: never): never {
 }
 
 export async function executeBusinessAction(
-  req: BusinessActionRequest,
+  req: BusinessActionRequest
 ): Promise<BusinessActionResult> {
   const profile = getOrganizationProfile(req.presetKey);
-  const workspaceId = req.workspaceId || "ws_demo_default";
+  const workspaceId = req.workspaceId || 'ws_demo_default';
 
   const callerName =
     req.callerName ||
     req.extractedFields?.fullName ||
     req.extractedFields?.customerName ||
     req.extractedFields?.patientName ||
-    "Caller";
+    'Caller';
 
   const callerPhone =
-    req.callerPhone ||
-    req.extractedFields?.contactPhone ||
-    req.extractedFields?.phone ||
-    "";
+    req.callerPhone || req.extractedFields?.contactPhone || req.extractedFields?.phone || '';
 
   const callerEmail =
-    req.callerEmail ||
-    req.extractedFields?.workEmail ||
-    req.extractedFields?.email ||
-    "";
+    req.callerEmail || req.extractedFields?.workEmail || req.extractedFields?.email || '';
 
   const service =
     req.service ||
@@ -81,47 +75,44 @@ export async function executeBusinessAction(
     req.extractedFields?.issueCategory ||
     req.extractedFields?.primarySymptom ||
     profile.services[0]?.name ||
-    "General Inquiry";
+    'General Inquiry';
 
   switch (req.actionType) {
-    case "NONE": {
+    case 'NONE': {
       return {
         success: true,
         persisted: false,
-        actionType: "NONE",
-        status: "SKIPPED",
-        message: "No business action required for turn.",
+        actionType: 'NONE',
+        status: 'SKIPPED',
+        message: 'No business action required for turn.',
         recordIds: {},
         details: {},
       };
     }
 
-    case "ANSWER_APPROVED_QUESTION": {
+    case 'ANSWER_APPROVED_QUESTION': {
       return {
         success: true,
         persisted: false,
-        actionType: "ANSWER_APPROVED_QUESTION",
-        status: "COMPLETED",
-        message: "Approved FAQ response provided from profile knowledge.",
+        actionType: 'ANSWER_APPROVED_QUESTION',
+        status: 'COMPLETED',
+        message: 'Approved FAQ response provided from profile knowledge.',
         recordIds: {},
         details: {
           organization: profile.name,
-          scenario: "ROUTINE",
+          scenario: 'ROUTINE',
         },
       };
     }
 
-    case "CHECK_AVAILABILITY": {
+    case 'CHECK_AVAILABILITY': {
       try {
-        const slots = await getAvailableSlots(
-          profile,
-          req.extractedFields?.preferredDate,
-        );
+        const slots = await getAvailableSlots(profile, req.extractedFields?.preferredDate);
         return {
           success: true,
           persisted: false,
-          actionType: "CHECK_AVAILABILITY",
-          status: "COMPLETED",
+          actionType: 'CHECK_AVAILABILITY',
+          status: 'COMPLETED',
           message: `Checked real calendar availability. Found ${slots.length} available slots.`,
           recordIds: {},
           details: {
@@ -133,33 +124,32 @@ export async function executeBusinessAction(
         return {
           success: false,
           persisted: false,
-          actionType: "CHECK_AVAILABILITY",
-          status: "FAILED",
-          message: "Failed to check calendar availability.",
+          actionType: 'CHECK_AVAILABILITY',
+          status: 'FAILED',
+          message: 'Failed to check calendar availability.',
           recordIds: {},
           details: {},
           error: {
-            code: "AVAILABILITY_UNAVAILABLE",
-            message: err?.message || "Database calendar query failed",
+            code: 'AVAILABILITY_UNAVAILABLE',
+            message: err?.message || 'Database calendar query failed',
           },
         };
       }
     }
 
-    case "RESERVE_APPOINTMENT": {
+    case 'RESERVE_APPOINTMENT': {
       if (!req.userConfirmed) {
         return {
           success: true,
           persisted: false,
-          actionType: "RESERVE_APPOINTMENT",
-          status: "PENDING_CONFIRMATION",
-          message:
-            "Appointment details captured. Awaiting explicit caller confirmation.",
+          actionType: 'RESERVE_APPOINTMENT',
+          status: 'PENDING_CONFIRMATION',
+          message: 'Appointment details captured. Awaiting explicit caller confirmation.',
           recordIds: {},
           details: {
             service,
             callerName,
-            appointmentTime: req.appointmentTime || "Requested slot",
+            appointmentTime: req.appointmentTime || 'Requested slot',
           },
         };
       }
@@ -168,8 +158,7 @@ export async function executeBusinessAction(
         ? new Date(req.appointmentTime)
         : new Date(Date.now() + 86400000 * 2);
       const endTime = new Date(
-        startTime.getTime() +
-          profile.appointmentSettings.slotDurationMinutes * 60000,
+        startTime.getTime() + profile.appointmentSettings.slotDurationMinutes * 60000
       );
 
       try {
@@ -179,21 +168,21 @@ export async function executeBusinessAction(
             callerName,
             callerContactEncrypted: callerPhone
               ? encryptSensitiveValue(callerPhone)
-              : "enc:v1:none",
+              : 'enc:v1:none',
             service,
             startTime,
             endTime,
             timezone: profile.timeZone,
-            status: "CONFIRMED",
-            confirmationStatus: "CONFIRMED",
+            status: 'CONFIRMED',
+            confirmationStatus: 'CONFIRMED',
           },
         });
 
         return {
           success: true,
           persisted: true,
-          actionType: "RESERVE_APPOINTMENT",
-          status: "COMPLETED",
+          actionType: 'RESERVE_APPOINTMENT',
+          status: 'COMPLETED',
           message: `Confirmed appointment reservation for ${callerName} at ${startTime.toLocaleString()}`,
           recordIds: { appointmentId: appt.id },
           details: {
@@ -208,21 +197,21 @@ export async function executeBusinessAction(
         return {
           success: false,
           persisted: false,
-          actionType: "RESERVE_APPOINTMENT",
-          status: "FAILED",
-          message: "Database failed to persist appointment reservation.",
+          actionType: 'RESERVE_APPOINTMENT',
+          status: 'FAILED',
+          message: 'Database failed to persist appointment reservation.',
           recordIds: {},
           details: {},
           error: {
-            code: "DATABASE_UNAVAILABLE",
-            message: dbErr?.message || "Appointment table insert failed",
+            code: 'DATABASE_UNAVAILABLE',
+            message: dbErr?.message || 'Appointment table insert failed',
           },
         };
       }
     }
 
-    case "SCORE_LEAD":
-    case "CREATE_LEAD": {
+    case 'SCORE_LEAD':
+    case 'CREATE_LEAD': {
       const qual = calculateLeadQualification(
         {
           serviceInterest: service,
@@ -230,16 +219,12 @@ export async function executeBusinessAction(
             req.extractedFields?.budgetRange ||
             req.extractedFields?.priceBudget ||
             req.extractedFields?.estimatedBudget,
-          timeline:
-            req.extractedFields?.timeline ||
-            req.extractedFields?.buyingTimeline,
+          timeline: req.extractedFields?.timeline || req.extractedFields?.buyingTimeline,
           authority: req.extractedFields?.authority,
-          urgency:
-            req.extractedFields?.urgencyLevel ||
-            req.extractedFields?.isEmergency,
+          urgency: req.extractedFields?.urgencyLevel || req.extractedFields?.isEmergency,
           extractedFields: req.extractedFields,
         },
-        profile,
+        profile
       );
 
       try {
@@ -247,18 +232,13 @@ export async function executeBusinessAction(
           data: {
             workspaceId,
             name: callerName,
-            phoneEncrypted: callerPhone
-              ? encryptSensitiveValue(callerPhone)
-              : "enc:v1:none",
-            emailEncrypted: callerEmail
-              ? encryptSensitiveValue(callerEmail)
-              : "enc:v1:none",
-            company:
-              req.company || req.extractedFields?.companyName || "Prospect",
+            phoneEncrypted: callerPhone ? encryptSensitiveValue(callerPhone) : 'enc:v1:none',
+            emailEncrypted: callerEmail ? encryptSensitiveValue(callerEmail) : 'enc:v1:none',
+            company: req.company || req.extractedFields?.companyName || 'Prospect',
             serviceInterest: service,
             score: qual.score,
             category: qual.category,
-            status: "NEW",
+            status: 'NEW',
           },
         });
 
@@ -266,7 +246,7 @@ export async function executeBusinessAction(
           success: true,
           persisted: true,
           actionType: req.actionType,
-          status: "COMPLETED",
+          status: 'COMPLETED',
           message: `Lead intake recorded in CRM database. Score ${qual.score}/100 (${qual.category})`,
           recordIds: { leadId: lead.id },
           details: {
@@ -283,62 +263,60 @@ export async function executeBusinessAction(
           success: false,
           persisted: false,
           actionType: req.actionType,
-          status: "FAILED",
-          message: "Database failed to persist lead intake record.",
+          status: 'FAILED',
+          message: 'Database failed to persist lead intake record.',
           recordIds: {},
           details: {},
           error: {
-            code: "DATABASE_UNAVAILABLE",
-            message: dbErr?.message || "Lead table insert failed",
+            code: 'DATABASE_UNAVAILABLE',
+            message: dbErr?.message || 'Lead table insert failed',
           },
         };
       }
     }
 
-    case "UPDATE_LEAD":
-    case "PREPARE_FOLLOW_UP": {
+    case 'UPDATE_LEAD':
+    case 'PREPARE_FOLLOW_UP': {
       return {
         success: true,
         persisted: false,
         actionType: req.actionType,
-        status: "COMPLETED",
+        status: 'COMPLETED',
         message: `Prepared lead follow-up task for ${profile.name}`,
         recordIds: {},
         details: {
           callerName,
           service,
-          followUpPriority: "HIGH",
+          followUpPriority: 'HIGH',
         },
       };
     }
 
-    case "PREPARE_HANDOFF":
-    case "REQUEST_HUMAN_REVIEW": {
+    case 'PREPARE_HANDOFF':
+    case 'REQUEST_HUMAN_REVIEW': {
       return {
         success: true,
         persisted: false,
         actionType: req.actionType,
-        status: "COMPLETED",
+        status: 'COMPLETED',
         message: `Emergency / Human escalation prepared for ${profile.escalationDestination.department}`,
         recordIds: {},
         details: {
           department: profile.escalationDestination.department,
           phone: profile.escalationDestination.phone,
-          reason:
-            req.extractedFields?.reason ||
-            "Immediate caller escalation request",
-          urgency: "CRITICAL",
+          reason: req.extractedFields?.reason || 'Immediate caller escalation request',
+          urgency: 'CRITICAL',
         },
       };
     }
 
-    case "COMPLETE_CALL": {
+    case 'COMPLETE_CALL': {
       return {
         success: true,
         persisted: false,
-        actionType: "COMPLETE_CALL",
-        status: "COMPLETED",
-        message: "Call wrap-up sequence triggered.",
+        actionType: 'COMPLETE_CALL',
+        status: 'COMPLETED',
+        message: 'Call wrap-up sequence triggered.',
         recordIds: {},
         details: {},
       };

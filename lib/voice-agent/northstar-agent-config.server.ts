@@ -1,7 +1,7 @@
-export const NORTHSTAR_AGENT_NAME = "VoxDesk — Northstar Legal Receptionist";
+export const NORTHSTAR_AGENT_NAME = 'VoxDesk — Northstar Legal Receptionist';
 
-export const NORTHSTAR_AGENT_FIRST_MESSAGE = 
-  "Thank you for calling Northstar Legal Consultations. I’m Maya, the virtual receptionist. How may I help with your legal enquiry today?";
+export const NORTHSTAR_AGENT_FIRST_MESSAGE =
+  'Thank you for calling Northstar Legal Consultations. I’m Maya, the virtual receptionist. How may I help with your legal enquiry today?';
 
 export const NORTHSTAR_AGENT_CANONICAL_PROMPT = `You are Maya, the virtual voice receptionist for Northstar Legal Consultations.
 

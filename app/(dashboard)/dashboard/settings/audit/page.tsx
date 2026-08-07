@@ -1,4 +1,4 @@
-import { ShieldCheck, Clock } from "lucide-react";
+import { ShieldCheck, Clock } from 'lucide-react';
 
 export default function AuditLogsPage() {
   return (
@@ -8,7 +8,8 @@ export default function AuditLogsPage() {
           System Audit & Governance Logs
         </h1>
         <p className="text-xs text-[#64748B]">
-          Immutable record of workspace configuration changes, agent updates, and authentication events.
+          Immutable record of workspace configuration changes, agent updates, and authentication
+          events.
         </p>
       </div>
 

@@ -1,6 +1,6 @@
-import "server-only";
-import { Redis } from "@upstash/redis";
-import { env } from "@/lib/config/env";
+import 'server-only';
+import { Redis } from '@upstash/redis';
+import { env } from '@/lib/config/env';
 
 export interface StoredResponse {
   responseId: string;
@@ -13,7 +13,7 @@ export interface StoredResponse {
 
 export interface DemoSessionData {
   sessionId: string;
-  scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE";
+  scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE';
   presetKey?: string;
   language?: string;
   state: string;
@@ -32,7 +32,7 @@ export interface DemoSessionData {
   activeSTTConnection: boolean;
   sttTokenIssuedAt?: number;
   processedTurnIds: string[];
-  history: Array<{ role: "CALLER" | "AGENT"; text: string }>;
+  history: Array<{ role: 'CALLER' | 'AGENT'; text: string }>;
   storedResponses: Record<string, StoredResponse>;
   accumulatedFields: Record<string, any>;
   missingRequiredFields: string[];
@@ -49,16 +49,16 @@ export interface DemoSessionData {
 
 export interface IDemoSessionStore {
   createSession(
-    scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
+    scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE',
     ipHash: string,
     userAgentHash: string,
     presetKey?: string,
-    language?: string,
+    language?: string
   ): Promise<DemoSessionData>;
   getSession(sessionId: string): Promise<DemoSessionData | null>;
   updateSession(
     sessionId: string,
-    updates: Partial<DemoSessionData>,
+    updates: Partial<DemoSessionData>
   ): Promise<DemoSessionData | null>;
   endSession(sessionId: string, reason: string): Promise<boolean>;
   deleteSession(sessionId: string): Promise<boolean>;
@@ -74,17 +74,13 @@ export interface IDemoSessionStore {
   getActiveSessionCount(): Promise<number>;
   getIpDailySessionCount(ipHash: string): Promise<number>;
   checkIpCooldown(ipHash: string, cooldownSeconds: number): Promise<boolean>;
-  checkDailyIPLimit(
-    ipHash: string,
-  ): Promise<{ allowed: boolean; current: number; limit: number }>;
+  checkDailyIPLimit(ipHash: string): Promise<{ allowed: boolean; current: number; limit: number }>;
   checkGlobalDailyLimit(): Promise<{
     allowed: boolean;
     current: number;
     limit: number;
   }>;
-  checkCooldown(
-    ipHash: string,
-  ): Promise<{ allowed: boolean; secondsRemaining: number }>;
+  checkCooldown(ipHash: string): Promise<{ allowed: boolean; secondsRemaining: number }>;
 }
 
 const globalForDemoStore = globalThis as unknown as {
@@ -103,10 +99,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     (globalForDemoStore.voxdeskSessions = new Map<string, DemoSessionData>());
   private ipSessionCount =
     globalForDemoStore.voxdeskIpSessionCount ||
-    (globalForDemoStore.voxdeskIpSessionCount = new Map<
-      string,
-      { count: number; date: string }
-    >());
+    (globalForDemoStore.voxdeskIpSessionCount = new Map<string, { count: number; date: string }>());
   private ipLastSession =
     globalForDemoStore.voxdeskIpLastSession ||
     (globalForDemoStore.voxdeskIpLastSession = new Map<string, number>());
@@ -117,8 +110,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
       date: new Date().toISOString().slice(0, 10),
     });
   private locks =
-    globalForDemoStore.voxdeskLocks ||
-    (globalForDemoStore.voxdeskLocks = new Set<string>());
+    globalForDemoStore.voxdeskLocks || (globalForDemoStore.voxdeskLocks = new Set<string>());
   private responses =
     globalForDemoStore.voxdeskResponses ||
     (globalForDemoStore.voxdeskResponses = new Map<string, StoredResponse>());
@@ -128,11 +120,11 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   }
 
   async createSession(
-    scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
+    scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE',
     ipHash: string,
     userAgentHash: string,
-    presetKey: string = "LEGAL",
-    language: string = "en-US",
+    presetKey: string = 'LEGAL',
+    language: string = 'en-US'
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
@@ -143,7 +135,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
       scenario,
       presetKey,
       language,
-      state: "READY",
+      state: 'READY',
       createdAt: now,
       expiresAt,
       lastActivityAt: now,
@@ -204,7 +196,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
 
   async updateSession(
     sessionId: string,
-    updates: Partial<DemoSessionData>,
+    updates: Partial<DemoSessionData>
   ): Promise<DemoSessionData | null> {
     const session = await this.getSession(sessionId);
     if (!session) return null;
@@ -230,9 +222,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   async deleteSession(sessionId: string): Promise<boolean> {
     const session = this.sessions.get(sessionId);
     if (session) {
-      Object.keys(session.storedResponses).forEach((respId) =>
-        this.responses.delete(respId),
-      );
+      Object.keys(session.storedResponses).forEach(respId => this.responses.delete(respId));
     }
     return this.sessions.delete(sessionId);
   }
@@ -265,18 +255,12 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     return true;
   }
 
-  async hasProcessedTurnId(
-    sessionId: string,
-    turnId: string,
-  ): Promise<boolean> {
+  async hasProcessedTurnId(sessionId: string, turnId: string): Promise<boolean> {
     const session = await this.getSession(sessionId);
     return !!session?.processedTurnIds.includes(turnId);
   }
 
-  async storeResponseId(
-    sessionId: string,
-    text: string,
-  ): Promise<StoredResponse> {
+  async storeResponseId(sessionId: string, text: string): Promise<StoredResponse> {
     const responseId = `resp_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const stored: StoredResponse = {
       responseId,
@@ -331,10 +315,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     return 0;
   }
 
-  async checkIpCooldown(
-    ipHash: string,
-    cooldownSeconds: number,
-  ): Promise<boolean> {
+  async checkIpCooldown(ipHash: string, cooldownSeconds: number): Promise<boolean> {
     const last = this.ipLastSession.get(ipHash);
     if (!last) return false;
     const elapsedSeconds = (Date.now() - last) / 1000;
@@ -342,7 +323,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
   }
 
   async checkDailyIPLimit(
-    ipHash: string,
+    ipHash: string
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
     const current = await this.getIpDailySessionCount(ipHash);
     return { allowed: current < 10, current, limit: 10 };
@@ -360,9 +341,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
     };
   }
 
-  async checkCooldown(
-    ipHash: string,
-  ): Promise<{ allowed: boolean; secondsRemaining: number }> {
+  async checkCooldown(ipHash: string): Promise<{ allowed: boolean; secondsRemaining: number }> {
     const last = this.ipLastSession.get(ipHash);
     if (!last) return { allowed: true, secondsRemaining: 0 };
     const elapsed = (Date.now() - last) / 1000;
@@ -377,7 +356,7 @@ class MemoryDemoSessionStore implements IDemoSessionStore {
 class UnavailableProductionStore implements IDemoSessionStore {
   private fail(): never {
     throw new Error(
-      "Production Redis session store is unavailable. UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be configured.",
+      'Production Redis session store is unavailable. UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be configured.'
     );
   }
   createSession(): Promise<DemoSessionData> {
@@ -463,11 +442,11 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   }
 
   async createSession(
-    scenario: "BOOKING" | "QUALIFICATION" | "ESCALATION" | "ROUTINE",
+    scenario: 'BOOKING' | 'QUALIFICATION' | 'ESCALATION' | 'ROUTINE',
     ipHash: string,
     userAgentHash: string,
-    presetKey: string = "LEGAL",
-    language: string = "en-US",
+    presetKey: string = 'LEGAL',
+    language: string = 'en-US'
   ): Promise<DemoSessionData> {
     const sessionId = `sess_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const now = Date.now();
@@ -478,7 +457,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
       scenario,
       presetKey,
       language,
-      state: "READY",
+      state: 'READY',
       createdAt: now,
       expiresAt,
       lastActivityAt: now,
@@ -505,11 +484,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     };
 
     const ttl = 1800;
-    await this.redis.set(
-      `voxdesk:session:${sessionId}`,
-      JSON.stringify(session),
-      { ex: ttl },
-    );
+    await this.redis.set(`voxdesk:session:${sessionId}`, JSON.stringify(session), { ex: ttl });
 
     const today = this.getTodayStr();
     await this.redis.incr(`voxdesk:ip:${ipHash}:${today}`);
@@ -527,29 +502,22 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   async getSession(sessionId: string): Promise<DemoSessionData | null> {
     const raw = await this.redis.get<string>(`voxdesk:session:${sessionId}`);
     if (!raw) return null;
-    const session =
-      typeof raw === "string" ? JSON.parse(raw) : (raw as DemoSessionData);
-    if (!session || session.completed || Date.now() > session.expiresAt)
-      return null;
+    const session = typeof raw === 'string' ? JSON.parse(raw) : (raw as DemoSessionData);
+    if (!session || session.completed || Date.now() > session.expiresAt) return null;
     return session;
   }
 
   async updateSession(
     sessionId: string,
-    updates: Partial<DemoSessionData>,
+    updates: Partial<DemoSessionData>
   ): Promise<DemoSessionData | null> {
     const session = await this.getSession(sessionId);
     if (!session) return null;
     const updated = { ...session, ...updates, lastActivityAt: Date.now() };
-    const ttlSeconds = Math.max(
-      10,
-      Math.floor((session.expiresAt - Date.now()) / 1000),
-    );
-    await this.redis.set(
-      `voxdesk:session:${sessionId}`,
-      JSON.stringify(updated),
-      { ex: ttlSeconds },
-    );
+    const ttlSeconds = Math.max(10, Math.floor((session.expiresAt - Date.now()) / 1000));
+    await this.redis.set(`voxdesk:session:${sessionId}`, JSON.stringify(updated), {
+      ex: ttlSeconds,
+    });
     return updated;
   }
 
@@ -558,11 +526,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     if (!session) return false;
     session.completed = true;
     session.terminationReason = reason;
-    await this.redis.set(
-      `voxdesk:session:${sessionId}`,
-      JSON.stringify(session),
-      { ex: 60 },
-    );
+    await this.redis.set(`voxdesk:session:${sessionId}`, JSON.stringify(session), { ex: 60 });
     return true;
   }
 
@@ -572,18 +536,18 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   }
 
   async clearAllSessions(): Promise<void> {
-    const keys = await this.redis.keys("voxdesk:*");
+    const keys = await this.redis.keys('voxdesk:*');
     if (keys.length > 0) {
-      await Promise.all(keys.map((k) => this.redis.del(k)));
+      await Promise.all(keys.map(k => this.redis.del(k)));
     }
   }
 
   async acquireRequestLock(sessionId: string): Promise<boolean> {
-    const res = await this.redis.set(`voxdesk:lock:${sessionId}`, "1", {
+    const res = await this.redis.set(`voxdesk:lock:${sessionId}`, '1', {
       nx: true,
       ex: 15,
     });
-    return res === "OK";
+    return res === 'OK';
   }
 
   async releaseRequestLock(sessionId: string): Promise<void> {
@@ -602,18 +566,12 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     return true;
   }
 
-  async hasProcessedTurnId(
-    sessionId: string,
-    turnId: string,
-  ): Promise<boolean> {
+  async hasProcessedTurnId(sessionId: string, turnId: string): Promise<boolean> {
     const session = await this.getSession(sessionId);
     return !!session?.processedTurnIds.includes(turnId);
   }
 
-  async storeResponseId(
-    sessionId: string,
-    text: string,
-  ): Promise<StoredResponse> {
+  async storeResponseId(sessionId: string, text: string): Promise<StoredResponse> {
     const responseId = `resp_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
     const stored: StoredResponse = {
       responseId,
@@ -640,7 +598,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   async getStoredResponse(responseId: string): Promise<StoredResponse | null> {
     const raw = await this.redis.get<string>(`voxdesk:resp:${responseId}`);
     if (!raw) return null;
-    return typeof raw === "string" ? JSON.parse(raw) : (raw as StoredResponse);
+    return typeof raw === 'string' ? JSON.parse(raw) : (raw as StoredResponse);
   }
 
   async consumeResponse(responseId: string): Promise<StoredResponse | null> {
@@ -654,7 +612,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   }
 
   async countActiveSessions(): Promise<number> {
-    const keys = await this.redis.keys("voxdesk:session:*");
+    const keys = await this.redis.keys('voxdesk:session:*');
     return keys.length;
   }
 
@@ -668,10 +626,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     return count || 0;
   }
 
-  async checkIpCooldown(
-    ipHash: string,
-    cooldownSeconds: number,
-  ): Promise<boolean> {
+  async checkIpCooldown(ipHash: string, cooldownSeconds: number): Promise<boolean> {
     const rawLast = await this.redis.get<string>(`voxdesk:cooldown:${ipHash}`);
     if (!rawLast) return false;
     const last = parseInt(rawLast, 10);
@@ -680,7 +635,7 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
   }
 
   async checkDailyIPLimit(
-    ipHash: string,
+    ipHash: string
   ): Promise<{ allowed: boolean; current: number; limit: number }> {
     const current = await this.getIpDailySessionCount(ipHash);
     return { allowed: current < 10, current, limit: 10 };
@@ -694,50 +649,38 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
     return { allowed: true, current: 0, limit: 999999 };
   }
 
-  async checkCooldown(
-    ipHash: string,
-  ): Promise<{ allowed: boolean; secondsRemaining: number }> {
+  async checkCooldown(ipHash: string): Promise<{ allowed: boolean; secondsRemaining: number }> {
     return { allowed: true, secondsRemaining: 0 };
   }
 }
 
 export function getDemoSessionStoreStatus(): {
-  provider: "redis" | "memory" | "unavailable";
+  provider: 'redis' | 'memory' | 'unavailable';
   ready: boolean;
 } {
-  const hasRedis = !!(
-    env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
-  );
+  const hasRedis = !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 
-  if (process.env.NODE_ENV === "production") {
-    if (!hasRedis) return { provider: "unavailable", ready: false };
-    return { provider: "redis", ready: true };
+  if (process.env.NODE_ENV === 'production') {
+    if (!hasRedis) return { provider: 'unavailable', ready: false };
+    return { provider: 'redis', ready: true };
   }
 
-  if (hasRedis) return { provider: "redis", ready: true };
-  return { provider: "memory", ready: true };
+  if (hasRedis) return { provider: 'redis', ready: true };
+  return { provider: 'memory', ready: true };
 }
 
 function createSessionStore(): IDemoSessionStore {
-  const hasRedis = !!(
-    env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN
-  );
+  const hasRedis = !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV === 'production') {
     if (!hasRedis) {
       return new UnavailableProductionStore();
     }
-    return new RedisDemoSessionStore(
-      env.UPSTASH_REDIS_REST_URL!,
-      env.UPSTASH_REDIS_REST_TOKEN!,
-    );
+    return new RedisDemoSessionStore(env.UPSTASH_REDIS_REST_URL!, env.UPSTASH_REDIS_REST_TOKEN!);
   }
 
   if (hasRedis) {
-    return new RedisDemoSessionStore(
-      env.UPSTASH_REDIS_REST_URL!,
-      env.UPSTASH_REDIS_REST_TOKEN!,
-    );
+    return new RedisDemoSessionStore(env.UPSTASH_REDIS_REST_URL!, env.UPSTASH_REDIS_REST_TOKEN!);
   }
 
   return new MemoryDemoSessionStore();

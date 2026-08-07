@@ -1,4 +1,4 @@
-import { Phone, CheckCircle2 } from "lucide-react";
+import { Phone, CheckCircle2 } from 'lucide-react';
 
 export default function PhoneNumbersPage() {
   return (
@@ -15,14 +15,10 @@ export default function PhoneNumbersPage() {
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-teal-400" />
             <div>
-              <h4 className="text-sm font-bold text-white">
-                +1 (555) 019-2834
-              </h4>
+              <h4 className="text-sm font-bold text-white">+1 (555) 019-2834</h4>
               <p className="text-gray-400 mt-0.5">
-                Assigned Agent:{" "}
-                <strong className="text-teal-300">
-                  Maya — Reception & Appointments
-                </strong>
+                Assigned Agent:{' '}
+                <strong className="text-teal-300">Maya — Reception & Appointments</strong>
               </p>
             </div>
           </div>

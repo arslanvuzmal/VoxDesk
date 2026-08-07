@@ -4,10 +4,10 @@ import {
   CRMContactRecord,
   CRMActivityInput,
   CRMProviderHealth,
-} from "./interface";
+} from './interface';
 
 export class DemoCRMProvider implements CRMProvider {
-  public readonly providerType = "DEMO";
+  public readonly providerType = 'DEMO';
   private contacts: Map<string, CRMContactRecord> = new Map();
 
   async findContact(phoneOrEmail: string): Promise<CRMContactRecord | null> {
@@ -27,7 +27,7 @@ export class DemoCRMProvider implements CRMProvider {
       name: input.name,
       phone: input.phone,
       email: input.email,
-      company: input.company || "Demo Client Enterprise",
+      company: input.company || 'Demo Client Enterprise',
     };
     this.contacts.set(id, record);
     return record;
@@ -35,7 +35,7 @@ export class DemoCRMProvider implements CRMProvider {
 
   async updateContact(
     contactId: string,
-    input: Partial<CRMContactInput>,
+    input: Partial<CRMContactInput>
   ): Promise<CRMContactRecord> {
     const existing = this.contacts.get(contactId);
     if (!existing) {
@@ -51,20 +51,15 @@ export class DemoCRMProvider implements CRMProvider {
     return `activity-demo-${input.activityType.toLowerCase()}-${Date.now()}`;
   }
 
-  async createTask(
-    title: string,
-    _priority: string,
-    _dueDate: Date,
-  ): Promise<string> {
+  async createTask(title: string, _priority: string, _dueDate: Date): Promise<string> {
     return `task-demo-${title.slice(0, 10).toLowerCase()}-${Date.now()}`;
   }
 
   async healthCheck(): Promise<CRMProviderHealth> {
     return {
-      providerType: "DEMO",
-      status: "DEMO",
-      message:
-        "Deterministic Demo CRM Provider operational (No external credentials required)",
+      providerType: 'DEMO',
+      status: 'DEMO',
+      message: 'Deterministic Demo CRM Provider operational (No external credentials required)',
     };
   }
 }

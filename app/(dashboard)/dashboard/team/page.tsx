@@ -1,36 +1,34 @@
-import { UserCheck, ShieldCheck } from "lucide-react";
+import { UserCheck, ShieldCheck } from 'lucide-react';
 
 export default function TeamPage() {
   const members = [
     {
-      name: "Arslan Vuzmal Lone",
-      email: "arslanvuzmallone@gmail.com",
-      role: "OWNER",
-      status: "ACTIVE",
+      name: 'Arslan Vuzmal Lone',
+      email: 'arslanvuzmallone@gmail.com',
+      role: 'OWNER',
+      status: 'ACTIVE',
     },
     {
-      name: "Maya Duty Operator",
-      email: "operator@northstarlegal.com",
-      role: "OPERATOR",
-      status: "ACTIVE",
+      name: 'Maya Duty Operator',
+      email: 'operator@northstarlegal.com',
+      role: 'OPERATOR',
+      status: 'ACTIVE',
     },
     {
-      name: "Analytics Manager",
-      email: "analyst@northstarlegal.com",
-      role: "ANALYST",
-      status: "ACTIVE",
+      name: 'Analytics Manager',
+      email: 'analyst@northstarlegal.com',
+      role: 'ANALYST',
+      status: 'ACTIVE',
     },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">
-          Team Members & RBAC Roles
-        </h1>
+        <h1 className="text-2xl font-bold text-white">Team Members & RBAC Roles</h1>
         <p className="text-sm text-gray-400">
-          Workspace member access permissions across Owner, Admin, Operator,
-          Analyst, and Viewer roles.
+          Workspace member access permissions across Owner, Admin, Operator, Analyst, and Viewer
+          roles.
         </p>
       </div>
 
@@ -50,7 +48,7 @@ export default function TeamPage() {
               </div>
 
               <span
-                className={`px-3 py-1 rounded font-bold font-mono ${m.role === "OWNER" ? "bg-teal-950 text-teal-400 border border-teal-800" : "bg-gray-900 text-gray-300 border border-gray-800"}`}
+                className={`px-3 py-1 rounded font-bold font-mono ${m.role === 'OWNER' ? 'bg-teal-950 text-teal-400 border border-teal-800' : 'bg-gray-900 text-gray-300 border border-gray-800'}`}
               >
                 ROLE: {m.role}
               </span>

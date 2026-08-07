@@ -5,10 +5,10 @@ import {
   TelephonyCallRecord,
   WebhookEventPayload,
   ProviderHealth,
-} from "./interface";
+} from './interface';
 
 export class DemoVoiceProvider implements VoiceProvider {
-  public readonly providerType = "DEMO";
+  public readonly providerType = 'DEMO';
 
   private calls: Map<string, TelephonyCallRecord> = new Map();
 
@@ -16,10 +16,7 @@ export class DemoVoiceProvider implements VoiceProvider {
     return `demo-agent-${config.id || Date.now()}`;
   }
 
-  async updateAgent(
-    _agentId: string,
-    _config: Partial<VoiceAgentConfig>,
-  ): Promise<boolean> {
+  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
     return true;
   }
 
@@ -27,10 +24,7 @@ export class DemoVoiceProvider implements VoiceProvider {
     return true;
   }
 
-  async assignPhoneNumber(
-    _agentId: string,
-    _phoneNumber: string,
-  ): Promise<boolean> {
+  async assignPhoneNumber(_agentId: string, _phoneNumber: string): Promise<boolean> {
     return true;
   }
 
@@ -38,12 +32,12 @@ export class DemoVoiceProvider implements VoiceProvider {
     const providerCallId = `demo-call-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const record: TelephonyCallRecord = {
       id: providerCallId,
-      provider: "DEMO",
+      provider: 'DEMO',
       providerCallId,
       agentId: options.agentId,
-      callerNumber: options.callerNumber || "+15550192834",
-      callerName: options.callerName || "Sarah Miller",
-      status: "IN_PROGRESS",
+      callerNumber: options.callerNumber || '+15550192834',
+      callerName: options.callerName || 'Sarah Miller',
+      status: 'IN_PROGRESS',
       startedAt: new Date(),
       durationSeconds: 0,
     };
@@ -54,23 +48,20 @@ export class DemoVoiceProvider implements VoiceProvider {
   async endCall(providerCallId: string): Promise<boolean> {
     const record = this.calls.get(providerCallId);
     if (record) {
-      record.status = "COMPLETED";
+      record.status = 'COMPLETED';
       record.endedAt = new Date();
       record.durationSeconds = Math.round(
-        (record.endedAt.getTime() - record.startedAt.getTime()) / 1000,
+        (record.endedAt.getTime() - record.startedAt.getTime()) / 1000
       );
       return true;
     }
     return false;
   }
 
-  async transferCall(
-    providerCallId: string,
-    _targetNumber: string,
-  ): Promise<boolean> {
+  async transferCall(providerCallId: string, _targetNumber: string): Promise<boolean> {
     const record = this.calls.get(providerCallId);
     if (record) {
-      record.status = "TRANSFERRED";
+      record.status = 'TRANSFERRED';
       return true;
     }
     return false;
@@ -81,20 +72,17 @@ export class DemoVoiceProvider implements VoiceProvider {
   }
 
   async listCalls(agentId: string): Promise<TelephonyCallRecord[]> {
-    return Array.from(this.calls.values()).filter((c) => c.agentId === agentId);
+    return Array.from(this.calls.values()).filter(c => c.agentId === agentId);
   }
 
-  async verifyWebhook(
-    _headers: Record<string, string>,
-    _body: string,
-  ): Promise<boolean> {
+  async verifyWebhook(_headers: Record<string, string>, _body: string): Promise<boolean> {
     return true; // Demo mode always validates
   }
 
   parseWebhookEvent(body: Record<string, unknown>): WebhookEventPayload {
     return {
-      eventType: (body.eventType as string) || "call.updated",
-      providerCallId: (body.providerCallId as string) || "demo-call-001",
+      eventType: (body.eventType as string) || 'call.updated',
+      providerCallId: (body.providerCallId as string) || 'demo-call-001',
       timestamp: new Date(),
       rawPayload: body,
     };
@@ -102,11 +90,10 @@ export class DemoVoiceProvider implements VoiceProvider {
 
   async healthCheck(): Promise<ProviderHealth> {
     return {
-      providerType: "DEMO",
-      status: "DEMO",
+      providerType: 'DEMO',
+      status: 'DEMO',
       latencyMs: 12,
-      message:
-        "Deterministic Demo Voice Provider operational (No external credentials required)",
+      message: 'Deterministic Demo Voice Provider operational (No external credentials required)',
     };
   }
 }

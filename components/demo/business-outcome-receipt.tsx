@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
+import React from 'react';
+import Link from 'next/link';
 import {
   CheckCircle2,
   AlertTriangle,
@@ -14,7 +14,7 @@ import {
   ArrowRight,
   ShieldCheck,
   TrendingUp,
-} from "lucide-react";
+} from 'lucide-react';
 
 export interface BusinessOutcomeReceiptProps {
   organizationName: string;
@@ -27,7 +27,7 @@ export interface BusinessOutcomeReceiptProps {
   extractedFields: Record<string, any>;
   qualificationResult?: {
     score: number;
-    category: "HOT" | "WARM" | "REVIEW" | "COLD";
+    category: 'HOT' | 'WARM' | 'REVIEW' | 'COLD';
     breakdown: Array<{
       criterion: string;
       score: number;
@@ -75,17 +75,17 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
     providersUsed,
   } = props;
 
-  const isRoutine = scenario === "ROUTINE";
+  const isRoutine = scenario === 'ROUTINE';
   const hasLeadScore = Boolean(qualificationResult && !isRoutine);
   const score = qualificationResult?.score || 0;
-  const category = qualificationResult?.category || "COLD";
+  const category = qualificationResult?.category || 'COLD';
 
   const categoryColor =
-    category === "HOT"
-      ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30"
-      : category === "WARM"
-        ? "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30"
-        : "bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30";
+    category === 'HOT'
+      ? 'bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30'
+      : category === 'WARM'
+        ? 'bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/30'
+        : 'bg-[#3B82F6]/10 text-[#3B82F6] border-[#3B82F6]/30';
 
   const isPersisted = Boolean(crmRecordIds?.callId || crmRecordIds?.leadId);
 
@@ -99,16 +99,12 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
             <span>Truthful Call Outcome Receipt</span>
           </div>
           <h2 className="text-2xl font-bold text-white">{organizationName}</h2>
-          <p className="text-xs text-[#8B949E] font-mono">
-            {industry} — Call Completed
-          </p>
+          <p className="text-xs text-[#8B949E] font-mono">{industry} — Call Completed</p>
         </div>
 
         {hasLeadScore ? (
           <div className="flex items-center gap-3">
-            <div
-              className={`px-4 py-2 rounded-xl border text-center ${categoryColor}`}
-            >
+            <div className={`px-4 py-2 rounded-xl border text-center ${categoryColor}`}>
               <div className="text-2xl font-black">{score}/100</div>
               <div className="text-[10px] font-mono uppercase tracking-wider font-bold">
                 {category} LEAD
@@ -118,9 +114,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         ) : (
           <div className="px-4 py-2 rounded-xl border border-[#272D35] bg-[#0F1216] text-center">
             <div className="text-xs font-mono text-[#8B949E]">INQUIRY TYPE</div>
-            <div className="text-sm font-bold text-white uppercase">
-              {scenario}
-            </div>
+            <div className="text-sm font-bold text-white uppercase">{scenario}</div>
           </div>
         )}
       </div>
@@ -128,9 +122,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
       {/* CALL SUMMARY & INTENT */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
         <div className="p-4 rounded-xl bg-[#0B0D10] border border-[#272D35] space-y-1">
-          <span className="text-[#8B949E] uppercase font-mono text-[10px]">
-            Caller Profile
-          </span>
+          <span className="text-[#8B949E] uppercase font-mono text-[10px]">Caller Profile</span>
           <p className="font-semibold text-white text-sm">{callerName}</p>
           <p className="text-[#8B949E]">
             {callerPhone} • {language}
@@ -138,12 +130,10 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         </div>
 
         <div className="p-4 rounded-xl bg-[#0B0D10] border border-[#272D35] space-y-1">
-          <span className="text-[#8B949E] uppercase font-mono text-[10px]">
-            Caller Objective
-          </span>
+          <span className="text-[#8B949E] uppercase font-mono text-[10px]">Caller Objective</span>
           <p className="font-semibold text-white text-sm">{scenario}</p>
           <p className="text-[#2DD4BF] font-mono">
-            {isRoutine ? "FAQ Answering Mode" : "Profile Lead Scored"}
+            {isRoutine ? 'FAQ Answering Mode' : 'Profile Lead Scored'}
           </p>
         </div>
 
@@ -156,9 +146,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
               <p className="font-semibold text-[#2DD4BF] text-sm flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" /> Persisted to Database
               </p>
-              <p className="text-[#8B949E]">
-                Call ID: {crmRecordIds?.callId || "N/A"}
-              </p>
+              <p className="text-[#8B949E]">Call ID: {crmRecordIds?.callId || 'N/A'}</p>
             </>
           ) : (
             <>
@@ -180,21 +168,19 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
           <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
             <span className="text-[10px] text-[#8B949E] block">STT Layer</span>
             <span className="text-white font-semibold">
-              {providersUsed?.stt?.provider || "BROWSER_SPEECH"}
+              {providersUsed?.stt?.provider || 'BROWSER_SPEECH'}
             </span>
           </div>
           <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
-            <span className="text-[10px] text-[#8B949E] block">
-              LLM Reasoning
-            </span>
+            <span className="text-[10px] text-[#8B949E] block">LLM Reasoning</span>
             <span className="text-white font-semibold">
-              {providersUsed?.llm?.provider || "CLOUDFLARE_LLM"}
+              {providersUsed?.llm?.provider || 'CLOUDFLARE_LLM'}
             </span>
           </div>
           <div className="p-2.5 rounded-lg bg-[#13171C] border border-[#272D35]">
             <span className="text-[10px] text-[#8B949E] block">TTS Voice</span>
             <span className="text-white font-semibold">
-              {providersUsed?.tts?.provider || "ELEVENLABS_TTS"}
+              {providersUsed?.tts?.provider || 'ELEVENLABS_TTS'}
             </span>
           </div>
         </div>
@@ -207,7 +193,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
         </h4>
         <p className="text-sm text-[#D4D4D8] leading-relaxed">
           {summaryText ||
-            "Caller discussed intake requirements with the VoxDesk AI voice receptionist."}
+            'Caller discussed intake requirements with the VoxDesk AI voice receptionist.'}
         </p>
       </div>
 
@@ -215,8 +201,7 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
       {hasLeadScore && qualificationResult?.breakdown && (
         <div className="space-y-3">
           <h4 className="text-xs font-mono uppercase text-[#8B949E] tracking-wider font-semibold flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-[#2DD4BF]" /> Profile Lead Score
-            Breakdown
+            <TrendingUp className="w-4 h-4 text-[#2DD4BF]" /> Profile Lead Score Breakdown
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -226,16 +211,12 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
                 className="p-3 rounded-lg bg-[#0B0D10] border border-[#272D35] space-y-1"
               >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-white">
-                    {item.criterion}
-                  </span>
+                  <span className="font-medium text-white">{item.criterion}</span>
                   <span className="font-mono text-[#2DD4BF]">
                     {item.score}/{item.weight} pts
                   </span>
                 </div>
-                <p className="text-[11px] text-[#8B949E] font-mono">
-                  {item.evidence}
-                </p>
+                <p className="text-[11px] text-[#8B949E] font-mono">{item.evidence}</p>
               </div>
             ))}
           </div>
@@ -249,18 +230,18 @@ export function BusinessOutcomeReceipt(props: BusinessOutcomeReceiptProps) {
             Recommended Next Business Action
           </span>
           <span className="text-[10px] font-mono text-[#8B949E]">
-            Priority: {qualificationResult?.followUpPriority || "MEDIUM"}
+            Priority: {qualificationResult?.followUpPriority || 'MEDIUM'}
           </span>
         </div>
         <p className="text-sm font-medium text-white">
           {qualificationResult?.recommendedAction ||
-            "Store in CRM database and place in standard nurture sequence."}
+            'Store in CRM database and place in standard nurture sequence.'}
         </p>
 
         {isPersisted && (
           <div className="pt-2 flex flex-wrap gap-3">
             <Link
-              href={`/dashboard/leads/${crmRecordIds?.leadId || ""}`}
+              href={`/dashboard/leads/${crmRecordIds?.leadId || ''}`}
               className="bg-[#2DD4BF] hover:bg-[#26b8a5] text-[#0B0D10] font-bold text-xs px-5 py-2.5 rounded-lg inline-flex items-center gap-2 transition-colors"
             >
               <span>View Lead Record in VoxDesk CRM</span>

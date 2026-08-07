@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/database';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -17,7 +14,7 @@ export async function GET(
             include: {
               summary: true,
               transcriptSegments: {
-                orderBy: { startMs: "asc" },
+                orderBy: { startMs: 'asc' },
               },
               appointment: true,
             },
@@ -28,10 +25,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "DATABASE_UNAVAILABLE",
-          message: "Lead detail data is temporarily unavailable.",
+          code: 'DATABASE_UNAVAILABLE',
+          message: 'Lead detail data is temporarily unavailable.',
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -39,10 +36,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "LEAD_NOT_FOUND",
+          code: 'LEAD_NOT_FOUND',
           message: `Lead record '${id}' was not found.`,
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -54,10 +51,10 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        code: "INTERNAL_ERROR",
-        message: error?.message || "Failed to fetch lead detail",
+        code: 'INTERNAL_ERROR',
+        message: error?.message || 'Failed to fetch lead detail',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

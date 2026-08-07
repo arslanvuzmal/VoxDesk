@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/database';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
 
@@ -15,7 +12,7 @@ export async function GET(
         include: {
           summary: true,
           transcriptSegments: {
-            orderBy: { startMs: "asc" },
+            orderBy: { startMs: 'asc' },
           },
           lead: true,
           appointment: true,
@@ -26,10 +23,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "DATABASE_UNAVAILABLE",
-          message: "Call detail data is temporarily unavailable.",
+          code: 'DATABASE_UNAVAILABLE',
+          message: 'Call detail data is temporarily unavailable.',
         },
-        { status: 503 },
+        { status: 503 }
       );
     }
 
@@ -37,10 +34,10 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          code: "CALL_NOT_FOUND",
+          code: 'CALL_NOT_FOUND',
           message: `Call record '${id}' was not found.`,
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
@@ -52,10 +49,10 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        code: "INTERNAL_ERROR",
-        message: error?.message || "Failed to fetch call detail",
+        code: 'INTERNAL_ERROR',
+        message: error?.message || 'Failed to fetch call detail',
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

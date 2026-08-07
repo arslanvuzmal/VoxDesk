@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { prisma } from "@/lib/database";
-import { hashPassword, createSession, SESSION_COOKIE_NAME } from "@/lib/auth";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/database';
+import { hashPassword, createSession, SESSION_COOKIE_NAME } from '@/lib/auth';
 
 const RegisterSchema = z.object({
   name: z.string().min(2),
@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
     const parsed = RegisterSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid registration details" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Invalid registration details' }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({
@@ -29,15 +26,15 @@ export async function POST(req: NextRequest) {
 
     if (existing) {
       return NextResponse.json(
-        { error: "An account with this email already exists" },
-        { status: 409 },
+        { error: 'An account with this email already exists' },
+        { status: 409 }
       );
     }
 
     const passwordHash = await hashPassword(parsed.data.password);
     const slug =
-      parsed.data.workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, "-") +
-      "-" +
+      parsed.data.workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, '-') +
+      '-' +
       Math.random().toString(36).substring(7);
 
     const user = await prisma.user.create({
@@ -47,12 +44,12 @@ export async function POST(req: NextRequest) {
         passwordHash,
         memberships: {
           create: {
-            role: "OWNER",
+            role: 'OWNER',
             workspace: {
               create: {
                 name: parsed.data.workspaceName,
                 slug,
-                industry: parsed.data.industry || "General Business",
+                industry: parsed.data.industry || 'General Business',
                 businessProfile: {
                   create: {
                     businessName: parsed.data.workspaceName,
@@ -78,20 +75,20 @@ export async function POST(req: NextRequest) {
         name: user.name,
         email: user.email,
         activeWorkspaceId: workspaceId,
-        activeWorkspaceRole: "OWNER",
+        activeWorkspaceRole: 'OWNER',
       },
     });
 
     response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
       maxAge: 7 * 24 * 3600,
     });
 
     return response;
   } catch (error) {
-    console.error("Register API Error:", error);
-    return NextResponse.json({ error: "Registration failed" }, { status: 500 });
+    console.error('Register API Error:', error);
+    return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
   }
 }
