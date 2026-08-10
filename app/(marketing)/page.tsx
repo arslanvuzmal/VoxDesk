@@ -76,7 +76,7 @@ export default function LandingPage() {
                 </Link>
               </div>
               <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#737C88]">
-                Interactive demo Â· fictional business data
+                Interactive demo · fictional business data
               </p>
             </div>
 
@@ -88,7 +88,7 @@ export default function LandingPage() {
               <div className="grid md:grid-cols-[1.05fr_.8fr_.9fr]">
                 <div className="border-b border-white/[0.08] p-5 md:border-b-0 md:border-r">
                   <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#737C88]">
-                    Inbound call Â· 00:42
+                    Inbound call · 00:42
                   </p>
                   <p className="mt-4 text-sm font-medium">Sarah Mitchell</p>
                   <p className="mt-5 text-sm leading-6 text-[#A1A8B3]">
