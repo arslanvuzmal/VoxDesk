@@ -1,9 +1,9 @@
 name: Format Diagnostic
 
 on:
-  push:
+  pull_request:
     branches:
-      - codex/voxdesk-finalization
+      - main
 
 permissions:
   contents: read
