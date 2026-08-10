@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   recipientUpdate: vi.fn(),
   campaignUpdate: vi.fn(),
   readiness: vi.fn(),
+  canonicalExecutor: vi.fn(),
 }));
 
 vi.mock('@/lib/database', () => ({
@@ -33,6 +34,9 @@ vi.mock('@/lib/telephony/outbound/campaign-readiness', () => ({
   getCampaignReadiness: mocks.readiness,
 }));
 vi.mock('@/lib/features/flags', () => ({ featureFlags: { isEnabled: vi.fn() } }));
+vi.mock('@/lib/telephony/outbound/elevenlabs-sip-executor', () => ({
+  executeElevenLabsSipOutbound: mocks.canonicalExecutor,
+}));
 
 import { claimOutboundJobs, processOutboundJob } from '@/workers/outbound-campaigns';
 
@@ -63,6 +67,11 @@ describe('outbound job worker', () => {
     mocks.attemptUpdateMany.mockResolvedValue({ count: 1 });
     mocks.recipientUpdate.mockResolvedValue({ id: 'recipient-a' });
     mocks.campaignUpdate.mockResolvedValue({ id: 'campaign-a' });
+    mocks.canonicalExecutor.mockResolvedValue({
+      accepted: false,
+      category: 'PROVIDER_UNAVAILABLE',
+      retryable: false,
+    });
   });
 
   it('processes only jobs won by an atomic conditional claim', async () => {
@@ -78,7 +87,7 @@ describe('outbound job worker', () => {
     );
   });
 
-  it('revalidates eligibility and retries when no canonical provider executor is installed', async () => {
+  it('revalidates eligibility and fails closed when the canonical provider is unavailable', async () => {
     mocks.attemptFind.mockResolvedValue({
       id: 'attempt-a',
       workspaceId: 'workspace-a',
@@ -96,11 +105,11 @@ describe('outbound job worker', () => {
     });
     mocks.readiness.mockResolvedValue({ report: { eligibleRecipientIds: ['recipient-a'] } });
     const result = await processOutboundJob(claimedJob);
-    expect(result).toBe('RETRY');
+    expect(result).toBe('BLOCKED');
     expect(mocks.jobUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: 'PENDING',
+          status: 'FAILED',
           errorCategory: 'PROVIDER_UNAVAILABLE',
           lockedAt: null,
         }),
@@ -110,7 +119,7 @@ describe('outbound job worker', () => {
       expect.objectContaining({ data: { status: 'PROVIDER_REQUESTING' } })
     );
     expect(mocks.attemptUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { status: 'QUEUED' } })
+      expect.objectContaining({ data: { status: 'FAILED' } })
     );
   });
 
@@ -133,7 +142,13 @@ describe('outbound job worker', () => {
     mocks.readiness.mockResolvedValue({ report: { eligibleRecipientIds: ['recipient-a'] } });
     const executor = vi
       .fn()
-      .mockResolvedValue({ accepted: true, providerCallControlId: 'telnyx-call-a' });
+      .mockResolvedValue({
+        accepted: true,
+        callId: 'call-a',
+        conversationId: 'conversation-a',
+        providerConversationId: 'elevenlabs-conversation-a',
+        sipCallId: 'sip-call-a',
+      });
     const result = await processOutboundJob(claimedJob, executor);
     expect(result).toBe('SUCCEEDED');
     expect(executor).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: 'attempt-a' }));
@@ -141,7 +156,8 @@ describe('outbound job worker', () => {
       where: { id: 'attempt-a' },
       data: expect.objectContaining({
         status: 'INITIATING',
-        notes: 'telnyx-call-a',
+        callId: 'call-a',
+        notes: 'provider-conversation:elevenlabs-conversation-a',
       }),
     });
     expect(mocks.jobUpdate).toHaveBeenLastCalledWith(
