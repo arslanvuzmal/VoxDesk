@@ -22,4 +22,3 @@ export default defineConfig([
     'next-env.d.ts',
   ]),
 ]);
-

@@ -15,4 +15,3 @@ CREATE INDEX "knowledge_items_workspaceId_status_language_idx"
 
 CREATE INDEX "knowledge_items_workspaceId_category_idx"
   ON "knowledge_items"("workspaceId", "category");
-

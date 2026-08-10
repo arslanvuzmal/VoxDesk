@@ -72,4 +72,3 @@ describe('ElevenLabs post-call acknowledgment boundary', () => {
     expect(schedule).not.toHaveBeenCalled();
   });
 });
-

@@ -109,4 +109,3 @@ export function enforcePermission(role: WorkspaceRole, action: PermissionAction)
     throw new Error(`Permission denied for action '${action}' under role '${role}'`);
   }
 }
-

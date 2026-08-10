@@ -238,4 +238,3 @@ describe('authorized appointment tools', () => {
     });
   });
 });
-

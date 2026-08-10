@@ -34,4 +34,3 @@ export class GoogleCalendarProvider implements CalendarProvider {
     return this.unavailable();
   }
 }
-

@@ -255,4 +255,3 @@ SELECT 'corr_elevenlabs_' || c."id", conv."id", 'ELEVENLABS'::"ProviderType", 'E
 FROM "calls" c JOIN "conversations" conv ON conv."callId" = c."id"
 WHERE c."providerConversationId" IS NOT NULL
 ON CONFLICT ("provider", "identifierType", "identifierValue") DO NOTHING;
-

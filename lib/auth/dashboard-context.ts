@@ -9,4 +9,3 @@ export async function requireDashboardContext() {
   if (!user) redirect('/login');
   return { user, workspaceId: user.activeWorkspaceId };
 }
-

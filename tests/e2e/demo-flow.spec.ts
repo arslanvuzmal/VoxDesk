@@ -67,4 +67,3 @@ test.describe('VoxDesk /demo route', () => {
     expect(page.url()).toMatch(/\/dashboard\/calls|\/login/);
   });
 });
-

@@ -41,4 +41,3 @@ FOREIGN KEY ("contactId") REFERENCES "contacts"("id") ON DELETE RESTRICT ON UPDA
 ALTER TABLE "opportunities"
 ADD CONSTRAINT "opportunities_sourceConversationId_fkey"
 FOREIGN KEY ("sourceConversationId") REFERENCES "conversations"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-

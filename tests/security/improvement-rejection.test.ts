@@ -73,4 +73,3 @@ describe('supervised improvement rejection', () => {
     expect(mocks.findFirst).not.toHaveBeenCalled();
   });
 });
-

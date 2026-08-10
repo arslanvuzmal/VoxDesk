@@ -104,4 +104,3 @@ export async function revokeSession(token: string): Promise<void> {
     }
   } catch {}
 }
-

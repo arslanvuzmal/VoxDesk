@@ -54,4 +54,3 @@ describe('provider-confirmed handoff projection', () => {
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
   });
 });
-

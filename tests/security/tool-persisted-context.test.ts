@@ -86,4 +86,3 @@ describe('persisted conversation tool context', () => {
     expect(isSupportedDatabaseTool('update_opportunity')).toBe(true);
   });
 });
-

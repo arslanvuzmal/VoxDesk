@@ -89,4 +89,3 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     expect(verified?.sessionId).toBe('demo_sess_unit_test');
   });
 });
-

@@ -550,4 +550,3 @@ async function createImprovementObservations(context: CallContext): Promise<void
     });
   }
 }
-

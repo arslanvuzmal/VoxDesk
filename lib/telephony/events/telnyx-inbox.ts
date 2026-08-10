@@ -132,4 +132,3 @@ export async function markTelnyxJobFailed(jobId: string, providerEventId: string
     }),
   ]);
 }
-

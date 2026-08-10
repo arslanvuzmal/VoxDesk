@@ -50,4 +50,3 @@ CREATE INDEX "background_jobs_correlationId_idx" ON "background_jobs"("correlati
 
 ALTER TABLE "provider_events" ADD CONSTRAINT "provider_events_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "workspaces"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "background_jobs" ADD CONSTRAINT "background_jobs_workspaceId_fkey" FOREIGN KEY ("workspaceId") REFERENCES "workspaces"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-

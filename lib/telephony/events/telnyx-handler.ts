@@ -36,4 +36,3 @@ export async function queueTelnyxEvent(
     { status: ingestion.duplicate ? 200 : 202 }
   );
 }
-

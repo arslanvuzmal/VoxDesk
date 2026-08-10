@@ -71,4 +71,3 @@ describe('Telnyx webhook acknowledgment boundary', () => {
     expect(schedule).not.toHaveBeenCalled();
   });
 });
-

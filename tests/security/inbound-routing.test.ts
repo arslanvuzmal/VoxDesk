@@ -166,4 +166,3 @@ describe('deterministic inbound number routing', () => {
     expect(isOutOfOrderEvent(new Date('2026-08-09T10:00:06.000Z'), latest)).toBe(false);
   });
 });
-

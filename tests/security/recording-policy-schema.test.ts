@@ -19,4 +19,3 @@ describe('recording consent schema defaults', () => {
     expect(schema).toMatch(/grantedAt\s+DateTime\?/);
   });
 });
-

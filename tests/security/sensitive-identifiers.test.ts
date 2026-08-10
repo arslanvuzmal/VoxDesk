@@ -32,4 +32,3 @@ describe('sensitive phone identifiers', () => {
     expect(maskPhoneNumber('+15552345678')).toBe('***5678');
   });
 });
-

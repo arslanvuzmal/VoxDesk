@@ -43,4 +43,3 @@ describe('signed conversation context', () => {
     expect(() => verifyConversationContext(expired)).toThrow();
   });
 });
-

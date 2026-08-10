@@ -20,4 +20,3 @@ export function proxy(req: NextRequest) {
 export const config = {
   matcher: ['/dashboard', '/dashboard/:path*'],
 };
-

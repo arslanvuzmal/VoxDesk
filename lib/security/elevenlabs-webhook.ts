@@ -47,4 +47,3 @@ export function verifyElevenLabsWebhook(
 
   return { valid: true, timestamp };
 }
-

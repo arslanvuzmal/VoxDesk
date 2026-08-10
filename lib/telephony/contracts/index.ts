@@ -312,4 +312,3 @@ export interface OutboundCallRequest {
   contactId?: string;
   campaignId?: string;
 }
-

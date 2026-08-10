@@ -348,4 +348,3 @@ function isTerminalState(state: string): boolean {
     'FAILED',
   ].includes(state);
 }
-

@@ -25,4 +25,3 @@ export function phoneLast4(value: string): string {
 export function maskPhoneNumber(value: string): string {
   return `***${phoneLast4(value)}`;
 }
-

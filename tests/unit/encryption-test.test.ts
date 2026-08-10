@@ -35,4 +35,3 @@ describe('Encryption & Masking Security Utilities', () => {
     expect(masked).not.toContain('jenkins');
   });
 });
-

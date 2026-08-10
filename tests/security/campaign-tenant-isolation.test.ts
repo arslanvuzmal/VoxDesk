@@ -49,4 +49,3 @@ describe('campaign tenant isolation', () => {
     );
   });
 });
-

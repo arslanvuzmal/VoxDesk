@@ -51,4 +51,3 @@ export function verifyDemoSessionToken(token: string): DemoSessionPayload | null
     return null;
   }
 }
-

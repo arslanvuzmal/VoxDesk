@@ -810,4 +810,3 @@ export async function executeDatabaseTool(
     throw error;
   }
 }
-

@@ -151,4 +151,3 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     </div>
   );
 }
-

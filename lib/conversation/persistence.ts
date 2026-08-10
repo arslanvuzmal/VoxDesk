@@ -217,4 +217,3 @@ export async function syncConversationProjectionIfEnabled(
   }
   return syncConversationProjection(callId);
 }
-

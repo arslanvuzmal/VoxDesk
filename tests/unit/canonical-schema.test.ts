@@ -129,4 +129,3 @@ describe('Canonical Output Schema & State Machine', () => {
     expect(migration).not.toMatch(/DELETE\s+FROM/i);
   });
 });
-

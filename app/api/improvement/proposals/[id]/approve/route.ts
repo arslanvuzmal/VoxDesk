@@ -111,4 +111,3 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     data: { proposalId: proposal.id, candidateId: result.id, status: 'APPROVED' },
   });
 }
-

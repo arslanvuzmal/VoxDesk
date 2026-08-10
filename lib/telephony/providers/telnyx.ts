@@ -566,4 +566,3 @@ export class TelnyxProvider implements TelephonyProvider {
     };
   }
 }
-

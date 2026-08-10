@@ -494,4 +494,3 @@ export class OutboundTelephonyHandler {
 }
 
 export const outboundHandler = new OutboundTelephonyHandler();
-

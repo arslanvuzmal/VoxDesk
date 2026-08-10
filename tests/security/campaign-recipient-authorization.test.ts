@@ -133,4 +133,3 @@ describe('campaign recipient authorization', () => {
     expect(mocks.recipientCreateMany).not.toHaveBeenCalled();
   });
 });
-

@@ -101,4 +101,3 @@ describe('Telnyx webhook verification and identity', () => {
     expect(requestBody).not.toHaveProperty('recording_channels');
   });
 });
-

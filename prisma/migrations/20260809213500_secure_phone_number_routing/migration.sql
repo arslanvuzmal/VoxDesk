@@ -15,4 +15,3 @@ CREATE INDEX "phone_numbers_workspaceId_businessId_status_idx" ON "phone_numbers
 ALTER TABLE "phone_numbers" ADD CONSTRAINT "phone_numbers_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "business_profiles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "phone_numbers" ADD CONSTRAINT "phone_numbers_languageProfileId_fkey" FOREIGN KEY ("languageProfileId") REFERENCES "language_profiles"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "phone_numbers" ADD CONSTRAINT "phone_numbers_trainingPackVersionId_fkey" FOREIGN KEY ("trainingPackVersionId") REFERENCES "business_training_packs"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-

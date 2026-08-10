@@ -31,4 +31,3 @@ describe('opportunity tenant isolation', () => {
     );
   });
 });
-

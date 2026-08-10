@@ -67,4 +67,3 @@ describe('campaign action authorization', () => {
     });
   }
 });
-

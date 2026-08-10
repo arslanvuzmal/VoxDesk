@@ -15,4 +15,3 @@ export function getCalendarProvider(providerType: string): CalendarProvider {
       throw new Error(`Calendar provider '${providerType}' is not supported.`);
   }
 }
-

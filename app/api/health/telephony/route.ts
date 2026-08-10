@@ -25,4 +25,3 @@ export async function GET() {
     { status: verified ? 200 : 503 }
   );
 }
-

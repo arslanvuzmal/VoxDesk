@@ -203,4 +203,3 @@ export async function startOutboundWorker(executor: OutboundExecutor = failClose
 }
 
 if (require.main === module) void startOutboundWorker();
-

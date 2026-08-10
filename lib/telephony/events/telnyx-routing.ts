@@ -194,4 +194,3 @@ export async function resolveCallContext(
     metadata: {},
   };
 }
-

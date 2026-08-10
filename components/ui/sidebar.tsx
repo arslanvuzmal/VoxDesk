@@ -145,4 +145,3 @@ export function Sidebar({ user, workspaceName, businessName }: SidebarProps) {
     </aside>
   );
 }
-

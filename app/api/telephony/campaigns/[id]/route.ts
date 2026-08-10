@@ -100,4 +100,3 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   await prisma.campaign.delete({ where: { id } });
   return NextResponse.json({ data: { deleted: true } });
 }
-

@@ -15,4 +15,3 @@ ON "appointments"("workspaceId", "contactId", "startTime");
 
 CREATE INDEX "appointments_conversationId_idx"
 ON "appointments"("conversationId");
-

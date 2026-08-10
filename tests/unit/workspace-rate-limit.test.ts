@@ -24,4 +24,3 @@ describe('workspace cost rate limits', () => {
     expect(result).toEqual({ allowed: false, retryAfterSeconds: 60 });
   });
 });
-

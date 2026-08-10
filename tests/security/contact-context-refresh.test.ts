@@ -62,4 +62,3 @@ describe('contact context refresh', () => {
     });
   });
 });
-

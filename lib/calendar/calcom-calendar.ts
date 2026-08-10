@@ -34,4 +34,3 @@ export class CalComProvider implements CalendarProvider {
     return this.unavailable();
   }
 }
-

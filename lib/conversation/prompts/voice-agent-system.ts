@@ -54,4 +54,3 @@ ${requiredFields || 'No required intake fields are configured.'}
 
 Return only output conforming to the configured structured conversation schema.`;
 }
-

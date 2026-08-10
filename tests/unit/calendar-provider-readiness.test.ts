@@ -13,4 +13,3 @@ describe('calendar provider readiness', () => {
     await expect(calendar.listServices()).rejects.toThrow(/No calendar action was performed/);
   });
 });
-

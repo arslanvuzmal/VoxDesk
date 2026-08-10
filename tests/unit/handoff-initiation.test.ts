@@ -81,4 +81,3 @@ describe('configured Telnyx handoff initiation', () => {
     );
   });
 });
-

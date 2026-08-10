@@ -148,4 +148,3 @@ describe('canonical conversation projection', () => {
     expect(mocks.conversationUpsert).not.toHaveBeenCalled();
   });
 });
-

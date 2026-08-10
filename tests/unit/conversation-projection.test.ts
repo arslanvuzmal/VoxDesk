@@ -20,4 +20,3 @@ describe('conversation projection mappings', () => {
     expect(mapCallStatus('TRANSFERRED')).toBe('HUMAN_HANDOFF');
   });
 });
-

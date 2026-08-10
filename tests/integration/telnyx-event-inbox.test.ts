@@ -100,4 +100,3 @@ describe('Telnyx provider event inbox', () => {
     });
   });
 });
-

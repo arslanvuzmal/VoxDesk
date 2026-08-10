@@ -90,4 +90,3 @@ export function maskEmail(email: string): string {
   const maskedUser = user.length > 2 ? `${user[0]}***${user[user.length - 1]}` : `${user[0]}***`;
   return `${maskedUser}@${domain}`;
 }
-

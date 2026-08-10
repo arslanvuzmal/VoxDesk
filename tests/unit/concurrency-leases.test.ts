@@ -24,4 +24,3 @@ describe('call concurrency leases', () => {
     await expect(manager.releaseLeaseById(lease.leaseId!)).resolves.toBe(false);
   });
 });
-

@@ -13,4 +13,3 @@ describe('versioned business knowledge schema', () => {
     expect(schema).toMatch(/model KnowledgeItem[\s\S]*verifiedAt\s+DateTime\?/);
   });
 });
-

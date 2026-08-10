@@ -573,4 +573,3 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
     </section>
   );
 }
-

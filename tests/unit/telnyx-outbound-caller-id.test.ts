@@ -42,4 +42,3 @@ describe('Telnyx outbound caller ID', () => {
     expect(request).toMatchObject({ from: '+15557654321', to: '+15551234567', record: false });
   });
 });
-

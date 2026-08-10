@@ -96,4 +96,3 @@ export default async function OpportunitiesPage() {
     </div>
   );
 }
-

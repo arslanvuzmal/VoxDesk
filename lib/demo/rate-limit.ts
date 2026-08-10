@@ -73,4 +73,3 @@ export async function validateSessionEligibility(
 
   return { eligible: true };
 }
-

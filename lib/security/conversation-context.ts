@@ -37,4 +37,3 @@ export function verifyConversationContext(token: string): ConversationContext {
   });
   return ConversationContextSchema.parse(payload);
 }
-

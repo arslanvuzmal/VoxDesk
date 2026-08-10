@@ -86,4 +86,3 @@ export const dashboardRoutes: DashboardRouteItem[] = [
     category: 'SYSTEM',
   },
 ];
-

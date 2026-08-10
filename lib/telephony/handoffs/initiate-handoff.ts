@@ -73,4 +73,3 @@ async function markFailed(
   ]);
   return { handoffId, status: 'FAILED', providerTransferConfirmed: false };
 }
-

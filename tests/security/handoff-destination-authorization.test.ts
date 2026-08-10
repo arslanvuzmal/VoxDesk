@@ -16,4 +16,3 @@ describe('human handoff destination authorization', () => {
     expect(source).toContain('providerTransferConfirmed: false');
   });
 });
-

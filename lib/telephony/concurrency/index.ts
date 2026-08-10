@@ -573,4 +573,3 @@ export async function releaseCallLeases(callId: string, leases: string[]): Promi
     await concurrencyManager.releaseLeaseById(leaseId);
   }
 }
-

@@ -15,4 +15,3 @@ export function retiredEndpoint(replacement?: string): NextResponse {
     { status: 410 }
   );
 }
-

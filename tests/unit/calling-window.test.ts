@@ -21,4 +21,3 @@ describe('recipient-local outbound calling windows', () => {
     expect(isWithinCallingWindow('09:00', '17:00', 'Not/AZone', noonUtc)).toBe(false);
   });
 });
-

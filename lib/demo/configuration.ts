@@ -20,4 +20,3 @@ export const DEFAULT_DEMO_CONFIGURATION: DemoConfiguration = {
   businessName: 'Northstar Legal Consultations',
   agentDisplayName: 'Maya',
 };
-

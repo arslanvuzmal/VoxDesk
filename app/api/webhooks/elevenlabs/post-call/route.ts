@@ -45,4 +45,3 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   return queueElevenLabsPostCall(rawBody, parsed.data, after);
 }
-

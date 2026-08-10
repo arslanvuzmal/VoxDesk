@@ -38,4 +38,3 @@ describe('contact detail tenant isolation', () => {
     expect(mocks.taskFindMany).not.toHaveBeenCalled();
   });
 });
-

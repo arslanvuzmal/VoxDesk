@@ -76,4 +76,3 @@ test.describe('VoxDesk AI Route Structure & Authentication E2E Tests', () => {
     await expect(page.locator('h1')).toBeVisible();
   });
 });
-

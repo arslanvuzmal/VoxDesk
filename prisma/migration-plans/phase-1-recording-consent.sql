@@ -21,4 +21,3 @@ ALTER TABLE "consent_records"
   ALTER COLUMN "consentStatus" SET DEFAULT 'NOT_RECORDED',
   ALTER COLUMN "grantedAt" DROP DEFAULT,
   ALTER COLUMN "grantedAt" DROP NOT NULL;
-

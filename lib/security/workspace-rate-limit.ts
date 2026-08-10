@@ -63,4 +63,3 @@ return count`,
     retryAfterSeconds: Math.max(1, Math.ceil((current.expiresAt - now) / 1000)),
   };
 }
-
