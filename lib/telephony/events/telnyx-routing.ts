@@ -35,8 +35,26 @@ export function isOutOfOrderEvent(occurredAt: Date, latestAppliedAt?: Date): boo
 export async function resolveCallContext(
   event: IdentifiedTelnyxEvent
 ): Promise<CallContext | null> {
+  const providerIdentifiers = [
+    event.providerCallControlId,
+    event.providerCallSessionId,
+    event.providerCallLegId,
+  ].filter((value): value is string => Boolean(value));
   const existingCall = await prisma.call.findFirst({
-    where: { providerCallControlId: event.providerCallControlId },
+    where: {
+      OR: [
+        { providerCallControlId: { in: providerIdentifiers } },
+        { providerCallSessionId: { in: providerIdentifiers } },
+        { providerCallLegId: { in: providerIdentifiers } },
+        {
+          conversation: {
+            providerCorrelations: {
+              some: { identifierValue: { in: providerIdentifiers } },
+            },
+          },
+        },
+      ],
+    },
     include: {
       workspace: { include: { businessProfile: true } },
       agent: { include: { versions: { orderBy: { versionNumber: 'desc' }, take: 1 } } },
