@@ -78,6 +78,7 @@ async function prepareOutbound(
     recipient.workspaceId !== request.workspaceId ||
     recipient.campaignId !== campaign.id ||
     !recipient.recipientPhoneEncrypted ||
+    !businessId ||
     !campaign.callerId ||
     !campaign.agentVersionId
   ) {
