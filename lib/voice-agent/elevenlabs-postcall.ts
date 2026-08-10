@@ -180,6 +180,14 @@ function getProviderSummary(event: ElevenLabsPostCall): string | undefined {
   return typeof summary === 'string' && summary.trim() ? summary.trim() : undefined;
 }
 
+function getProviderAnalysisField(
+  event: ElevenLabsPostCall,
+  key: 'intent' | 'sentiment' | 'urgency'
+): string {
+  const value = event.data.analysis?.[key];
+  return typeof value === 'string' && value.trim() ? value.trim() : 'Not provided';
+}
+
 export async function reconcileElevenLabsPostCall(
   event: ElevenLabsPostCall,
   providerEventId: string
@@ -203,9 +211,9 @@ export async function reconcileElevenLabsPostCall(
             upsert: {
               create: {
                 summary,
-                intent: 'Not provided',
-                sentiment: 'neutral',
-                urgency: 'medium',
+                intent: getProviderAnalysisField(event, 'intent'),
+                sentiment: getProviderAnalysisField(event, 'sentiment'),
+                urgency: getProviderAnalysisField(event, 'urgency'),
                 actionItems: {},
                 commitments: {},
               },
