@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/database';
+import { requireDashboardContext } from '@/lib/auth/dashboard-context';
 import {
   Users,
   PhoneCall,
@@ -20,13 +21,14 @@ import {
 
 export default async function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { workspaceId } = await requireDashboardContext();
 
   let lead = null;
   try {
-    lead = await prisma.lead.findUnique({
-      where: { id },
+    lead = await prisma.lead.findFirst({
+      where: { id, workspaceId },
       include: {
-        call: true,
+        call: { include: { agent: { select: { name: true } }, summary: true } },
       },
     });
   } catch {
@@ -105,7 +107,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <Building2 className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Company / Business</p>
-                  <p className="font-medium text-white">{lead.company || 'Northstar Client'}</p>
+                  <p className="font-medium text-white">{lead.company || 'Not provided'}</p>
                 </div>
               </div>
 
@@ -114,7 +116,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Service Interest</p>
                   <p className="font-medium text-white">
-                    {lead.serviceInterest || 'Commercial Consultation'}
+                    {lead.serviceInterest || 'Not provided'}
                   </p>
                 </div>
               </div>
@@ -133,7 +135,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <ShieldCheck className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Data Status</p>
-                  <p className="font-mono text-[#3FB950]">AES-256 Encrypted</p>
+                  <p className="font-mono text-[#3FB950]">Protected at rest</p>
                 </div>
               </div>
             </div>
@@ -143,14 +145,15 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           <div className="rounded-lg bg-[#161B22] border border-[#30363D] p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-[#30363D] pb-2">
               <h2 className="text-xs font-bold text-[#8B949E] uppercase tracking-wider">
-                Voice Agent Intake Session
+                Conversation context
               </h2>
-              <span className="text-[11px] text-[#58A6FF] font-mono">Agent: Maya</span>
+              <span className="text-[11px] text-[#58A6FF] font-mono">
+                Agent: {lead.call?.agent.name || 'Not assigned'}
+              </span>
             </div>
 
             <div className="p-3.5 rounded-md bg-[#0D1117] border border-[#30363D] text-xs text-[#C9D1D9] leading-relaxed">
-              Prospect called inquiring about commercial legal retainer terms and fee structures.
-              Stated immediate consultation required for contract dispute.
+              {lead.call?.summary?.summary || 'No conversation summary is available.'}
             </div>
 
             {/* Linked Call */}
@@ -162,9 +165,11 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <div className="p-3 rounded-md bg-[#0D1117] border border-[#30363D] flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
                     <PhoneCall className="w-3.5 h-3.5 text-[#58A6FF]" />
-                    <span className="font-medium text-white">Inbound Call</span>
+                    <span className="font-medium text-white">
+                      {lead.call.direction === 'INBOUND' ? 'Inbound phone' : 'Outbound phone'}
+                    </span>
                     <span className="text-[#8B949E] font-mono text-[11px]">
-                      ({lead.call.durationSeconds}s)
+                      {lead.call.durationSeconds > 0 ? `(${lead.call.durationSeconds}s)` : '(No duration)'}
                     </span>
                   </div>
                   <span className="text-[11px] font-mono text-[#8B949E]">
@@ -193,32 +198,23 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Budget</span>
-                  <span className="font-mono text-white">{lead.budgetRange || 'High'}</span>
+                  <span className="font-mono text-white">{lead.budgetRange || 'Not provided'}</span>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#21262D]">
-                  <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
-                </div>
-              </div>
+                              </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Timeline</span>
-                  <span className="font-mono text-white">{lead.timeline || 'Immediate'}</span>
+                  <span className="font-mono text-white">{lead.timeline || 'Not provided'}</span>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#21262D]">
-                  <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
-                </div>
-              </div>
+                              </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Authority</span>
-                  <span className="font-mono text-white">{lead.authority || 'Decision Maker'}</span>
+                  <span className="font-mono text-white">{lead.authority || 'Not provided'}</span>
                 </div>
-                <div className="w-full h-1.5 rounded-full bg-[#21262D]">
-                  <div className="h-1.5 rounded-full bg-[#3FB950] w-full" />
-                </div>
-              </div>
+                              </div>
             </div>
           </div>
 
@@ -230,10 +226,10 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
             <div className="flex items-center gap-2 text-white">
               <UserCheck className="w-4 h-4 text-[#58A6FF]" />
               <span className="font-semibold">Assigned Owner:</span>
-              <span className="font-mono">{lead.assignedTo || 'Senior Counsel'}</span>
+              <span className="font-mono">{lead.assignedTo || 'Not assigned'}</span>
             </div>
             <p className="text-[11px] text-[#8B949E]">
-              Qualified via Maya automated intake. Ready for partner review.
+              Assignment and next action are shown only when recorded by the workflow.
             </p>
           </div>
         </div>
