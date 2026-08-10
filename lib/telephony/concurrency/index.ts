@@ -530,7 +530,8 @@ export async function acquireCallLeases(
   agentId: string,
   phoneNumberId?: string,
   campaignId?: string,
-  direction: 'INBOUND' | 'OUTBOUND' = 'INBOUND'
+  direction: 'INBOUND' | 'OUTBOUND' = 'INBOUND',
+  ownerCallId?: string
 ): Promise<{ success: boolean; leases: string[]; failed: string[] }> {
   const scopes: Array<{ type: ConcurrencyScopeType; id: string }> = [
     { type: 'TENANT', id: workspaceId },
@@ -547,7 +548,7 @@ export async function acquireCallLeases(
     scopes.push({ type: 'CAMPAIGN', id: campaignId });
   }
 
-  const callId = `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const callId = ownerCallId || `call_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const acquiredLeases: string[] = [];
   const failedScopes: string[] = [];
 
