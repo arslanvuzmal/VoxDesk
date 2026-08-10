@@ -14,7 +14,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const parsed = StartCanarySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: { code: 'VALIDATION', message: 'A bounded canary sample is required.', correlationId } },
+      {
+        error: {
+          code: 'VALIDATION',
+          message: 'A bounded canary sample is required.',
+          correlationId,
+        },
+      },
       { status: 400 }
     );
   }

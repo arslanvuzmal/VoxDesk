@@ -85,9 +85,7 @@ describe('supervised improvement lifecycle', () => {
 
     const result = await evaluateCandidate('workspace-a', 'candidate-a', 'reviewer-a');
 
-    expect(result).toEqual(
-      expect.objectContaining({ ok: false, code: 'EVALUATION_FAILED' })
-    );
+    expect(result).toEqual(expect.objectContaining({ ok: false, code: 'EVALUATION_FAILED' }));
     expect(mocks.candidateUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -104,17 +102,12 @@ describe('supervised improvement lifecycle', () => {
       canaryResults: { minimumConversations: 20, status: 'RUNNING' },
     });
 
-    const result = await completeCandidateCanary(
-      'workspace-a',
-      'candidate-a',
-      'reviewer-a',
-      {
-        totalConversations: 19,
-        criticalFailures: 0,
-        regressionDetected: false,
-        dimensionResults: { businessCorrectness: 1 },
-      }
-    );
+    const result = await completeCandidateCanary('workspace-a', 'candidate-a', 'reviewer-a', {
+      totalConversations: 19,
+      criticalFailures: 0,
+      regressionDetected: false,
+      dimensionResults: { businessCorrectness: 1 },
+    });
 
     expect(result).toEqual(expect.objectContaining({ ok: false, code: 'CANARY_FAILED' }));
     expect(mocks.candidateUpdate).toHaveBeenCalledWith(

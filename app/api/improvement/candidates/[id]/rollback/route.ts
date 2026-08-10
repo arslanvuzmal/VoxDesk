@@ -19,12 +19,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
   }
   const { id } = await params;
-  const result = await rollbackCandidate(
-    access.workspaceId,
-    id,
-    access.userId,
-    parsed.data.reason
-  );
+  const result = await rollbackCandidate(access.workspaceId, id, access.userId, parsed.data.reason);
   if (!result.ok) {
     return NextResponse.json(
       { error: { code: result.code, message: result.message, correlationId } },

@@ -25,9 +25,7 @@ export async function evaluateCandidate(
   workspaceId: string,
   candidateId: string,
   actorId: string
-): Promise<
-  GateFailure | GateSuccess<{ candidateId: string; status: string; runIds: string[] }>
-> {
+): Promise<GateFailure | GateSuccess<{ candidateId: string; status: string; runIds: string[] }>> {
   const candidate = await prisma.deploymentCandidate.findFirst({
     where: { id: candidateId, workspaceId },
   });

@@ -17,17 +17,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const parsed = CompleteCanarySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: { code: 'VALIDATION', message: 'Structured canary evidence is required.', correlationId } },
+      {
+        error: {
+          code: 'VALIDATION',
+          message: 'Structured canary evidence is required.',
+          correlationId,
+        },
+      },
       { status: 400 }
     );
   }
   const { id } = await params;
-  const result = await completeCandidateCanary(
-    access.workspaceId,
-    id,
-    access.userId,
-    parsed.data
-  );
+  const result = await completeCandidateCanary(access.workspaceId, id, access.userId, parsed.data);
   if (!result.ok) {
     return NextResponse.json(
       { error: { code: result.code, message: result.message, correlationId } },
