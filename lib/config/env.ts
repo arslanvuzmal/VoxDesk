@@ -13,6 +13,7 @@ const envSchema = z.object({
 
   DEMO_SESSION_SECRET: z.string().min(1, 'DEMO_SESSION_SECRET is required'),
   IP_HASH_SECRET: z.string().min(1, 'IP_HASH_SECRET is required'),
+  PHONE_HASH_SECRET: z.string().min(1, 'PHONE_HASH_SECRET is required'),
   DEMO_DATA_ENCRYPTION_KEY: z.string().optional(),
 
   // Cloudflare Workers AI Configuration
@@ -36,6 +37,7 @@ const envSchema = z.object({
   OPENROUTER_TIMEOUT_MS: z.string().default('12000'),
 
   ELEVENLABS_API_KEY: z.string().optional(),
+  ELEVENLABS_WEBHOOK_SECRET: z.string().optional(),
   ELEVENLABS_AGENT_ID: z.string().optional(),
   ELEVENLABS_AGENT_ID_LEGAL_EN: z.string().optional(),
   ELEVENLABS_AGENT_PHONE_NUMBER_ID: z.string().optional(),
@@ -45,6 +47,7 @@ const envSchema = z.object({
   ELEVENLABS_STT_MODEL: z.string().default('scribe_v2_realtime'),
 
   DEMO_ENABLED: z.string().default('true'),
+  DEMO_MODE: z.string().default('false'),
   NEXT_PUBLIC_DEMO_ENABLED: z.string().default('true'),
   DEMO_MAX_DURATION_SECONDS: z.string().default('180'),
   DEMO_MAX_TURNS: z.string().default('6'),
@@ -56,6 +59,8 @@ const envSchema = z.object({
   DEMO_SESSION_COOLDOWN_SECONDS: z.string().default('3'),
   DEMO_MAX_CONCURRENT_SESSIONS_GLOBAL: z.string().default('50'),
   DEMO_GLOBAL_DAILY_SESSION_LIMIT: z.string().default('1000'),
+  VOICE_STARTS_PER_WORKSPACE_PER_MINUTE: z.string().default('20'),
+  TEXT_TURNS_PER_WORKSPACE_PER_MINUTE: z.string().default('60'),
 
   DEMO_LIVE_PROVIDER_KILL_SWITCH: z.string().default('false'),
 
@@ -81,28 +86,28 @@ const envSchema = z.object({
   CALL_RECORDING_ENABLED: z.string().default('false'),
   SUPERVISED_IMPROVEMENT_ENABLED: z.string().default('false'),
   MULTILINGUAL_TELEPHONY_ENABLED: z.string().default('false'),
+  CONVERSATION_DUAL_WRITE_ENABLED: z.string().default('false'),
 
   ALLOW_PRODUCTION_SEED: z.string().default('false'),
   CONTENT_LOGGING_MODE: z.string().default('metadata_only'),
 });
 
 function getEnv() {
-  const defaultAuthSecret = process.env.AUTH_SECRET || 'dev-auth-secret-32-chars-minimum-key';
-  const defaultEncryptionKey =
-    process.env.ENCRYPTION_KEY ||
-    '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
-  const defaultInternalSecret = process.env.INTERNAL_API_SECRET || 'dev-internal-api-secret-key';
-  const defaultDemoSessionSecret =
-    process.env.DEMO_SESSION_SECRET || 'dev-demo-session-secret-key-32-chars';
-  const defaultIpHashSecret = process.env.IP_HASH_SECRET || 'dev-ip-hash-salt-secret-32-chars';
+  const isProduction = process.env.NODE_ENV === 'production';
+  const developmentDefaults = isProduction
+    ? {}
+    : {
+        AUTH_SECRET: 'dev-auth-secret-32-chars-minimum-key',
+        ENCRYPTION_KEY: '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+        INTERNAL_API_SECRET: 'dev-internal-api-secret-key',
+        DEMO_SESSION_SECRET: 'dev-demo-session-secret-key-32-chars',
+        IP_HASH_SECRET: 'dev-ip-hash-salt-secret-32-chars',
+        PHONE_HASH_SECRET: 'dev-phone-hash-secret-32-chars',
+      };
 
   const rawEnv = {
+    ...developmentDefaults,
     ...process.env,
-    AUTH_SECRET: defaultAuthSecret,
-    ENCRYPTION_KEY: defaultEncryptionKey,
-    INTERNAL_API_SECRET: defaultInternalSecret,
-    DEMO_SESSION_SECRET: defaultDemoSessionSecret,
-    IP_HASH_SECRET: defaultIpHashSecret,
     UPSTASH_REDIS_REST_URL:
       process.env.UPSTASH_REDIS_REST_URL ||
       process.env.KV_REST_API_URL ||
@@ -118,10 +123,14 @@ function getEnv() {
   const parseResult = envSchema.safeParse(rawEnv);
 
   if (!parseResult.success) {
-    console.error('[SECURITY ERROR] Invalid environment variables:', parseResult.error.format());
+    throw new Error(
+      `Invalid environment configuration: ${parseResult.error.issues
+        .map(issue => issue.path.join('.'))
+        .join(', ')}`
+    );
   }
 
-  return parseResult.success ? parseResult.data : (rawEnv as any);
+  return parseResult.data;
 }
 
 export function getMissingEnvironmentVariables(): string[] {
@@ -131,6 +140,7 @@ export function getMissingEnvironmentVariables(): string[] {
     'INTERNAL_API_SECRET',
     'DEMO_SESSION_SECRET',
     'IP_HASH_SECRET',
+    'PHONE_HASH_SECRET',
     'DATABASE_URL',
   ];
   const missing: string[] = [];
@@ -186,7 +196,7 @@ export function getProviderReadiness(): {
         inboundEnabled &&
         Boolean(env.TELNYX_API_KEY && env.TELNYX_CONNECTION_ID && env.TELNYX_PRIMARY_PHONE_NUMBER),
       verified: false, // Requires live verification
-      provider: 'Telnyx Voice API → ElevenLabs SIP',
+      provider: 'Telnyx Voice API â†’ ElevenLabs SIP',
       phoneNumbers: env.TELNYX_PRIMARY_PHONE_NUMBER ? [env.TELNYX_PRIMARY_PHONE_NUMBER] : [],
     },
     outboundTelephony: {
@@ -195,7 +205,7 @@ export function getProviderReadiness(): {
         outboundEnabled &&
         Boolean(env.TELNYX_API_KEY && env.TELNYX_OUTBOUND_VOICE_PROFILE_ID),
       verified: false, // Requires live verification
-      provider: 'Telnyx Voice API → ElevenLabs SIP',
+      provider: 'Telnyx Voice API â†’ ElevenLabs SIP',
       callerIds: env.TELNYX_PRIMARY_PHONE_NUMBER ? [env.TELNYX_PRIMARY_PHONE_NUMBER] : [],
       consentControls: true,
       suppressionControls: true,
@@ -213,3 +223,4 @@ export function validateE164PhoneNumber(phone: string): boolean {
 }
 
 export const env = getEnv();
+

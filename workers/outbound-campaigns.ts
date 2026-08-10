@@ -1,383 +1,206 @@
 import { prisma } from '@/lib/database';
-import { outboundHandler } from '@/lib/telephony/outbound';
 import { featureFlags } from '@/lib/features/flags';
+import { getCampaignReadiness } from '@/lib/telephony/outbound/campaign-readiness';
 
-interface QueuedAttempt {
-  id: string;
+export type OutboundExecutionRequest = {
+  attemptId: string;
+  campaignId: string;
+  recipientId: string;
   workspaceId: string;
-  campaignId: string | null;
-  recipientId: string | null;
-  status: string;
-  direction: string;
-  startedAt: Date | null;
-  endedAt: Date | null;
-  durationSeconds: number;
-  terminationReason: string | null;
-  recordingConsent: boolean;
-  outcome: string | null;
-  notes: string | null;
-  attemptNumber: number;
-  createdAt: Date;
-  updatedAt: Date;
-  campaign?: {
-    id: string;
-    workspaceId: string;
-    businessId: string | null;
-    name: string;
-    workflowType: string;
-    agentId: string;
-    agentVersionId: string | null;
-    language: string;
-    callerId: string | null;
-    targetSegment: string | null;
-    callingWindowStart: string | null;
-    callingWindowEnd: string | null;
-    timezoneStrategy: string;
-    maxAttempts: number;
-    retryIntervalMinutes: number;
-    concurrencyLimit: number;
-    callsPerMinute: number;
-    approvalStatus: string;
-    dryRunCompleted: boolean;
-    dryRunReport: any;
-    state: string;
-    createdBy: string | null;
-    approvedBy: string | null;
-    approvedAt: Date | null;
-    startedAt: Date | null;
-    pausedAt: Date | null;
-    completedAt: Date | null;
-    cancelledAt: Date | null;
-    failedReason: string | null;
-    openingDisclosure: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  } | null;
-  recipient?: {
-    id: string;
-    workspaceId: string | null;
-    campaignId: string;
-    contactId: string | null;
-    recipientName: string | null;
-    recipientPhoneEncrypted: string | null;
-    recipientPhoneHash: string | null;
-    recipientEmailEncrypted: string | null;
-    countryCode: string;
-    status: string;
-    attempts: number;
-    lastAttemptAt: Date | null;
-    completedAt: Date | null;
-    outcome: string | null;
-    optOutRequested: boolean;
-    optOutAt: Date | null;
-    suppressedAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-    campaign: {
-      id: string;
-      workspaceId: string;
-      businessId: string | null;
-      name: string;
-      workflowType: string;
-      agentId: string;
-      agentVersionId: string | null;
-      language: string;
-      callerId: string | null;
-      targetSegment: string | null;
-      callingWindowStart: string | null;
-      callingWindowEnd: string | null;
-      timezoneStrategy: string;
-      maxAttempts: number;
-      retryIntervalMinutes: number;
-      concurrencyLimit: number;
-      callsPerMinute: number;
-      approvalStatus: string;
-      dryRunCompleted: boolean;
-      dryRunReport: any;
-      state: string;
-      createdBy: string | null;
-      approvedBy: string | null;
-      approvedAt: Date | null;
-      startedAt: Date | null;
-      pausedAt: Date | null;
-      completedAt: Date | null;
-      cancelledAt: Date | null;
-      failedReason: string | null;
-      openingDisclosure: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-    } | null;
-    workspace: {
-      id: string;
-      name: string;
-      slug: string;
-      industry: string;
-      timezone: string;
-      plan: string;
-      status: string;
-      createdAt: Date;
-      updatedAt: Date;
-    } | null;
-  } | null;
-}
+  correlationId: string;
+  idempotencyKey: string;
+};
 
-export async function processOutboundQueue(): Promise<{
-  processed: number;
-  succeeded: number;
-  failed: number;
-}> {
-  const campaignsEnabled = await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED');
-  const outboundEnabled = await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED');
+export type OutboundExecutionResult =
+  | { accepted: true; providerCallControlId: string }
+  | {
+      accepted: false;
+      category: 'PROVIDER_UNAVAILABLE' | 'NETWORK' | 'TIMEOUT';
+      retryable: boolean;
+    };
 
-  if (!outboundEnabled || !campaignsEnabled) {
-    return { processed: 0, succeeded: 0, failed: 0 };
-  }
+export type OutboundExecutor = (
+  request: OutboundExecutionRequest
+) => Promise<OutboundExecutionResult>;
 
-  let processed = 0;
-  let succeeded = 0;
-  let failed = 0;
+const failClosedExecutor: OutboundExecutor = async () => ({
+  accepted: false,
+  category: 'PROVIDER_UNAVAILABLE',
+  retryable: true,
+});
 
-  const now = new Date();
-  const batchSize = 10;
-
-  const queuedAttempts = await prisma.outboundAttempt.findMany({
+export async function claimOutboundJobs(limit = 10, now = new Date()) {
+  const candidates = await prisma.backgroundJob.findMany({
     where: {
+      type: 'OUTBOUND_CALL_EXECUTE',
       status: 'PENDING',
-      startedAt: { lte: now },
-      attemptNumber: { lt: 3 }, // Default max attempts
+      availableAt: { lte: now },
+      lockedAt: null,
     },
-    take: batchSize,
-    orderBy: { startedAt: 'asc' },
-    include: {
-      campaign: true,
-      recipient: true,
-    },
+    orderBy: { availableAt: 'asc' },
+    take: Math.min(Math.max(limit, 1), 50),
   });
-
-  for (const attempt of queuedAttempts) {
-    try {
-      if (!attempt.campaign || attempt.campaign.state !== 'RUNNING') {
-        await prisma.outboundAttempt.update({
-          where: { id: attempt.id },
-          data: { status: 'FAILED', outcome: 'Campaign not running' },
-        });
-        failed++;
-        continue;
-      }
-
-      const campaign = attempt.campaign;
-
-      if (
-        campaign.callingWindowStart &&
-        campaign.callingWindowEnd &&
-        campaign.timezoneStrategy === 'LOCAL'
-      ) {
-        const recipientTimeZone =
-          campaign.timezoneStrategy === 'LOCAL' ? 'America/New_York' : 'UTC';
-        if (
-          !isWithinCallingWindow(
-            campaign.callingWindowStart,
-            campaign.callingWindowEnd,
-            recipientTimeZone
-          )
-        ) {
-          await prisma.outboundAttempt.update({
-            where: { id: attempt.id },
-            data: {
-              status: 'PENDING',
-              startedAt: calculateNextWindow(
-                campaign.callingWindowStart,
-                campaign.callingWindowEnd
-              ),
-            },
-          });
-          continue;
-        }
-      }
-
-      const consent = await prisma.consentRecord.findFirst({
-        where: {
-          contactId: attempt.recipientId,
-          consentType: 'OUTBOUND_CALL',
-          consentStatus: 'GRANTED',
-          revokedAt: null,
-        },
+  const claimed = [];
+  for (const candidate of candidates) {
+    if (candidate.attempt >= candidate.maxAttempts) {
+      await prisma.backgroundJob.updateMany({
+        where: { id: candidate.id, status: 'PENDING', lockedAt: null },
+        data: { status: 'FAILED', errorCategory: 'RETRY_EXHAUSTED', completedAt: now },
       });
-
-      if (!consent) {
-        await prisma.outboundAttempt.update({
-          where: { id: attempt.id },
-          data: { status: 'FAILED', outcome: 'Consent missing' },
-        });
-        failed++;
-        continue;
-      }
-
-      const suppression = await prisma.suppressionEntry.findFirst({
-        where: {
-          workspaceId: campaign.workspaceId,
-          phoneHash: attempt.recipient?.recipientPhoneHash || '',
-          expiresAt: { gte: new Date() },
-        },
-      });
-
-      if (suppression) {
-        await prisma.outboundAttempt.update({
-          where: { id: attempt.id },
-          data: { status: 'FAILED', outcome: 'Suppressed' },
-        });
-        await prisma.campaignRecipient.update({
-          where: { id: attempt.recipientId! },
-          data: { status: 'SUPPRESSED' },
-        });
-        failed++;
-        continue;
-      }
-
-      const result = await outboundHandler.initiateOutboundCall({
-        workspaceId: campaign.workspaceId,
-        businessId: campaign.businessId || '',
-        agentId: campaign.agentId,
-        agentVersionId: campaign.agentVersionId || '',
-        toNumber: attempt.recipient?.recipientPhoneEncrypted || '',
-        fromNumber: campaign.callerId || '',
-        workflowType: campaign.workflowType as any,
-        language: campaign.language,
-        trainingPackVersion: 1,
-        contactId: attempt.recipient?.contactId ?? undefined,
-        campaignId: campaign.id,
-        openingDisclosure: campaign.openingDisclosure ?? undefined,
-        maxAttempts: campaign.maxAttempts,
-        retryIntervalMinutes: campaign.retryIntervalMinutes,
-        callingWindowStart: campaign.callingWindowStart ?? undefined,
-        callingWindowEnd: campaign.callingWindowEnd ?? undefined,
-        timeZone: campaign.timezoneStrategy === 'LOCAL' ? 'America/New_York' : undefined,
-      });
-
-      if (result.success) {
-        await prisma.outboundAttempt.update({
-          where: { id: attempt.id },
-          data: {
-            status: 'DIALING',
-            attemptNumber: { increment: 1 },
-            startedAt: new Date(),
-          },
-        });
-        succeeded++;
-      } else {
-        await handleFailedAttempt(attempt, campaign, result.blockedReason || 'UNKNOWN');
-        failed++;
-      }
-    } catch (error) {
-      console.error('[OUTBOUND WORKER] Error processing attempt:', error);
-      await prisma.outboundAttempt.update({
-        where: { id: attempt.id },
-        data: {
-          status: 'FAILED',
-          outcome: error instanceof Error ? error.message : 'Unknown error',
-        },
-      });
-      failed++;
+      continue;
     }
-
-    processed++;
-  }
-
-  return { processed, succeeded, failed };
-}
-
-function isWithinCallingWindow(start: string, end: string, timeZone: string): boolean {
-  try {
-    const now = new Date();
-    const tzOffset = getTimezoneOffset(timeZone);
-    const localNow = new Date(now.getTime() + tzOffset * 60 * 1000);
-    const currentMinutes = localNow.getHours() * 60 + localNow.getMinutes();
-
-    const [startHour, startMin] = start.split(':').map(Number);
-    const [endHour, endMin] = end.split(':').map(Number);
-    const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-
-    if (startMinutes <= endMinutes) {
-      return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-    } else {
-      return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
-    }
-  } catch {
-    return true;
-  }
-}
-
-function getTimezoneOffset(timeZone: string): number {
-  try {
-    const date = new Date();
-    const utc = date.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
-    const local = date.toLocaleString('en-US', { timeZone, hour12: false });
-    return (new Date(local).getTime() - new Date(utc).getTime()) / (1000 * 60);
-  } catch {
-    return 0;
-  }
-}
-
-function calculateNextWindow(start: string, end: string): Date {
-  const now = new Date();
-  const [startHour, startMin] = start.split(':').map(Number);
-  const next = new Date(now);
-  next.setHours(startHour, startMin, 0, 0);
-  if (next <= now) {
-    next.setDate(next.getDate() + 1);
-  }
-  return next;
-}
-
-async function handleFailedAttempt(attempt: any, campaign: any, reason: string): Promise<void> {
-  const nextAttemptNumber = attempt.attemptNumber + 1;
-  const maxAttempts = campaign.maxAttempts || 3;
-  const retryInterval = campaign.retryIntervalMinutes || 60;
-
-  if (nextAttemptNumber >= maxAttempts) {
-    await prisma.outboundAttempt.update({
-      where: { id: attempt.id },
-      data: { status: 'FAILED', outcome: `Max attempts reached: ${reason}` },
-    });
-    await prisma.campaignRecipient.update({
-      where: { id: attempt.recipientId },
-      data: { status: 'FAILED' },
-    });
-  } else {
-    const nextAttemptAt = new Date(Date.now() + retryInterval * 60 * 1000);
-    await prisma.outboundAttempt.update({
-      where: { id: attempt.id },
-      data: {
+    const result = await prisma.backgroundJob.updateMany({
+      where: {
+        id: candidate.id,
+        type: 'OUTBOUND_CALL_EXECUTE',
         status: 'PENDING',
-        attemptNumber: nextAttemptNumber,
-        startedAt: nextAttemptAt,
+        lockedAt: null,
+        availableAt: { lte: now },
       },
+      data: { status: 'RUNNING', lockedAt: now, attempt: { increment: 1 } },
     });
+    if (result.count === 1) claimed.push({ ...candidate, status: 'RUNNING', lockedAt: now });
   }
+  return claimed;
 }
 
-export async function startOutboundWorker(): Promise<void> {
-  console.log('[OUTBOUND WORKER] Starting outbound call worker...');
-
-  const interval = setInterval(async () => {
-    try {
-      const result = await processOutboundQueue();
-      if (result.processed > 0) {
-        console.log('[OUTBOUND WORKER] Batch processed:', result);
-      }
-    } catch (error) {
-      console.error('[OUTBOUND WORKER] Error:', error);
-    }
-  }, 30000);
-
-  process.on('SIGTERM', () => {
-    clearInterval(interval);
-    console.log('[OUTBOUND WORKER] Stopped');
-    process.exit(0);
+async function finishJob(
+  jobId: string,
+  status: 'COMPLETED' | 'FAILED' | 'PENDING',
+  errorCategory?: string,
+  availableAt?: Date
+) {
+  await prisma.backgroundJob.update({
+    where: { id: jobId },
+    data: {
+      status,
+      errorCategory,
+      availableAt,
+      lockedAt: null,
+      completedAt: status === 'COMPLETED' || status === 'FAILED' ? new Date() : null,
+    },
   });
 }
 
-if (require.main === module) {
-  startOutboundWorker().catch(console.error);
+export async function processOutboundJob(
+  job: Awaited<ReturnType<typeof claimOutboundJobs>>[number],
+  executor: OutboundExecutor = failClosedExecutor
+): Promise<'SUCCEEDED' | 'RETRY' | 'BLOCKED'> {
+  const attempt = await prisma.outboundAttempt.findFirst({
+    where: { id: job.resourceId, workspaceId: job.workspaceId || undefined, status: 'QUEUED' },
+    include: { campaign: true, recipient: true },
+  });
+  if (!attempt?.campaign || !attempt.recipient || !attempt.campaignId || !attempt.recipientId) {
+    await finishJob(job.id, 'FAILED', 'NOT_FOUND');
+    return 'BLOCKED';
+  }
+  const campaign = attempt.campaign;
+  if (
+    campaign.workspaceId !== attempt.workspaceId ||
+    attempt.recipient.workspaceId !== attempt.workspaceId ||
+    attempt.recipient.campaignId !== campaign.id ||
+    campaign.approvalStatus !== 'APPROVED' ||
+    !['SCHEDULED', 'RUNNING'].includes(campaign.state)
+  ) {
+    await finishJob(job.id, 'FAILED', 'AUTHORIZATION');
+    return 'BLOCKED';
+  }
+
+  const readiness = await getCampaignReadiness(campaign.id, campaign.workspaceId);
+  if (!readiness?.report.eligibleRecipientIds.includes(attempt.recipient.id)) {
+    await prisma.$transaction([
+      prisma.outboundAttempt.update({
+        where: { id: attempt.id },
+        data: { status: 'BLOCKED', outcome: 'Outbound controls blocked execution.' },
+      }),
+      prisma.campaignRecipient.update({
+        where: { id: attempt.recipient.id },
+        data: { status: 'BLOCKED' },
+      }),
+    ]);
+    await finishJob(job.id, 'FAILED', 'COMPLIANCE_BLOCK');
+    return 'BLOCKED';
+  }
+
+  const attemptClaim = await prisma.outboundAttempt.updateMany({
+    where: { id: attempt.id, workspaceId: campaign.workspaceId, status: 'QUEUED' },
+    data: { status: 'PROVIDER_REQUESTING' },
+  });
+  if (attemptClaim.count !== 1) {
+    await finishJob(job.id, 'FAILED', 'CONFLICT');
+    return 'BLOCKED';
+  }
+
+  let result: OutboundExecutionResult;
+  try {
+    result = await executor({
+      attemptId: attempt.id,
+      campaignId: campaign.id,
+      recipientId: attempt.recipient.id,
+      workspaceId: campaign.workspaceId,
+      correlationId: job.correlationId,
+      idempotencyKey: attempt.id,
+    });
+  } catch {
+    result = { accepted: false, category: 'NETWORK', retryable: true };
+  }
+  if (!result.accepted) {
+    const exhausted = job.attempt + 1 >= job.maxAttempts;
+    await prisma.outboundAttempt.update({
+      where: { id: attempt.id },
+      data: { status: exhausted || !result.retryable ? 'FAILED' : 'QUEUED' },
+    });
+    await finishJob(
+      job.id,
+      result.retryable && !exhausted ? 'PENDING' : 'FAILED',
+      result.category,
+      result.retryable && !exhausted ? new Date(Date.now() + 30_000) : undefined
+    );
+    return result.retryable && !exhausted ? 'RETRY' : 'BLOCKED';
+  }
+
+  await prisma.$transaction([
+    prisma.outboundAttempt.update({
+      where: { id: attempt.id },
+      data: { status: 'INITIATING', startedAt: new Date(), notes: result.providerCallControlId },
+    }),
+    prisma.campaignRecipient.update({
+      where: { id: attempt.recipient.id },
+      data: { status: 'ACTIVE', attempts: { increment: 1 }, lastAttemptAt: new Date() },
+    }),
+    prisma.campaign.update({
+      where: { id: campaign.id },
+      data: { state: 'RUNNING', startedAt: campaign.startedAt || new Date() },
+    }),
+  ]);
+  await finishJob(job.id, 'COMPLETED');
+  return 'SUCCEEDED';
 }
+
+export async function processOutboundQueue(executor: OutboundExecutor = failClosedExecutor) {
+  if (
+    !(await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED')) ||
+    !(await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED'))
+  )
+    return { processed: 0, succeeded: 0, retried: 0, blocked: 0 };
+
+  const jobs = await claimOutboundJobs();
+  const totals = { processed: jobs.length, succeeded: 0, retried: 0, blocked: 0 };
+  for (const job of jobs) {
+    const result = await processOutboundJob(job, executor);
+    if (result === 'SUCCEEDED') totals.succeeded += 1;
+    else if (result === 'RETRY') totals.retried += 1;
+    else totals.blocked += 1;
+  }
+  return totals;
+}
+
+export async function startOutboundWorker(executor: OutboundExecutor = failClosedExecutor) {
+  const run = () => processOutboundQueue(executor).catch(() => undefined);
+  await run();
+  const interval = setInterval(run, 30_000);
+  process.once('SIGTERM', () => clearInterval(interval));
+}
+
+if (require.main === module) void startOutboundWorker();
+

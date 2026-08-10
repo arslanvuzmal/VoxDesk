@@ -56,16 +56,7 @@ const nextConfig: NextConfig = {
         destination: '/dashboard/conversations?tab=escalated',
         permanent: true,
       },
-      {
-        source: '/knowledge',
-        destination: '/dashboard/agent?tab=knowledge',
-        permanent: true,
-      },
-      {
-        source: '/dashboard/knowledge',
-        destination: '/dashboard/agent?tab=knowledge',
-        permanent: true,
-      },
+      { source: '/knowledge', destination: '/dashboard/knowledge', permanent: true },
       {
         source: '/audit',
         destination: '/dashboard/settings/audit',
@@ -115,3 +106,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

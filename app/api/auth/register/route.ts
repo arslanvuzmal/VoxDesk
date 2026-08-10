@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
     response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
       path: '/',
       maxAge: 7 * 24 * 3600,
     });
@@ -92,3 +93,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Registration failed' }, { status: 500 });
   }
 }
+

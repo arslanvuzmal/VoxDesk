@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { env } from '@/lib/config/env';
 
 export interface DemoSessionPayload {
   sessionId: string;
@@ -10,9 +11,7 @@ export interface DemoSessionPayload {
 }
 
 function getSessionSecret(): string {
-  return (
-    process.env.DEMO_SESSION_SECRET?.trim() || 'voxdesk_demo_session_fallback_secret_key_32chars!'
-  );
+  return env.DEMO_SESSION_SECRET;
 }
 
 export function signDemoSessionToken(payload: DemoSessionPayload): string {
@@ -34,7 +33,9 @@ export function verifyDemoSessionToken(token: string): DemoSessionPayload | null
     .update(base64Data)
     .digest('base64url');
 
-  if (signature !== expectedSignature) {
+  const actual = Buffer.from(signature);
+  const expected = Buffer.from(expectedSignature);
+  if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
     return null;
   }
 
@@ -50,3 +51,4 @@ export function verifyDemoSessionToken(token: string): DemoSessionPayload | null
     return null;
   }
 }
+

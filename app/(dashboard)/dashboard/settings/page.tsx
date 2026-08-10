@@ -1,45 +1,46 @@
-import { Settings, Clock, Globe } from 'lucide-react';
+import { prisma } from '@/lib/database';
+import { requireDashboardContext } from '@/lib/auth/dashboard-context';
 
-export default function SettingsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function SettingsPage() {
+  const { workspaceId } = await requireDashboardContext();
+  const business = await prisma.businessProfile.findUnique({ where: { workspaceId } });
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Business Settings & Opening Hours</h1>
-        <p className="text-sm text-gray-400">
-          Configure business timezone, opening hours, holiday rules, and encrypted escalation
-          numbers.
+      <header>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+          Configuration
         </p>
-      </div>
-
-      <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-6">
-        <div className="space-y-4 text-sm">
-          <div>
-            <label className="block font-medium text-gray-300 mb-1">Business Name</label>
-            <input
-              type="text"
-              defaultValue="Northstar Legal Consultations"
-              className="w-full max-w-md p-3 rounded-xl bg-gray-950 border border-gray-800 text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-300 mb-1">Timezone</label>
-            <input
-              type="text"
-              defaultValue="America/New_York (EST)"
-              className="w-full max-w-md p-3 rounded-xl bg-gray-950 border border-gray-800 text-white font-mono"
-            />
-          </div>
-
-          <div>
-            <label className="block font-medium text-gray-300 mb-1">Default Opening Hours</label>
-            <div className="p-4 rounded-xl bg-gray-950 border border-gray-900 text-xs font-mono space-y-1 max-w-md">
-              <p>Monday - Friday: 09:00 AM - 05:00 PM EST</p>
-              <p>Saturday - Sunday: Closed (After-Hours Agent Active)</p>
-            </div>
-          </div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Settings</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Business identity and routing defaults currently stored for this workspace.
+        </p>
+      </header>
+      {!business ? (
+        <div className="rounded-lg border border-slate-200 bg-white p-8">
+          <h2 className="text-sm font-semibold text-slate-950">Business setup is incomplete</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Add a business profile before publishing agents or telephone routing.
+          </p>
         </div>
-      </div>
+      ) : (
+        <dl className="grid gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 sm:grid-cols-2">
+          {[
+            ['Business name', business.businessName],
+            ['Timezone', business.timezone],
+            ['Default language', business.defaultLanguage],
+            ['Description', business.description || 'Not provided'],
+          ].map(([label, value]) => (
+            <div key={label} className="bg-white p-5">
+              <dt className="text-xs font-medium text-slate-500">{label}</dt>
+              <dd className="mt-2 text-sm text-slate-950">{value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
     </div>
   );
 }
+

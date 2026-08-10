@@ -1,58 +1,99 @@
-import { Share2, Calendar, Database, CheckCircle2 } from 'lucide-react';
+import { prisma } from '@/lib/database';
+import { requireDashboardContext } from '@/lib/auth/dashboard-context';
 
-export default function IntegrationsPage() {
-  const integrations = [
-    {
-      name: 'Google Calendar API v3',
-      category: 'CALENDAR',
-      status: 'CONNECTED',
-      details: 'Auto-syncs confirmed appointment slots',
-    },
-    {
-      name: 'Cal.com Scheduling v2',
-      category: 'CALENDAR',
-      status: 'READY',
-      details: 'Open-source calendar booking integration',
-    },
-    {
-      name: 'HubSpot CRM v3',
-      category: 'CRM',
-      status: 'CONNECTED',
-      details: 'Creates contacts & logs call engagement timelines',
-    },
-    {
-      name: 'Generic HMAC Webhook',
-      category: 'WEBHOOK',
-      status: 'ACTIVE',
-      details: 'Signed JSON payload dispatch to custom backends',
-    },
+export const dynamic = 'force-dynamic';
+
+export default async function IntegrationsPage() {
+  const { workspaceId } = await requireDashboardContext();
+  const [providers, calendars, crms] = await Promise.all([
+    prisma.providerConnection.findMany({
+      where: { workspaceId },
+      select: {
+        id: true,
+        displayName: true,
+        providerType: true,
+        status: true,
+        lastHealthCheck: true,
+      },
+    }),
+    prisma.calendarConnection.findMany({
+      where: { workspaceId },
+      select: { id: true, provider: true, status: true, updatedAt: true },
+    }),
+    prisma.cRMConnection.findMany({
+      where: { workspaceId },
+      select: { id: true, provider: true, status: true, updatedAt: true },
+    }),
+  ]);
+  const rows = [
+    ...providers.map(item => ({
+      id: item.id,
+      name: item.displayName,
+      type: item.providerType,
+      status: item.status,
+      observedAt: item.lastHealthCheck,
+    })),
+    ...calendars.map(item => ({
+      id: item.id,
+      name: item.provider,
+      type: 'CALENDAR',
+      status: item.status,
+      observedAt: item.updatedAt,
+    })),
+    ...crms.map(item => ({
+      id: item.id,
+      name: item.provider,
+      type: 'CRM',
+      status: item.status,
+      observedAt: item.updatedAt,
+    })),
   ];
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-white">CRM & Webhook Integrations</h1>
-        <p className="text-sm text-gray-400">
-          External connections for calendar booking, CRM record updates, and custom webhooks.
+      <header>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+          Configuration
         </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {integrations.map((i, idx) => (
-          <div key={idx} className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Share2 className="w-5 h-5 text-teal-400" />
-                <h3 className="text-base font-bold text-white">{i.name}</h3>
-              </div>
-              <span className="px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-xs font-mono font-bold">
-                {i.status}
-              </span>
-            </div>
-            <p className="text-xs text-gray-300">{i.details}</p>
-          </div>
-        ))}
-      </div>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Integrations</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Provider readiness reflects persisted configuration and available check timestamps.
+        </p>
+      </header>
+      {rows.length === 0 ? (
+        <div className="rounded-lg border border-slate-200 bg-white p-8">
+          <h2 className="text-sm font-semibold text-slate-950">No integrations configured</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Telephone calling, calendars, and external CRM sync remain unavailable until configured.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Integration</th>
+                <th className="px-4 py-3 font-medium">Type</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Last checked or updated</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rows.map(row => (
+                <tr key={`${row.type}-${row.id}`}>
+                  <td className="px-4 py-3 font-medium text-slate-950">{row.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{row.type}</td>
+                  <td className="px-4 py-3 text-slate-700">{row.status}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {row.observedAt ? row.observedAt.toLocaleString() : 'Not checked'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
+

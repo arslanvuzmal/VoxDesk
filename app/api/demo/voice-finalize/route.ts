@@ -1,88 +1,103 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { z } from 'zod';
 import { verifyDemoSessionToken } from '@/lib/security/session-token';
 import { prisma } from '@/lib/database';
+import { syncConversationProjectionIfEnabled } from '@/lib/conversation/persistence';
 
-interface VoiceTranscriptLine {
-  id: string;
-  role: 'CALLER' | 'AGENT';
-  text: string;
-  final: boolean;
-  createdAt: string;
-  providerEventId?: string;
-}
+const TranscriptLineSchema = z.object({
+  id: z.string().max(200),
+  role: z.enum(['CALLER', 'AGENT']),
+  text: z.string().max(4000),
+  final: z.boolean(),
+  createdAt: z.string().datetime(),
+  providerEventId: z.string().max(200).optional(),
+});
+
+const FinalizeSchema = z.object({
+  providerConversationId: z.string().min(1).max(300).nullable(),
+  transcript: z.array(TranscriptLineSchema).max(300).default([]),
+  startedAt: z.string().datetime(),
+  endedAt: z.string().datetime(),
+  terminationReason: z.enum(['USER_ENDED', 'TIME_LIMIT', 'PROVIDER_DISCONNECTED', 'ERROR']),
+});
 
 export async function POST(req: Request) {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get('voxdesk_demo_session')?.value;
-
-  let sessionPayload = sessionCookie ? verifyDemoSessionToken(sessionCookie) : null;
-
-  let body: any = {};
-  try {
-    body = await req.json();
-  } catch {
+  const sessionCookie = (await cookies()).get('voxdesk_demo_session')?.value;
+  const session = sessionCookie ? verifyDemoSessionToken(sessionCookie) : null;
+  if (!session) {
     return NextResponse.json(
-      { error: 'INVALID_JSON', message: 'Invalid JSON body.' },
+      { error: 'AUTHENTICATION', message: 'A valid demo session is required.' },
+      { status: 401, headers: { 'Cache-Control': 'no-store, private' } }
+    );
+  }
+
+  const parsed = FinalizeSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'VALIDATION', message: 'Invalid finalization payload.' },
       { status: 400, headers: { 'Cache-Control': 'no-store, private' } }
     );
   }
 
-  const {
-    providerConversationId,
-    transcript = [],
-    startedAt,
-    endedAt,
-    terminationReason = 'USER_ENDED',
-  } = body;
+  const { providerConversationId, transcript, startedAt, endedAt } = parsed.data;
+  const startMs = new Date(startedAt).getTime();
+  const endMs = new Date(endedAt).getTime();
+  if (endMs < startMs || endMs - startMs > 240_000) {
+    return NextResponse.json(
+      { error: 'VALIDATION', message: 'Invalid demo session duration.' },
+      { status: 400, headers: { 'Cache-Control': 'no-store, private' } }
+    );
+  }
 
-  const sessionId = sessionPayload?.sessionId || body.sessionId || 'untracked_session';
-
-  const startMs = startedAt ? new Date(startedAt).getTime() : Date.now() - 30000;
-  const endMs = endedAt ? new Date(endedAt).getTime() : Date.now();
-  const durationSeconds = Math.max(1, Math.round((endMs - startMs) / 1000));
-
-  const callerTurns = (transcript as VoiceTranscriptLine[]).filter(t => t.role === 'CALLER').length;
-  const agentTurns = (transcript as VoiceTranscriptLine[]).filter(t => t.role === 'AGENT').length;
-
+  const callerTurns = transcript.filter(turn => turn.role === 'CALLER').length;
+  const agentTurns = transcript.filter(turn => turn.role === 'AGENT').length;
   const warnings: string[] = [];
   let persistenceStatus: 'PERSISTED' | 'NOT_CONFIGURED' | 'FAILED' = 'NOT_CONFIGURED';
-  let callId: string | undefined = undefined;
+  let callId: string | undefined;
 
-  const dbConfigured = Boolean(process.env.DATABASE_URL);
-  if (!dbConfigured) {
-    persistenceStatus = 'NOT_CONFIGURED';
-    warnings.push('Database is not configured; call metadata was not persisted.');
+  if (!process.env.DATABASE_URL) {
+    warnings.push('Database is not configured; provider reconciliation is pending externally.');
   } else {
     try {
       const workspace = await prisma.workspace.findFirst({
         where: { slug: 'demo-workspace' },
+        select: { id: true },
       });
-      const agent = await prisma.voiceAgent.findFirst();
-
+      const agent = workspace
+        ? await prisma.voiceAgent.findFirst({
+            where: { workspaceId: workspace.id, voiceProvider: 'ELEVENLABS', status: 'ACTIVE' },
+            select: { id: true },
+          })
+        : null;
       if (workspace && agent) {
         const call = await prisma.call.create({
           data: {
             workspaceId: workspace.id,
             agentId: agent.id,
             provider: 'ELEVENLABS',
-            providerCallControlId: providerConversationId || null,
-            callerNumberMasked: '+1 (555) ***-****',
-            durationSeconds,
+            providerConversationId,
+            callerNumberMasked: 'Not provided',
+            language: session.language,
+            channel: 'WEB',
+            status: 'IN_PROGRESS',
             startedAt: new Date(startMs),
-            endedAt: new Date(endMs),
-            status: 'COMPLETED',
           },
         });
         callId = call.id;
         persistenceStatus = 'PERSISTED';
+        await syncConversationProjectionIfEnabled(call.id);
+        if (!providerConversationId) {
+          warnings.push(
+            'Provider conversation ID is pending; post-call reconciliation may be delayed.'
+          );
+        }
       } else {
-        persistenceStatus = 'NOT_CONFIGURED';
-        warnings.push('Demo workspace or voice agent record not seeded in database.');
+        warnings.push('The isolated demo workspace or ElevenLabs agent is not configured.');
       }
-    } catch (dbErr: any) {
+    } catch {
       persistenceStatus = 'FAILED';
-      warnings.push(`Database persistence failed: ${dbErr?.message || dbErr}`);
+      warnings.push('Call metadata could not be persisted. No CRM completion was claimed.');
     }
   }
 
@@ -90,21 +105,20 @@ export async function POST(req: Request) {
     {
       success: true,
       result: {
-        sessionId,
-        providerConversationId: providerConversationId || 'not_provided',
-        durationSeconds,
+        sessionId: session.sessionId,
+        providerConversationId,
+        durationSeconds: Math.round((endMs - startMs) / 1000),
         callerTurns,
         agentTurns,
         persistenceStatus,
+        providerDataStatus: providerConversationId
+          ? 'PENDING_RECONCILIATION'
+          : 'PROVIDER_DATA_MISSING',
         callId,
         warnings,
       },
     },
-    {
-      status: 200,
-      headers: {
-        'Cache-Control': 'no-store, private',
-      },
-    }
+    { status: 200, headers: { 'Cache-Control': 'no-store, private' } }
   );
 }
+

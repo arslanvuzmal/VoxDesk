@@ -8,7 +8,8 @@ export type FeatureFlagKey =
   | 'OUTBOUND_CAMPAIGNS_ENABLED'
   | 'CALL_RECORDING_ENABLED'
   | 'SUPERVISED_IMPROVEMENT_ENABLED'
-  | 'MULTILINGUAL_TELEPHONY_ENABLED';
+  | 'MULTILINGUAL_TELEPHONY_ENABLED'
+  | 'CONVERSATION_DUAL_WRITE_ENABLED';
 
 export interface FeatureFlagConfig {
   key: FeatureFlagKey;
@@ -59,6 +60,12 @@ export const FEATURE_FLAGS: Record<FeatureFlagKey, FeatureFlagConfig> = {
     defaultValue: false,
     description: 'Enable multilingual telephony support',
     requiresProvider: ['elevenlabs', 'telnyx'],
+  },
+  CONVERSATION_DUAL_WRITE_ENABLED: {
+    key: 'CONVERSATION_DUAL_WRITE_ENABLED',
+    defaultValue: env.CONVERSATION_DUAL_WRITE_ENABLED === 'true',
+    description: 'Dual-write active Call records into the canonical Conversation domain',
+    requiresProvider: [],
   },
 };
 
@@ -268,3 +275,4 @@ export async function getProviderReadiness(workspaceId: string): Promise<{
     },
   };
 }
+

@@ -1,15 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
 import { prisma } from '@/lib/database';
+import { requireCampaignAccess } from '@/lib/auth/require-campaign';
+
+const RecipientBatchSchema = z.object({
+  recipients: z
+    .array(
+      z.object({
+        contactId: z.string().min(1),
+        countryCode: z.string().regex(/^[A-Z]{2}$/),
+      })
+    )
+    .min(1)
+    .max(1_000),
+});
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const access = await requireCampaignAccess(req, id, 'campaigns:view');
+    if ('errorResponse' in access) return access.errorResponse;
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const requestedLimit = Number.parseInt(searchParams.get('limit') || '50', 10);
+    const requestedOffset = Number.parseInt(searchParams.get('offset') || '0', 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
+    const offset = Number.isFinite(requestedOffset) ? Math.max(requestedOffset, 0) : 0;
 
-    const where: any = { campaignId: id };
+    const where: Prisma.CampaignRecipientWhereInput = {
+      campaignId: id,
+      workspaceId: access.workspaceId,
+    };
     if (status) where.status = status;
 
     const [recipients, total] = await Promise.all([
@@ -33,14 +55,24 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const body = await req.json();
-    const { recipients } = body;
-
-    if (!Array.isArray(recipients) || recipients.length === 0) {
-      return NextResponse.json({ error: 'Recipients array required' }, { status: 400 });
+    const access = await requireCampaignAccess(req, id, 'campaigns:manage');
+    if ('errorResponse' in access) return access.errorResponse;
+    const parsed = RecipientBatchSchema.safeParse(await req.json().catch(() => null));
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION', message: 'A valid contact recipient list is required.' } },
+        { status: 400 }
+      );
     }
+    const recipientByContact = new Map(
+      parsed.data.recipients.map(recipient => [recipient.contactId, recipient])
+    );
+    const contactIds = [...recipientByContact.keys()];
 
-    const campaign = await prisma.campaign.findUnique({ where: { id } });
+    const campaign = await prisma.campaign.findFirst({
+      where: { id, workspaceId: access.workspaceId },
+      select: { id: true, state: true },
+    });
 
     if (!campaign) {
       return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
@@ -53,29 +85,60 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       );
     }
 
-    const data = recipients.map((r: any) => ({
-      campaignId: id,
-      contactId: r.contactId,
-      recipientName: r.recipientName,
-      recipientPhoneEncrypted: r.recipientPhone,
-      recipientPhoneHash: r.recipientPhone
-        ? require('crypto').createHash('sha256').update(r.recipientPhone).digest('hex')
-        : null,
-      recipientEmailEncrypted: r.recipientEmail,
-      countryCode: r.countryCode || 'US',
-      status: 'PENDING',
-    }));
+    const contacts = await prisma.contact.findMany({
+      where: { id: { in: contactIds }, workspaceId: access.workspaceId },
+      select: {
+        id: true,
+        name: true,
+        phoneEncrypted: true,
+        phoneHash: true,
+        emailEncrypted: true,
+      },
+    });
+    if (contacts.length !== contactIds.length) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'One or more contacts were not found.' } },
+        { status: 404 }
+      );
+    }
 
-    await prisma.campaignRecipient.createMany({
-      data,
-      skipDuplicates: true,
+    const existing = await prisma.campaignRecipient.findMany({
+      where: { campaignId: id, workspaceId: access.workspaceId, contactId: { in: contactIds } },
+      select: { contactId: true },
+    });
+    const existingIds = new Set(existing.map(recipient => recipient.contactId));
+    const data = contacts
+      .filter(contact => !existingIds.has(contact.id))
+      .map(contact => ({
+        workspaceId: access.workspaceId,
+        campaignId: id,
+        contactId: contact.id,
+        recipientName: contact.name,
+        recipientPhoneEncrypted: contact.phoneEncrypted,
+        recipientPhoneHash: contact.phoneHash,
+        recipientEmailEncrypted: contact.emailEncrypted,
+        countryCode: recipientByContact.get(contact.id)!.countryCode,
+        status: 'PENDING',
+      }));
+
+    if (data.length > 0) {
+      await prisma.$transaction([
+        prisma.campaignRecipient.createMany({ data }),
+        prisma.campaign.update({
+          where: { id },
+          data: { dryRunCompleted: false, dryRunReport: Prisma.JsonNull },
+        }),
+      ]);
+    }
+
+    const count = await prisma.campaignRecipient.count({
+      where: { campaignId: id, workspaceId: access.workspaceId },
     });
 
-    const count = await prisma.campaignRecipient.count({ where: { campaignId: id } });
-
-    return NextResponse.json({ added: recipients.length, total: count });
+    return NextResponse.json({ data: { added: data.length, total: count } });
   } catch (error) {
     console.error('[CAMPAIGN RECIPIENTS POST ERROR]', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

@@ -32,7 +32,9 @@ interface TelnyxCall {
 
 interface TelnyxWebhookPayload {
   data: {
+    id: string;
     event_type: string;
+    occurred_at: string;
     payload: TelnyxCall;
   };
   meta: {
@@ -95,8 +97,7 @@ export class TelnyxProvider implements TelephonyProvider {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Telnyx API error (${response.status}): ${errorText}`);
+      throw new Error(`Telnyx request failed with status ${response.status}.`);
     }
 
     return response.json() as Promise<T>;
@@ -126,7 +127,7 @@ export class TelnyxProvider implements TelephonyProvider {
   }
 
   async startCall(options: CallStartOptions): Promise<TelephonyCallRecord> {
-    const fromNumber = this.getCallerId(options.direction);
+    const fromNumber = options.callerIdNumber || this.getCallerId(options.direction);
     const toNumber = options.callerNumber;
 
     const response = await this.request<{ data: TelnyxCall }>('POST', '/calls', {
@@ -137,8 +138,7 @@ export class TelnyxProvider implements TelephonyProvider {
       webhook_failover_url: this.failoverUrl,
       use_provided_webhooks_only: true,
       custom_headers: this.buildSipHeaders(options),
-      record: process.env.CALL_RECORDING_ENABLED === 'true',
-      recording_channels: 'dual',
+      record: false,
       timeout_secs: 300,
       client_state: Buffer.from(
         JSON.stringify({
@@ -164,6 +164,7 @@ export class TelnyxProvider implements TelephonyProvider {
       providerCallControlId: call.call_control_id,
       providerCallSessionId: call.call_session_id,
       providerCallLegId: call.call_leg_id,
+      connectionId: call.connection_id,
       agentId: options.agentId,
       agentVersionId: options.agentVersionId,
       callerNumber: options.callerNumber,
@@ -185,10 +186,15 @@ export class TelnyxProvider implements TelephonyProvider {
     }
   }
 
-  async transferCall(providerCallId: string, targetNumber: string): Promise<boolean> {
+  async transferCall(
+    providerCallId: string,
+    targetNumber: string,
+    commandId?: string
+  ): Promise<boolean> {
     try {
       await this.request('POST', `/calls/${providerCallId}/actions/transfer`, {
         destination: targetNumber,
+        command_id: commandId,
       });
       return true;
     } catch {
@@ -213,7 +219,7 @@ export class TelnyxProvider implements TelephonyProvider {
         agentId: '',
         agentVersionId: '',
         callerNumber: call.from,
-        direction: call.direction as CallDirection,
+        direction: this.mapDirection(call.direction),
         channel: 'PHONE',
         status: this.mapTelnyxState(call.state),
         startedAt: new Date(),
@@ -240,7 +246,7 @@ export class TelnyxProvider implements TelephonyProvider {
         agentId: '',
         agentVersionId: '',
         callerNumber: call.from,
-        direction: call.direction as CallDirection,
+        direction: this.mapDirection(call.direction),
         channel: 'PHONE',
         status: this.mapTelnyxState(call.state),
         startedAt: new Date(),
@@ -276,7 +282,7 @@ export class TelnyxProvider implements TelephonyProvider {
     });
 
     const isValid = crypto.verify(
-      'ed25519',
+      null,
       Buffer.from(message),
       {
         key: publicKey,
@@ -294,17 +300,23 @@ export class TelnyxProvider implements TelephonyProvider {
 
     return {
       eventType: this.mapEventType(eventType),
+      providerEventId: payload.data.id,
       providerCallControlId: call.call_control_id,
       providerCallSessionId: call.call_session_id,
       providerCallLegId: call.call_leg_id,
-      timestamp: new Date(),
+      timestamp: new Date(payload.data.occurred_at),
+      connectionId: call.connection_id,
       rawPayload: body,
-      direction: call.direction as CallDirection,
+      direction: this.mapDirection(call.direction),
       fromNumber: call.from,
       toNumber: call.to,
       callState: this.mapTelnyxState(call.state),
       terminationReason: this.getTerminationReason(eventType, call.state),
     };
+  }
+
+  private mapDirection(direction: string): CallDirection {
+    return ['inbound', 'incoming'].includes(direction.toLowerCase()) ? 'INBOUND' : 'OUTBOUND';
   }
 
   async healthCheck(): Promise<ProviderHealth> {
@@ -342,10 +354,10 @@ export class TelnyxProvider implements TelephonyProvider {
 
   async provisionResources(config: ProvisioningConfig): Promise<ProvisioningResult> {
     const errors: string[] = [];
-    let connectionId = this.connectionId;
+    const connectionId = this.connectionId;
     let phoneNumber: string | undefined;
     let outboundProfileId = this.outboundProfileId;
-    let sipTrunkId = this.sipTrunkId;
+    const sipTrunkId = this.sipTrunkId;
 
     try {
       if (config.phoneNumber) {
@@ -554,3 +566,4 @@ export class TelnyxProvider implements TelephonyProvider {
     };
   }
 }
+

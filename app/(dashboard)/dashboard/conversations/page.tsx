@@ -1,161 +1,161 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import {
-  MessageSquare,
-  Search,
-  RefreshCw,
-  ArrowRight,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Radio,
-  PhoneCall,
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
+
+interface ConversationRow {
+  id: string;
+  channel: 'WEB_VOICE' | 'PHONE' | 'WEB_TEXT';
+  direction: 'INBOUND' | 'OUTBOUND' | 'INTERACTIVE';
+  status: string;
+  intent: string | null;
+  outcome: string | null;
+  languageCode: string | null;
+  startedAt: string;
+  durationSeconds: number | null;
+  requiresReview: boolean;
+  contact: { name: string; company: string | null } | null;
+  agent: { name: string } | null;
+}
+
+type Filter = 'ALL' | 'LIVE' | 'INBOUND' | 'OUTBOUND' | 'WEB_VOICE' | 'WEB_TEXT' | 'REVIEW';
 
 export default function ConversationsPage() {
-  const [calls, setCalls] = useState<any[]>([]);
+  const [rows, setRows] = useState<ConversationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('ALL');
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('ALL');
 
-  const fetchCalls = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const res = await fetch('/api/calls');
-      const data = await res.json();
-      if (data.calls) {
-        setCalls(data.calls);
-      }
-    } catch {
-      // Handled
+      const response = await fetch('/api/conversations', { cache: 'no-store' });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error?.message || 'Conversations are unavailable.');
+      setRows(payload.data || []);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Conversations are unavailable.');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchCalls();
   }, []);
 
-  const filteredCalls = calls.filter(c => {
-    if (activeTab === 'LIVE') return c.status === 'IN_PROGRESS';
-    if (activeTab === 'COMPLETED')
-      return c.outcome === 'APPOINTMENT_SCHEDULED' || c.outcome === 'LEAD_QUALIFIED';
-    if (activeTab === 'REVIEW') return c.outcome === 'QUESTION_ANSWERED';
-    if (activeTab === 'ESCALATED') return c.escalationUsed || c.outcome === 'ESCALATED_HUMAN';
+  useEffect(() => void load(), [load]);
+
+  const filtered = rows.filter(row => {
+    if (filter === 'LIVE')
+      return ['CREATED', 'QUEUED', 'CONNECTING', 'ACTIVE', 'HUMAN_HANDOFF'].includes(row.status);
+    if (filter === 'INBOUND' || filter === 'OUTBOUND') return row.direction === filter;
+    if (filter === 'WEB_VOICE' || filter === 'WEB_TEXT') return row.channel === filter;
+    if (filter === 'REVIEW') return row.requiresReview;
     return true;
   });
 
   return (
-    <div className="space-y-6 select-none">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
+    <div className="space-y-5">
+      <header className="flex items-end justify-between gap-4 border-b border-[#E2E8F0] pb-4">
         <div>
-          <h1 className="text-xl font-bold text-[#0F172A] tracking-tight">
-            Voice Conversations Operations Log
-          </h1>
-          <p className="text-xs text-[#64748B]">
-            Unified inbox of live audio calls, completed intake transcripts, and escalated human
-            handoffs.
+          <h1 className="text-xl font-semibold text-[#0F172A]">Conversations</h1>
+          <p className="mt-1 text-sm text-[#64748B]">
+            Phone, website voice, and text conversations in one operational record.
           </p>
         </div>
-
         <button
           type="button"
-          onClick={fetchCalls}
-          className="px-3 py-1.5 rounded-md bg-white hover:bg-[#F8FAFC] text-xs font-semibold text-[#0F172A] border border-[#CBD5E1] flex items-center gap-1.5 transition-colors shadow-sm self-start sm:self-auto"
+          onClick={load}
+          className="min-h-11 px-3 rounded-md bg-white border border-[#CBD5E1] text-xs font-semibold flex items-center gap-2"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Data</span>
+          <RefreshCw
+            className={`w-4 h-4 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`}
+          />{' '}
+          Refresh
         </button>
-      </div>
+      </header>
 
-      {/* CONVERSATION TABS */}
-      <div className="p-1 rounded-lg bg-white border border-[#E2E8F0] flex items-center gap-1 text-xs shadow-sm overflow-x-auto">
-        {[
-          { id: 'ALL', label: 'All Conversations' },
-          { id: 'LIVE', label: 'Live Active' },
-          { id: 'COMPLETED', label: 'Completed' },
-          { id: 'REVIEW', label: 'Needs Review' },
-          { id: 'ESCALATED', label: 'Escalated' },
-        ].map(tab => (
+      <div className="flex gap-1 overflow-x-auto" aria-label="Conversation filters">
+        {(
+          ['ALL', 'LIVE', 'INBOUND', 'OUTBOUND', 'WEB_VOICE', 'WEB_TEXT', 'REVIEW'] as Filter[]
+        ).map(value => (
           <button
-            key={tab.id}
+            key={value}
             type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 rounded-md font-semibold transition-colors shrink-0 ${
-              activeTab === tab.id
-                ? 'bg-[#1D4ED8] text-white shadow-sm'
-                : 'text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8FAFC]'
-            }`}
+            onClick={() => setFilter(value)}
+            aria-pressed={filter === value}
+            className={`min-h-11 shrink-0 px-3 rounded-md text-xs font-semibold ${filter === value ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#E2E8F0] text-[#475569]'}`}
           >
-            {tab.label}
+            {value.replace('_', ' ')}
           </button>
         ))}
       </div>
 
-      {/* CONVERSATIONS DATA TABLE */}
-      <div className="rounded-xl bg-white border border-[#E2E8F0] overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] text-[#64748B] border-b border-[#E2E8F0] text-[11px] font-bold uppercase tracking-wider">
+      <div className="rounded-lg bg-white border border-[#E2E8F0] overflow-x-auto">
+        <table className="w-full min-w-[850px] text-left text-xs">
+          <thead className="bg-[#F8FAFC] text-[#64748B] border-b border-[#E2E8F0]">
+            <tr>
+              <th className="px-4 py-3">Contact</th>
+              <th className="px-4 py-3">Direction / channel</th>
+              <th className="px-4 py-3">Intent</th>
+              <th className="px-4 py-3">State</th>
+              <th className="px-4 py-3">Language</th>
+              <th className="px-4 py-3">Agent</th>
+              <th className="px-4 py-3">Started</th>
+              <th className="px-4 py-3 text-right">Duration</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
+            {loading ? (
               <tr>
-                <th className="px-4 py-3">Caller Identity</th>
-                <th className="px-4 py-3">Direction</th>
-                <th className="px-4 py-3">Agent</th>
-                <th className="px-4 py-3">Outcome</th>
-                <th className="px-4 py-3">Started Timestamp</th>
-                <th className="px-4 py-3 text-right">Duration</th>
+                <td colSpan={8} className="p-8 text-center text-[#64748B]">
+                  Loading conversationsâ€¦
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#64748B]">
-                    Loading conversation logs...
+            ) : error ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-[#B91C1C]">
+                  {error}
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="p-8 text-center text-[#64748B]">
+                  No conversations yet. New calls and website conversations will appear here.
+                </td>
+              </tr>
+            ) : (
+              filtered.map(row => (
+                <tr key={row.id}>
+                  <td className="px-4 py-3">
+                    <span className="font-semibold text-[#0F172A]">
+                      {row.contact?.name || 'Unknown caller'}
+                    </span>
+                    <span className="block text-[#64748B]">
+                      {row.contact?.company || 'Not provided'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {row.direction} Â· {row.channel.replace('_', ' ')}
+                  </td>
+                  <td className="px-4 py-3">{row.intent || 'Not provided'}</td>
+                  <td className="px-4 py-3">
+                    {row.status}
+                    {row.requiresReview ? ' Â· Review' : ''}
+                  </td>
+                  <td className="px-4 py-3">{row.languageCode || 'Not provided'}</td>
+                  <td className="px-4 py-3">{row.agent?.name || 'Not assigned'}</td>
+                  <td className="px-4 py-3">
+                    <time dateTime={row.startedAt}>{new Date(row.startedAt).toLocaleString()}</time>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {row.durationSeconds == null ? 'No duration' : `${row.durationSeconds}s`}
                   </td>
                 </tr>
-              ) : filteredCalls.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#64748B]">
-                    No conversation records found in this view.
-                  </td>
-                </tr>
-              ) : (
-                filteredCalls.map(c => (
-                  <tr key={c.id} className="hover:bg-[#F8FAFC] transition-colors cursor-pointer">
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-[#0F172A]">{c.callerName || 'Inbound Caller'}</p>
-                      <p className="text-[11px] text-[#64748B] font-mono">
-                        {c.callerNumberMasked || '+1 (555) 234-5678'}
-                      </p>
-                    </td>
-
-                    <td className="px-4 py-3 font-semibold text-[#0F172A]">Inbound Call</td>
-
-                    <td className="px-4 py-3 font-medium text-[#475569]">Maya (Legal Intake)</td>
-
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#EFF6FF] text-[#1D4ED8] border border-[#1D4ED8]/20 font-bold">
-                        {c.outcome || 'COMPLETED'}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 font-mono text-[#64748B]">
-                      {new Date(c.createdAt).toLocaleString()}
-                    </td>
-
-                    <td className="px-4 py-3 text-right font-mono text-[#0F172A] font-semibold">
-                      {c.durationSeconds ? `${c.durationSeconds}s` : '2m 45s'}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
+

@@ -4,9 +4,8 @@ import { env } from '@/lib/config/env';
 import { demoSessionStore } from '@/lib/demo/store';
 
 export function generateIPHash(ip: string): string {
-  const salt = env.IP_HASH_SECRET || 'default_ip_hash_salt_key_32_chars';
   return crypto
-    .createHmac('sha256', salt)
+    .createHmac('sha256', env.IP_HASH_SECRET)
     .update(ip || '127.0.0.1')
     .digest('hex');
 }
@@ -74,3 +73,4 @@ export async function validateSessionEligibility(
 
   return { eligible: true };
 }
+

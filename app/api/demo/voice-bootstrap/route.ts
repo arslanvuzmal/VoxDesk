@@ -2,9 +2,18 @@ import { NextResponse } from 'next/server';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { signDemoSessionToken } from '@/lib/security/session-token';
 import crypto from 'crypto';
+import { z } from 'zod';
+import { DEFAULT_DEMO_CONFIGURATION } from '@/lib/demo/configuration';
+
+const DemoBootstrapSchema = z.object({
+  presetKey: z.literal('LEGAL'),
+  language: z.literal('en-US'),
+  scenario: z.enum(['BOOKING', 'QUALIFICATION', 'ESCALATION', 'ROUTINE']),
+  channel: z.literal('WEB_VOICE'),
+});
 
 export async function POST(req: Request) {
-  let body: any = {};
+  let body: unknown;
   try {
     body = await req.json();
   } catch {
@@ -14,17 +23,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const { presetKey, language, scenario } = body;
-
-  if (presetKey !== 'LEGAL' || language !== 'en-US') {
+  const parsed = DemoBootstrapSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
       {
         error: 'UNSUPPORTED_CONFIGURATION',
-        message: 'Only LEGAL preset and en-US language are supported in production.',
+        message: 'This demo configuration is not available.',
       },
       { status: 400, headers: { 'Cache-Control': 'no-store, private' } }
     );
   }
+  const { presetKey, language, scenario } = parsed.data;
 
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) {
@@ -58,16 +67,16 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           error: 'ELEVENLABS_AGENT_INVALID',
-          message: `ElevenLabs agent '${agentId}' could not be retrieved.`,
+          message: 'The configured ElevenLabs agent could not be verified.',
         },
         { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
       );
     }
-  } catch (err: any) {
+  } catch {
     return NextResponse.json(
       {
         error: 'ELEVENLABS_AGENT_INVALID',
-        message: `ElevenLabs agent validation failed: ${err?.message || 'Unknown error'}`,
+        message: 'The configured ElevenLabs agent could not be verified.',
       },
       { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
     );
@@ -87,11 +96,10 @@ export async function POST(req: Request) {
     );
 
     if (!signedUrlRes.ok) {
-      const errText = await signedUrlRes.text();
       return NextResponse.json(
         {
           error: 'ELEVENLABS_TOKEN_FAILED',
-          message: `Failed to acquire ElevenLabs conversation token: ${errText}`,
+          message: 'ElevenLabs did not issue a conversation token.',
         },
         { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
       );
@@ -109,11 +117,11 @@ export async function POST(req: Request) {
         { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
       );
     }
-  } catch (err: any) {
+  } catch {
     return NextResponse.json(
       {
         error: 'ELEVENLABS_TOKEN_FAILED',
-        message: `Error acquiring conversation token: ${err?.message || err}`,
+        message: 'ElevenLabs could not issue a conversation token.',
       },
       { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
     );
@@ -125,9 +133,9 @@ export async function POST(req: Request) {
 
   const sessionToken = signDemoSessionToken({
     sessionId,
-    presetKey: 'LEGAL',
-    language: 'en-US',
-    scenario: scenario || 'QUALIFICATION',
+    presetKey,
+    language,
+    scenario,
     issuedAt: now,
     expiresAt,
   });
@@ -139,9 +147,9 @@ export async function POST(req: Request) {
       conversationToken,
       expiresAt: new Date(expiresAt).toISOString(),
       agent: {
-        displayName: 'Maya',
-        businessName: 'Northstar Legal Consultations',
-        language: 'en-US',
+        displayName: DEFAULT_DEMO_CONFIGURATION.agentDisplayName,
+        businessName: DEFAULT_DEMO_CONFIGURATION.businessName,
+        language,
       },
     },
     {
@@ -162,3 +170,4 @@ export async function POST(req: Request) {
 
   return response;
 }
+

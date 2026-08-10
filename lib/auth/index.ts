@@ -35,48 +35,23 @@ export async function createSession(userId: string, workspaceId?: string) {
   const tokenHash = hashToken(token);
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 Days
 
-  try {
-    if (prisma) {
-      await prisma.session.create({
-        data: {
-          userId,
-          tokenHash,
-          expiresAt,
-        },
-      });
-    }
-  } catch (err) {
-    console.warn('Database session persistence unavailable, falling back to stateless token:', err);
+  if (!prisma) {
+    throw new Error('Session persistence is unavailable.');
   }
+
+  await prisma.session.create({
+    data: {
+      userId,
+      tokenHash,
+      expiresAt,
+    },
+  });
 
   return { token, expiresAt };
 }
 
 export async function validateSession(token: string): Promise<SessionUser | null> {
   if (!token) return null;
-
-  // Exact match for Demo session owner token
-  if (token === 'demo-session-token-owner') {
-    return {
-      id: 'demo-user-owner',
-      name: 'Arslan Vuzmal Lone',
-      email: 'owner@northstarlegal.com',
-      status: 'ACTIVE',
-      activeWorkspaceId: 'northstar-legal-ws',
-      activeWorkspaceRole: 'OWNER',
-    };
-  }
-
-  if (token === 'demo-session-token-operator') {
-    return {
-      id: 'demo-user-operator',
-      name: 'Demo Operator',
-      email: 'demo@northstarlegal.com',
-      status: 'ACTIVE',
-      activeWorkspaceId: 'northstar-legal-ws',
-      activeWorkspaceRole: 'OPERATOR',
-    };
-  }
 
   try {
     if (!prisma) return null;
@@ -97,7 +72,7 @@ export async function validateSession(token: string): Promise<SessionUser | null
       },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session || session.expiresAt < new Date() || session.user.status !== 'ACTIVE') {
       if (session) {
         await prisma.session.delete({ where: { id: session.id } }).catch(() => {});
       }
@@ -129,3 +104,4 @@ export async function revokeSession(token: string): Promise<void> {
     }
   } catch {}
 }
+

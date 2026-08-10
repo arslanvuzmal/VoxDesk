@@ -38,15 +38,28 @@ describe('Multi-Tenant Workspace RBAC & Authentication Security', () => {
     }
   });
 
-  it('should allow explicit public demo sandbox mode requests', async () => {
+  it('rejects forged public demo sandbox headers', async () => {
     const req = new NextRequest('https://voxdesk-ai.vercel.app/api/leads', {
       headers: { 'x-demo-sandbox': 'true' },
     });
     const result = await requireWorkspaceAccess(req, 'ws_demo_default');
 
-    expect('workspaceId' in result).toBe(true);
-    if ('workspaceId' in result) {
-      expect(result.workspaceId).toBe('ws_demo_default');
+    expect('errorResponse' in result).toBe(true);
+    if ('errorResponse' in result) {
+      expect(result.errorResponse.status).toBe(401);
+    }
+  });
+
+  it('rejects removed static dashboard session tokens', async () => {
+    const req = new NextRequest('https://voxdesk-ai.vercel.app/api/leads', {
+      headers: { authorization: 'Bearer demo-session-token-owner' },
+    });
+    const result = await requireAuthUser(req);
+
+    expect('errorResponse' in result).toBe(true);
+    if ('errorResponse' in result) {
+      expect(result.errorResponse.status).toBe(401);
     }
   });
 });
+

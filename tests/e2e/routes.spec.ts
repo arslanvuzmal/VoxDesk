@@ -1,6 +1,24 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('VoxDesk AI Route Structure & Authentication E2E Tests', () => {
+  test('homepage presents the operational promise without mobile overflow', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await expect(
+      page.getByRole('heading', {
+        level: 1,
+        name: /Every business conversation, handled and turned into action/i,
+      })
+    ).toBeVisible();
+    await expect(page.getByText('Interactive demo Â· fictional business data')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Approved outbound' })).toBeVisible();
+    const dimensions = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
+  });
+
   test('Public routes should return HTTP 200 or 308', async ({ page }) => {
     const publicPaths = [
       '/',
@@ -30,6 +48,7 @@ test.describe('VoxDesk AI Route Structure & Authentication E2E Tests', () => {
       '/dashboard/live',
       '/dashboard/calls',
       '/dashboard/appointments',
+      '/dashboard/opportunities',
       '/dashboard/leads',
       '/dashboard/agents',
       '/dashboard/knowledge',
@@ -57,3 +76,4 @@ test.describe('VoxDesk AI Route Structure & Authentication E2E Tests', () => {
     await expect(page.locator('h1')).toBeVisible();
   });
 });
+

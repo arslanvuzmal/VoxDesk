@@ -1,123 +1,69 @@
-'use client';
+import { prisma } from '@/lib/database';
+import { requireDashboardContext } from '@/lib/auth/dashboard-context';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Calendar, RefreshCw, ArrowRight, CheckCircle2, Clock, UserCheck } from 'lucide-react';
-
-export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchAppointments = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/appointments');
-      const data = await res.json();
-      if (data.appointments) {
-        setAppointments(data.appointments);
-      }
-    } catch {
-      // Handled
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAppointments();
-  }, []);
-
+export default async function AppointmentsPage() {
+  const { workspaceId } = await requireDashboardContext();
+  const appointments = await prisma.appointment.findMany({
+    where: { workspaceId },
+    orderBy: { startTime: 'asc' },
+    take: 100,
+    select: {
+      id: true,
+      callerName: true,
+      service: true,
+      startTime: true,
+      endTime: true,
+      timezone: true,
+      status: true,
+      externalEventId: true,
+      callId: true,
+    },
+  });
   return (
-    <div className="space-y-6 select-none">
-      {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#30363D] pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-white tracking-tight">
-            Appointments & Calendar Booking Log
-          </h1>
-          <p className="text-xs text-[#8B949E]">
-            Confirmed client consultation bookings, staff assignments, and calendar sync status.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={fetchAppointments}
-          className="px-3 py-1.5 rounded-md bg-[#21262D] hover:bg-[#30363D] text-xs font-medium text-white border border-[#30363D] flex items-center gap-1.5 transition-colors"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Bookings</span>
-        </button>
-      </div>
-
-      {/* APPOINTMENTS TABLE */}
-      <div className="rounded-lg bg-[#161B22] border border-[#30363D] overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#0D1117] text-[#8B949E] border-b border-[#30363D] text-[11px] font-semibold uppercase tracking-wider">
+    <div className="space-y-5">
+      <header className="border-b border-[#E2E8F0] pb-4">
+        <h1 className="text-xl font-semibold">Appointments</h1>
+        <p className="mt-1 text-sm text-[#64748B]">
+          Confirmed and pending bookings from configured calendar workflows.
+        </p>
+      </header>
+      <div className="rounded-lg border border-[#E2E8F0] bg-white overflow-x-auto">
+        <table className="w-full min-w-[760px] text-left text-xs">
+          <thead className="bg-[#F8FAFC] text-[#64748B] border-b border-[#E2E8F0]">
+            <tr>
+              <th className="p-4">Customer</th>
+              <th className="p-4">Service</th>
+              <th className="p-4">Date and time</th>
+              <th className="p-4">Timezone</th>
+              <th className="p-4">Status</th>
+              <th className="p-4">Provider</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#E2E8F0]">
+            {appointments.length === 0 ? (
               <tr>
-                <th className="px-4 py-3">Client / Prospect</th>
-                <th className="px-4 py-3">Requested Legal Service</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Scheduled Time Slot</th>
-                <th className="px-4 py-3">Assigned Staff</th>
-                <th className="px-4 py-3 text-right">Action</th>
+                <td colSpan={6} className="p-8 text-center text-[#64748B]">
+                  No appointments have been created yet.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#30363D] text-[#C9D1D9]">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
-                    Loading appointments database...
+            ) : (
+              appointments.map(appointment => (
+                <tr key={appointment.id}>
+                  <td className="p-4 font-semibold">{appointment.callerName || 'Not provided'}</td>
+                  <td className="p-4">{appointment.service || 'Not provided'}</td>
+                  <td className="p-4">{new Date(appointment.startTime).toLocaleString()}</td>
+                  <td className="p-4">{appointment.timezone || 'Not provided'}</td>
+                  <td className="p-4">{appointment.status}</td>
+                  <td className="p-4">
+                    {appointment.externalEventId ? 'Confirmed' : 'Provider data pending'}
                   </td>
                 </tr>
-              ) : appointments.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-[#8B949E]">
-                    No confirmed appointments found in database.
-                  </td>
-                </tr>
-              ) : (
-                appointments.map(a => (
-                  <tr key={a.id} className="hover:bg-[#1C2129] transition-colors">
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-white">{a.callerName}</p>
-                      <p className="text-[11px] text-[#8B949E] font-mono">
-                        {a.timezone || 'America/New_York'}
-                      </p>
-                    </td>
-
-                    <td className="px-4 py-3 font-medium text-white">
-                      {a.service || 'Initial Legal Consultation'}
-                    </td>
-
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-[#238636]/15 text-[#3FB950] border border-[#238636]/30">
-                        <CheckCircle2 className="w-3 h-3" /> {a.status}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 font-mono text-[#8B949E]">
-                      {new Date(a.startTime).toLocaleString()}
-                    </td>
-
-                    <td className="px-4 py-3 font-medium text-[#C9D1D9]">Senior Legal Partner</td>
-
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        href={`/dashboard/appointments/${a.id}`}
-                        className="text-[#58A6FF] hover:underline font-semibold text-xs"
-                      >
-                        Inspect Details &rarr;
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
+

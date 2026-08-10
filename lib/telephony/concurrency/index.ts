@@ -85,7 +85,7 @@ const DEFAULT_CONFIGS: Record<ConcurrencyScopeType, ConcurrencyConfig> = {
   },
 };
 
-class ConcurrencyManager {
+export class ConcurrencyManager {
   private redis: Redis | null = null;
   private localLeases: Map<string, ConcurrencyLease> = new Map();
 
@@ -107,7 +107,11 @@ class ConcurrencyManager {
   }
 
   private getCounterKey(scopeType: ConcurrencyScopeType, scopeId: string): string {
-    return `voxdesk:concurrency:counter:${scopeType}:${scopeId}`;
+    return `voxdesk:concurrency:active:${scopeType}:${scopeId}`;
+  }
+
+  private getLeaseIndexKey(leaseId: string): string {
+    return `voxdesk:concurrency:lease:${leaseId}`;
   }
 
   private getConfig(scopeType: ConcurrencyScopeType): ConcurrencyConfig {
@@ -122,41 +126,12 @@ class ConcurrencyManager {
   ): Promise<LeaseResult> {
     const config = this.getConfig(scopeType);
     const counterKey = this.getCounterKey(scopeType, scopeId);
-    const leaseKey = this.getLeaseKey(scopeType, scopeId, callId);
     const redis = this.getRedis();
-
-    const maxForDirection =
-      direction === 'INBOUND' ? config.maxConcurrent : config.outboundThrottle;
-    const reservedForInbound = config.inboundReserve;
 
     if (redis) {
       try {
-        const currentUsage = await this.getCurrentUsage(scopeType, scopeId);
-        const inboundUsage = await this.getInboundUsage(scopeType, scopeId);
-
-        if (direction === 'INBOUND') {
-          if (currentUsage >= config.maxConcurrent) {
-            return {
-              acquired: false,
-              reason: 'max_concurrent_reached',
-              currentUsage,
-              maxConcurrent: config.maxConcurrent,
-            };
-          }
-        } else {
-          const availableForOutbound = config.maxConcurrent - inboundUsage - reservedForInbound;
-          if (availableForOutbound <= 0 || currentUsage >= config.maxConcurrent) {
-            return {
-              acquired: false,
-              reason: 'outbound_throttled',
-              currentUsage,
-              maxConcurrent: config.outboundThrottle,
-            };
-          }
-        }
-
         const lease: ConcurrencyLease = {
-          id: `lease_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          id: crypto.randomUUID(),
           scopeType,
           scopeId,
           callId,
@@ -166,19 +141,73 @@ class ConcurrencyManager {
           status: 'ACTIVE',
         };
 
-        await redis.set(leaseKey, JSON.stringify(lease), { ex: config.ttlSeconds });
-        await redis.incr(counterKey);
-        await redis.expire(counterKey, config.ttlSeconds * 2);
+        const member = `${direction}:${lease.id}`;
+        const indexKey = this.getLeaseIndexKey(lease.id);
+        const result = (await redis.eval(
+          `local key=KEYS[1]
+local index=KEYS[2]
+local now=tonumber(ARGV[1])
+local expires=tonumber(ARGV[2])
+local direction=ARGV[3]
+local member=ARGV[4]
+local maxTotal=tonumber(ARGV[5])
+local reserve=tonumber(ARGV[6])
+local outboundThrottle=tonumber(ARGV[7])
+local ttl=tonumber(ARGV[8])
+local payload=ARGV[9]
+redis.call('ZREMRANGEBYSCORE',key,'-inf',now)
+local members=redis.call('ZRANGE',key,0,-1)
+local inbound=0
+local outbound=0
+for _,value in ipairs(members) do
+  if string.sub(value,1,8)=='INBOUND:' then inbound=inbound+1 else outbound=outbound+1 end
+end
+local total=inbound+outbound
+if total>=maxTotal then return {0,total} end
+if direction=='OUTBOUND' then
+  local allowed=math.min(outboundThrottle,maxTotal-reserve-inbound)
+  if allowed<=0 or outbound>=allowed then return {-1,total} end
+end
+redis.call('ZADD',key,expires,member)
+redis.call('PEXPIRE',key,ttl*2)
+redis.call('SET',index,cjson.encode({key=key,member=member,payload=payload}),'PX',ttl)
+return {1,total+1}`,
+          [counterKey, indexKey],
+          [
+            Date.now(),
+            lease.expiresAt.getTime(),
+            direction,
+            member,
+            config.maxConcurrent,
+            config.inboundReserve,
+            config.outboundThrottle,
+            config.ttlSeconds * 1000,
+            JSON.stringify(lease),
+          ]
+        )) as [number, number];
+        if (result[0] !== 1) {
+          return {
+            acquired: false,
+            reason: result[0] === -1 ? 'outbound_throttled' : 'max_concurrent_reached',
+            currentUsage: result[1],
+            maxConcurrent: direction === 'INBOUND' ? config.maxConcurrent : config.outboundThrottle,
+          };
+        }
 
         return {
           acquired: true,
           leaseId: lease.id,
-          currentUsage: currentUsage + 1,
+          currentUsage: result[1],
           maxConcurrent: direction === 'INBOUND' ? config.maxConcurrent : config.outboundThrottle,
         };
       } catch (error) {
-        console.error('[CONCURRENCY] Redis acquire failed, falling back to local:', error);
+        console.error('[CONCURRENCY] Redis acquire failed');
+        return { acquired: false, reason: 'redis_unavailable' };
       }
+    }
+
+    if (process.env.NODE_ENV === 'production') {
+      return { acquired: false, reason: 'redis_not_configured' };
     }
 
     return this.acquireLocalLease(scopeType, scopeId, callId, direction);
@@ -195,17 +224,15 @@ class ConcurrencyManager {
 
     let currentUsage = 0;
     let inboundUsage = 0;
+    let outboundUsage = 0;
 
     for (const lease of this.localLeases.values()) {
       if (lease.scopeType === scopeType && lease.scopeId === scopeId && lease.status === 'ACTIVE') {
         currentUsage++;
         if (lease.direction === 'INBOUND') inboundUsage++;
+        else outboundUsage++;
       }
     }
-
-    const maxForDirection =
-      direction === 'INBOUND' ? config.maxConcurrent : config.outboundThrottle;
-    const reservedForInbound = config.inboundReserve;
 
     if (direction === 'INBOUND') {
       if (currentUsage >= config.maxConcurrent) {
@@ -217,8 +244,15 @@ class ConcurrencyManager {
         };
       }
     } else {
-      const availableForOutbound = config.maxConcurrent - inboundUsage - reservedForInbound;
-      if (availableForOutbound <= 0 || currentUsage >= config.maxConcurrent) {
+      const availableForOutbound = Math.min(
+        config.outboundThrottle,
+        config.maxConcurrent - config.inboundReserve - inboundUsage
+      );
+      if (
+        availableForOutbound <= 0 ||
+        outboundUsage >= availableForOutbound ||
+        currentUsage >= config.maxConcurrent
+      ) {
         return {
           acquired: false,
           reason: 'outbound_throttled',
@@ -284,40 +318,55 @@ class ConcurrencyManager {
     return false;
   }
 
+  async releaseLeaseById(leaseId: string): Promise<boolean> {
+    const redis = this.getRedis();
+    if (redis) {
+      try {
+        const result = (await redis.eval(
+          `local raw=redis.call('GET',KEYS[1])
+if not raw then return 0 end
+local lease=cjson.decode(raw)
+redis.call('ZREM',lease.key,lease.member)
+redis.call('DEL',KEYS[1])
+return 1`,
+          [this.getLeaseIndexKey(leaseId)],
+          []
+        )) as number;
+        return result === 1;
+      } catch {
+        return false;
+      }
+    }
+    for (const lease of this.localLeases.values()) {
+      if (lease.id === leaseId && lease.status === 'ACTIVE') {
+        lease.status = 'RELEASED';
+        lease.releasedAt = new Date();
+        return true;
+      }
+    }
+    return false;
+  }
+
   async heartbeat(leaseId: string): Promise<boolean> {
     const redis = this.getRedis();
 
     if (redis) {
       try {
-        for (const scopeType of [
-          'TENANT',
-          'BUSINESS',
-          'AGENT',
-          'PHONE_NUMBER',
-          'CAMPAIGN',
-          'CONNECTION',
-          'GLOBAL',
-        ] as ConcurrencyScopeType[]) {
-          const keys = await redis.keys(`voxdesk:concurrency:${scopeType}:*:*`);
-          for (const key of keys) {
-            const data = await redis.get<string>(key);
-            if (data) {
-              const lease = JSON.parse(data) as ConcurrencyLease;
-              if (lease.id === leaseId && lease.status === 'ACTIVE') {
-                lease.heartbeatAt = new Date();
-                lease.expiresAt = new Date(
-                  Date.now() + this.getConfig(scopeType).ttlSeconds * 1000
-                );
-                await redis.set(key, JSON.stringify(lease), {
-                  ex: this.getConfig(scopeType).ttlSeconds,
-                });
-                return true;
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('[CONCURRENCY] Heartbeat failed:', error);
+        const ttlMs = 300_000;
+        const result = (await redis.eval(
+          `local raw=redis.call('GET',KEYS[1])
+if not raw then return 0 end
+local lease=cjson.decode(raw)
+redis.call('ZADD',lease.key,ARGV[1],lease.member)
+redis.call('PEXPIRE',lease.key,ARGV[2]*2)
+redis.call('PEXPIRE',KEYS[1],ARGV[2])
+return 1`,
+          [this.getLeaseIndexKey(leaseId)],
+          [Date.now() + ttlMs, ttlMs]
+        )) as number;
+        return result === 1;
+      } catch {
+        return false;
       }
     }
 
@@ -338,8 +387,8 @@ class ConcurrencyManager {
 
     if (redis) {
       try {
-        const count = await redis.get<number>(counterKey);
-        return count || 0;
+        await redis.zremrangebyscore(counterKey, '-inf', Date.now());
+        return await redis.zcard(counterKey);
       } catch {
         return 0;
       }
@@ -356,22 +405,13 @@ class ConcurrencyManager {
 
   async getInboundUsage(scopeType: ConcurrencyScopeType, scopeId: string): Promise<number> {
     const redis = this.getRedis();
-    const pattern = `voxdesk:concurrency:${scopeType}:${scopeId}:*`;
+    const counterKey = this.getCounterKey(scopeType, scopeId);
 
     if (redis) {
       try {
-        const keys = await redis.keys(pattern);
-        let count = 0;
-        for (const key of keys) {
-          const data = await redis.get<string>(key);
-          if (data) {
-            const lease = JSON.parse(data) as ConcurrencyLease;
-            if (lease.direction === 'INBOUND' && lease.status === 'ACTIVE') {
-              count++;
-            }
-          }
-        }
-        return count;
+        await redis.zremrangebyscore(counterKey, '-inf', Date.now());
+        const members = await redis.zrange<string[]>(counterKey, 0, -1);
+        return members.filter(member => member.startsWith('INBOUND:')).length;
       } catch {
         return 0;
       }
@@ -406,19 +446,9 @@ class ConcurrencyManager {
           'CONNECTION',
           'GLOBAL',
         ] as ConcurrencyScopeType[]) {
-          const keys = await redis.keys(`voxdesk:concurrency:${scopeType}:*:*`);
+          const keys = await redis.keys(`voxdesk:concurrency:active:${scopeType}:*`);
           for (const key of keys) {
-            const data = await redis.get<string>(key);
-            if (data) {
-              const lease = JSON.parse(data) as ConcurrencyLease;
-              if (lease.status === 'ACTIVE' && new Date(lease.expiresAt) < new Date()) {
-                lease.status = 'EXPIRED';
-                await redis.set(key, JSON.stringify(lease), { ex: 60 });
-                const counterKey = this.getCounterKey(scopeType, lease.scopeId);
-                await redis.decr(counterKey);
-                cleaned++;
-              }
-            }
+            cleaned += await redis.zremrangebyscore(key, '-inf', Date.now());
           }
         }
       } catch (error) {
@@ -458,15 +488,17 @@ class ConcurrencyManager {
             ] as ConcurrencyScopeType[]);
         for (const type of types) {
           const pattern = scopeId
-            ? `voxdesk:concurrency:${type}:${scopeId}:*`
-            : `voxdesk:concurrency:${type}:*:*`;
+            ? `voxdesk:concurrency:active:${type}:${scopeId}`
+            : `voxdesk:concurrency:active:${type}:*`;
           const keys = await redis.keys(pattern);
           for (const key of keys) {
-            const data = await redis.get<string>(key);
-            if (data) {
-              const lease = JSON.parse(data) as ConcurrencyLease;
-              if (lease.status === 'ACTIVE') {
-                leases.push(lease);
+            await redis.zremrangebyscore(key, '-inf', Date.now());
+            const members = await redis.zrange<string[]>(key, 0, -1);
+            for (const member of members) {
+              const leaseId = member.slice(member.indexOf(':') + 1);
+              const index = await redis.get<{ payload?: string }>(this.getLeaseIndexKey(leaseId));
+              if (index?.payload) {
+                leases.push(JSON.parse(index.payload) as ConcurrencyLease);
               }
             }
           }
@@ -526,7 +558,7 @@ export async function acquireCallLeases(
     } else {
       failedScopes.push(`${scope.type}:${scope.id} (${result.reason})`);
       for (const leaseId of acquiredLeases) {
-        await concurrencyManager.releaseLease('TENANT', workspaceId, callId);
+        await concurrencyManager.releaseLeaseById(leaseId);
       }
       return { success: false, leases: acquiredLeases, failed: failedScopes };
     }
@@ -536,7 +568,9 @@ export async function acquireCallLeases(
 }
 
 export async function releaseCallLeases(callId: string, leases: string[]): Promise<void> {
+  void callId;
   for (const leaseId of leases) {
-    await concurrencyManager.heartbeat(leaseId);
+    await concurrencyManager.releaseLeaseById(leaseId);
   }
 }
+

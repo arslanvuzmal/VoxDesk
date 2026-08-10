@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
+import { requireWorkspaceAccess } from '@/lib/auth/require-session';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const workspace = await requireWorkspaceAccess(req);
+    if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    let call: any = null;
+    let call = null;
     try {
-      call = await prisma.call.findUnique({
-        where: { id },
+      call = await prisma.call.findFirst({
+        where: { id, workspaceId: workspace.workspaceId },
         include: {
           summary: true,
           transcriptSegments: {
@@ -22,9 +25,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     } catch {
       return NextResponse.json(
         {
-          success: false,
-          code: 'DATABASE_UNAVAILABLE',
-          message: 'Call detail data is temporarily unavailable.',
+          error: {
+            code: 'DATABASE_UNAVAILABLE',
+            message: 'Call detail data is temporarily unavailable.',
+          },
         },
         { status: 503 }
       );
@@ -33,26 +37,22 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!call) {
       return NextResponse.json(
         {
-          success: false,
-          code: 'CALL_NOT_FOUND',
-          message: `Call record '${id}' was not found.`,
+          error: { code: 'CALL_NOT_FOUND', message: 'Call record was not found.' },
         },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
-      success: true,
-      call,
+      data: call,
     });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
       {
-        success: false,
-        code: 'INTERNAL_ERROR',
-        message: error?.message || 'Failed to fetch call detail',
+        error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch call detail.' },
       },
       { status: 500 }
     );
   }
 }
+

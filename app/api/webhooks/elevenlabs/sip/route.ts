@@ -6,10 +6,33 @@ import {
   createCallContextFromTelniWebhook,
 } from '@/lib/telephony/call-state-machine';
 import { inboundHandler } from '@/lib/telephony/inbound';
+import { env } from '@/lib/config/env';
+import { verifyElevenLabsWebhook } from '@/lib/security/elevenlabs-webhook';
+import { hashPhoneNumber } from '@/lib/security/identifiers';
+import { syncConversationProjectionIfEnabled } from '@/lib/conversation/persistence';
 
 export async function POST(req: NextRequest) {
   try {
     const rawBody = await req.text();
+
+    if (!env.ELEVENLABS_WEBHOOK_SECRET) {
+      return NextResponse.json(
+        { error: { code: 'NOT_CONFIGURED', message: 'Webhook is not configured.' } },
+        { status: 503 }
+      );
+    }
+
+    const verification = verifyElevenLabsWebhook(
+      rawBody,
+      req.headers.get('elevenlabs-signature'),
+      env.ELEVENLABS_WEBHOOK_SECRET
+    );
+    if (!verification.valid) {
+      return NextResponse.json(
+        { error: { code: 'INVALID_SIGNATURE', message: 'Invalid webhook signature.' } },
+        { status: 401 }
+      );
+    }
 
     const headersObj: Record<string, string> = {};
     req.headers.forEach((value, key) => {
@@ -347,6 +370,7 @@ async function persistCallContext(context: CallContext): Promise<void> {
       },
     });
   }
+  await syncConversationProjectionIfEnabled(context.id).catch(() => undefined);
 }
 
 async function finalizeCall(context: CallContext): Promise<void> {
@@ -399,6 +423,7 @@ async function finalizeCall(context: CallContext): Promise<void> {
   }
 
   await createImprovementObservations(context);
+  await syncConversationProjectionIfEnabled(context.id).catch(() => undefined);
 }
 
 function generateCallSummary(context: CallContext): {
@@ -526,7 +551,3 @@ async function createImprovementObservations(context: CallContext): Promise<void
   }
 }
 
-function hashPhoneNumber(phone: string): string {
-  const crypto = require('crypto');
-  return crypto.createHash('sha256').update(phone).digest('hex');
-}

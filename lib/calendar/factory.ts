@@ -3,14 +3,16 @@ import { DemoCalendarProvider } from './demo-calendar';
 import { GoogleCalendarProvider } from './google-calendar';
 import { CalComProvider } from './calcom-calendar';
 
-export function getCalendarProvider(providerType: string = 'DEMO'): CalendarProvider {
+export function getCalendarProvider(providerType: string): CalendarProvider {
   switch (providerType.toUpperCase()) {
+    case 'DEMO':
+      return new DemoCalendarProvider();
     case 'GOOGLE_CALENDAR':
       return new GoogleCalendarProvider();
     case 'CALCOM':
       return new CalComProvider();
-    case 'DEMO':
     default:
-      return new DemoCalendarProvider();
+      throw new Error(`Calendar provider '${providerType}' is not supported.`);
   }
 }
+
