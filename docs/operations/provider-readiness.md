@@ -10,3 +10,5 @@ The provider readiness matrix (`lib/telephony/provider-readiness.ts`) verifies a
 Status values: `configured` (variables present), `verified` (real safe check passed, currently set equal to configured for safety until full live checks are implemented), `provider` name, `message` (honest capability description).
 
 Never display "Live" based only on environment variables.
+
+Preview deployments require the security secrets plus `DATABASE_URL` and `DIRECT_URL` to be configured in Vercel Preview. Missing values must keep the deployment fail-closed; they must never be replaced with development defaults.
