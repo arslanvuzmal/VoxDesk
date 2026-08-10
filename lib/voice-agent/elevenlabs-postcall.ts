@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/database';
 import { encryptSensitiveValue } from '@/lib/security/encryption';
 import { syncConversationProjection } from '@/lib/conversation/persistence';
+import { reconcileOutboundAttemptFromEvent } from '@/lib/telephony/outbound/reconciliation';
 
 const TranscriptTurnSchema = z.object({
   role: z.enum(['agent', 'user', 'human', 'system']),
@@ -214,6 +215,16 @@ export async function reconcileElevenLabsPostCall(
         : undefined,
     },
   });
+
+  if (call.direction === 'OUTBOUND') {
+    await reconcileOutboundAttemptFromEvent({
+      callId: call.id,
+      workspaceId: call.workspaceId,
+      state: failed ? 'FAILED' : 'COMPLETED',
+      occurredAt: new Date(event.event_timestamp * 1000),
+      terminationReason: failed ? 'FAILED_AGENT' : call.terminationReason || undefined,
+    });
+  }
 
   const projected = await syncConversationProjection(call.id);
   if (!projected.synced || !projected.conversationId) {
