@@ -66,5 +66,3 @@ jobs:
 
       - name: Run E2E Tests
         run: npm run test:e2e
-        env:
-          PLAYWRIGHT_BASE_URL: https://voxdesk-ai.vercel.app

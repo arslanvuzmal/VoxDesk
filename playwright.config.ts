@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const isCI = !!process.env.CI;
+const isCI = Boolean(process.env.CI);
+const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
+const localBaseUrl = 'http://127.0.0.1:3000';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -10,7 +12,7 @@ export default defineConfig({
   workers: isCI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://voxdesk-ai.vercel.app',
+    baseURL: externalBaseUrl || localBaseUrl,
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,12 +21,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: isCI
+  webServer: externalBaseUrl
     ? undefined
     : {
-        command: 'npm run dev',
-        url: 'http://localhost:3000',
-        reuseExistingServer: true,
+        command: isCI ? 'npm run start' : 'npm run dev',
+        url: localBaseUrl,
+        reuseExistingServer: !isCI,
         timeout: 120000,
       },
 });

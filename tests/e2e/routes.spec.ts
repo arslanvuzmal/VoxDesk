@@ -10,7 +10,7 @@ test.describe('VoxDesk AI Route Structure & Authentication E2E Tests', () => {
         name: /Every business conversation, handled and turned into action/i,
       })
     ).toBeVisible();
-    await expect(page.getByText('Interactive demo Â· fictional business data')).toBeVisible();
+    await expect(page.getByText('Interactive demo · fictional business data')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Approved outbound' })).toBeVisible();
     const dimensions = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
