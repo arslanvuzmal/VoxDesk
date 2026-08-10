@@ -1,0 +1,37 @@
+name: Temporary Prisma baseline generator
+
+on:
+  push:
+    branches:
+      - codex/voxdesk-finalization
+    paths:
+      - .github/workflows/generate-prisma-baseline.yml
+
+permissions:
+  contents: write
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/voxdesk-finalization
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Generate baseline from main schema
+        run: |
+          git show origin/main:prisma/schema.prisma > /tmp/voxdesk-main-schema.prisma
+          mkdir -p prisma/migrations/20260809000000_baseline
+          npx prisma migrate diff --from-empty --to-schema /tmp/voxdesk-main-schema.prisma --script --output prisma/migrations/20260809000000_baseline/migration.sql
+      - name: Commit baseline
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add prisma/migrations/20260809000000_baseline/migration.sql
+          git commit -m "chore(database): add reproducible main-schema baseline"
+          git push
