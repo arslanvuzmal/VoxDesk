@@ -22,7 +22,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npx prettier --write app/api/analytics/route.ts app/(auth)/login/page.tsx app/(dashboard)/dashboard/leads/[id]/page.tsx README.md docs
+      - run: npx prettier --write app README.md docs
       - name: Commit formatting
         run: |
           if git diff --quiet; then
