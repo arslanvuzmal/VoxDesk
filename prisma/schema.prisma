@@ -510,6 +510,7 @@ model PhoneNumber {
   @@unique([provider, numberHash])
   @@index([workspaceId])
   @@index([workspaceId, businessId, status])
+  @@index([workspaceId, voiceProviderPhoneNumberId])
   @@map("phone_numbers")
 }
 
