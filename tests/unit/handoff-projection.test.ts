@@ -27,7 +27,12 @@ describe('provider-confirmed handoff projection', () => {
 
   it('marks ringing without claiming a human is connected', async () => {
     const occurredAt = new Date('2026-08-10T10:00:00Z');
-    await projectProviderHandoffState('call-a', 'workspace-a', 'HUMAN_TRANSFER_PENDING', occurredAt);
+    await projectProviderHandoffState(
+      'call-a',
+      'workspace-a',
+      'HUMAN_TRANSFER_PENDING',
+      occurredAt
+    );
     expect(mocks.find).toHaveBeenCalledWith(
       expect.objectContaining({ where: expect.objectContaining({ workspaceId: 'workspace-a' }) })
     );

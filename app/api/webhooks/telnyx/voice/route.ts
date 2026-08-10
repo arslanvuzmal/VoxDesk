@@ -82,11 +82,7 @@ async function processTelnyxEvent(
     await projectProviderHandoffState(
       callContext.id,
       callContext.workspaceId,
-      event.callState as
-        | 'HUMAN_TRANSFER_PENDING'
-        | 'HUMAN_CONNECTED'
-        | 'FAILED'
-        | 'CANCELLED',
+      event.callState as 'HUMAN_TRANSFER_PENDING' | 'HUMAN_CONNECTED' | 'FAILED' | 'CANCELLED',
       event.timestamp
     );
   }

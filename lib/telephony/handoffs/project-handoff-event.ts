@@ -2,10 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/database';
 
 export type ProviderHandoffState =
-  | 'HUMAN_TRANSFER_PENDING'
-  | 'HUMAN_CONNECTED'
-  | 'FAILED'
-  | 'CANCELLED';
+  'HUMAN_TRANSFER_PENDING' | 'HUMAN_CONNECTED' | 'FAILED' | 'CANCELLED';
 
 export async function projectProviderHandoffState(
   callId: string,

@@ -48,11 +48,7 @@ describe('configured Telnyx handoff initiation', () => {
       'tool-execution-a',
       { transferCall: mocks.transfer }
     );
-    expect(mocks.transfer).toHaveBeenCalledWith(
-      'control-a',
-      '+15551234567',
-      'tool-execution-a'
-    );
+    expect(mocks.transfer).toHaveBeenCalledWith('control-a', '+15551234567', 'tool-execution-a');
     expect(result).toEqual({
       handoffId: 'handoff-a',
       status: 'INITIATED',

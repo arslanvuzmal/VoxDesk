@@ -48,7 +48,9 @@ test.describe('VoxDesk /demo route', () => {
     expect(consoleErrors).toEqual([]);
   });
 
-  test('contains the complete demo at mobile width without horizontal overflow', async ({ page }) => {
+  test('contains the complete demo at mobile width without horizontal overflow', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/demo');
     await expect(page.getByRole('button', { name: 'Start Live Voice Call' })).toBeVisible({

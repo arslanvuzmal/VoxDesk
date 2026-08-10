@@ -32,7 +32,12 @@ export async function POST(request: NextRequest) {
   );
   if (!rateLimit.allowed) {
     return NextResponse.json(
-      { error: { code: 'RATE_LIMIT', message: 'Text conversation capacity is temporarily limited.' } },
+      {
+        error: {
+          code: 'RATE_LIMIT',
+          message: 'Text conversation capacity is temporarily limited.',
+        },
+      },
       { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfterSeconds) } }
     );
   }
