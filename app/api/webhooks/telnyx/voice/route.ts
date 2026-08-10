@@ -9,6 +9,7 @@ import { queueTelnyxEvent } from '@/lib/telephony/events/telnyx-handler';
 import { isOutOfOrderEvent, resolveCallContext } from '@/lib/telephony/events/telnyx-routing';
 import { hashPhoneNumber } from '@/lib/security/identifiers';
 import { projectProviderHandoffState } from '@/lib/telephony/handoffs/project-handoff-event';
+import { reconcileOutboundAttemptFromEvent } from '@/lib/telephony/outbound/reconciliation';
 
 const telnyxProvider = new TelnyxProvider();
 
@@ -76,6 +77,15 @@ async function processTelnyxEvent(
   });
   if (event.terminationReason) machine.setTerminationReason(event.terminationReason);
   await persistCallState(machine.getContext());
+  if (callContext.direction === 'OUTBOUND') {
+    await reconcileOutboundAttemptFromEvent({
+      callId: callContext.id,
+      workspaceId: callContext.workspaceId,
+      state: event.callState,
+      occurredAt: event.timestamp,
+      terminationReason: event.terminationReason,
+    });
+  }
   if (
     ['HUMAN_TRANSFER_PENDING', 'HUMAN_CONNECTED', 'FAILED', 'CANCELLED'].includes(event.callState)
   ) {
@@ -95,6 +105,9 @@ async function persistCallState(context: CallContext): Promise<void> {
     await prisma.call.update({
       where: { id: context.id },
       data: {
+        providerCallControlId: context.providerCallControlId,
+        providerCallSessionId: context.providerCallSessionId,
+        providerCallLegId: context.providerCallLegId,
         status: context.state as any,
         answeredAt: context.answeredAt,
         endedAt: context.endedAt,
