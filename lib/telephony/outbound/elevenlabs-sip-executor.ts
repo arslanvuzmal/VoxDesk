@@ -72,6 +72,7 @@ async function prepareOutbound(
 
   const campaign = attempt.campaign;
   const recipient = attempt.recipient;
+  const businessId = campaign.businessId;
   if (
     campaign.workspaceId !== request.workspaceId ||
     recipient.workspaceId !== request.workspaceId ||
@@ -85,7 +86,7 @@ async function prepareOutbound(
 
   const [business, agentVersion, languageProfile, phoneNumber, trainingPack] = await Promise.all([
     prisma.businessProfile.findFirst({
-      where: { id: campaign.businessId, workspaceId: request.workspaceId },
+      where: { id: businessId, workspaceId: request.workspaceId },
       select: { id: true },
     }),
     prisma.agentVersion.findFirst({
@@ -110,7 +111,7 @@ async function prepareOutbound(
       where: {
         id: campaign.callerId,
         workspaceId: request.workspaceId,
-        businessId: campaign.businessId,
+        businessId,
         agentId: campaign.agentId,
         provider: 'TELNYX',
         status: 'ACTIVE',
@@ -144,6 +145,9 @@ async function prepareOutbound(
     return null;
   }
 
+  const voiceAgentId = languageProfile.voiceAgentId;
+  const voiceProviderPhoneNumberId = phoneNumber.voiceProviderPhoneNumberId;
+
   let destination: string;
   try {
     destination = decryptSensitiveValue(recipient.recipientPhoneEncrypted);
@@ -162,8 +166,8 @@ async function prepareOutbound(
         callId: existing.id,
         conversationId: existing.conversation.id,
         destination,
-        voiceAgentId: languageProfile.voiceAgentId,
-        voiceProviderPhoneNumberId: phoneNumber.voiceProviderPhoneNumberId,
+        voiceAgentId,
+        voiceProviderPhoneNumberId,
         businessId: business.id,
         agentId: campaign.agentId,
         phoneNumberId: phoneNumber.id,
@@ -224,8 +228,8 @@ async function prepareOutbound(
       callId: call.id,
       conversationId: conversation.id,
       destination,
-      voiceAgentId: languageProfile.voiceAgentId,
-      voiceProviderPhoneNumberId: phoneNumber.voiceProviderPhoneNumberId,
+      voiceAgentId,
+      voiceProviderPhoneNumberId,
       businessId: business.id,
       agentId: campaign.agentId,
       phoneNumberId: phoneNumber.id,
