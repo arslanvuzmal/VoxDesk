@@ -1,0 +1,32 @@
+name: Format Diagnostic
+
+on:
+  push:
+    branches:
+      - codex/voxdesk-finalization
+
+permissions:
+  contents: read
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Emit canonical formatting patch
+        run: |
+          npx prettier --write \
+            "app/api/conversations/text/route.ts" \
+            "app/api/webhooks/telnyx/voice/route.ts" \
+            "lib/telephony/handoffs/project-handoff-event.ts" \
+            "tests/e2e/demo-flow.spec.ts" \
+            "tests/security/handoff-destination-authorization.test.ts" \
+            "tests/unit/handoff-initiation.test.ts" \
+            "tests/unit/handoff-projection.test.ts"
+          git diff --no-ext-diff --unified=20
+          git diff --quiet --exit-code
