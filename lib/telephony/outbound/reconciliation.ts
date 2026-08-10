@@ -65,8 +65,8 @@ export async function reconcileOutboundAttemptFromEvent(params: {
         ? 'ACTIVE'
         : 'INITIATING';
 
-  const operations: Promise<unknown>[] = [
-    prisma.outboundAttempt.update({
+  await prisma.$transaction(async tx => {
+    await tx.outboundAttempt.update({
       where: { id: attempt.id },
       data: {
         status: attemptStatus,
@@ -74,21 +74,18 @@ export async function reconcileOutboundAttemptFromEvent(params: {
         endedAt: terminal ? params.occurredAt : undefined,
         terminationReason: terminal ? params.terminationReason || params.state : undefined,
       },
-    }),
-  ];
-  if (attempt.recipientId) {
-    operations.push(
-      prisma.campaignRecipient.update({
+    });
+    if (attempt.recipientId) {
+      await tx.campaignRecipient.update({
         where: { id: attempt.recipientId },
         data: {
           status: recipientState(params.state),
           completedAt: terminal ? params.occurredAt : undefined,
           outcome: terminal ? params.terminationReason || params.state : undefined,
         },
-      })
-    );
-  }
-  await prisma.$transaction(operations);
+      });
+    }
+  });
 
   if (!terminal) return;
 
