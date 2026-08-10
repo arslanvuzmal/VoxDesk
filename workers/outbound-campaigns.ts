@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/database';
 import { featureFlags } from '@/lib/features/flags';
 import { getCampaignReadiness } from '@/lib/telephony/outbound/campaign-readiness';
+import { executeElevenLabsSipOutbound } from '@/lib/telephony/outbound/elevenlabs-sip-executor';
 
 export type OutboundExecutionRequest = {
   attemptId: string;
@@ -12,10 +13,23 @@ export type OutboundExecutionRequest = {
 };
 
 export type OutboundExecutionResult =
-  | { accepted: true; providerCallControlId: string }
+  | {
+      accepted: true;
+      callId: string;
+      conversationId: string;
+      providerConversationId: string;
+      sipCallId: string;
+    }
   | {
       accepted: false;
-      category: 'PROVIDER_UNAVAILABLE' | 'NETWORK' | 'TIMEOUT';
+      category:
+        | 'VALIDATION'
+        | 'AUTHORIZATION'
+        | 'NOT_FOUND'
+        | 'PROVIDER_UNAVAILABLE'
+        | 'NETWORK'
+        | 'TIMEOUT'
+        | 'CONFLICT';
       retryable: boolean;
     };
 
@@ -23,11 +37,7 @@ export type OutboundExecutor = (
   request: OutboundExecutionRequest
 ) => Promise<OutboundExecutionResult>;
 
-const failClosedExecutor: OutboundExecutor = async () => ({
-  accepted: false,
-  category: 'PROVIDER_UNAVAILABLE',
-  retryable: true,
-});
+const canonicalExecutor: OutboundExecutor = executeElevenLabsSipOutbound;
 
 export async function claimOutboundJobs(limit = 10, now = new Date()) {
   const candidates = await prisma.backgroundJob.findMany({
@@ -84,7 +94,7 @@ async function finishJob(
 
 export async function processOutboundJob(
   job: Awaited<ReturnType<typeof claimOutboundJobs>>[number],
-  executor: OutboundExecutor = failClosedExecutor
+  executor: OutboundExecutor = canonicalExecutor
 ): Promise<'SUCCEEDED' | 'RETRY' | 'BLOCKED'> {
   const attempt = await prisma.outboundAttempt.findFirst({
     where: { id: job.resourceId, workspaceId: job.workspaceId || undefined, status: 'QUEUED' },
@@ -162,7 +172,12 @@ export async function processOutboundJob(
   await prisma.$transaction([
     prisma.outboundAttempt.update({
       where: { id: attempt.id },
-      data: { status: 'INITIATING', startedAt: new Date(), notes: result.providerCallControlId },
+      data: {
+        status: 'INITIATING',
+        callId: result.callId,
+        startedAt: new Date(),
+        notes: `provider-conversation:${result.providerConversationId}`,
+      },
     }),
     prisma.campaignRecipient.update({
       where: { id: attempt.recipient.id },
@@ -177,7 +192,7 @@ export async function processOutboundJob(
   return 'SUCCEEDED';
 }
 
-export async function processOutboundQueue(executor: OutboundExecutor = failClosedExecutor) {
+export async function processOutboundQueue(executor: OutboundExecutor = canonicalExecutor) {
   if (
     !(await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED')) ||
     !(await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED'))
@@ -195,7 +210,7 @@ export async function processOutboundQueue(executor: OutboundExecutor = failClos
   return totals;
 }
 
-export async function startOutboundWorker(executor: OutboundExecutor = failClosedExecutor) {
+export async function startOutboundWorker(executor: OutboundExecutor = canonicalExecutor) {
   const run = () => processOutboundQueue(executor).catch(() => undefined);
   await run();
   const interval = setInterval(run, 30_000);
