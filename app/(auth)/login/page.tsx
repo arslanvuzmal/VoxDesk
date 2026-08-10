@@ -55,8 +55,6 @@ function LoginForm() {
         </p>
       </div>
 
-
-
       {error && (
         <div className="p-3 rounded-lg bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#B91C1C]">
           {error}

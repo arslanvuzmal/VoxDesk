@@ -115,9 +115,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <Briefcase className="w-4 h-4 text-[#8B949E] shrink-0" />
                 <div>
                   <p className="text-[11px] text-[#8B949E]">Service Interest</p>
-                  <p className="font-medium text-white">
-                    {lead.serviceInterest || 'Not provided'}
-                  </p>
+                  <p className="font-medium text-white">{lead.serviceInterest || 'Not provided'}</p>
                 </div>
               </div>
 
@@ -169,7 +167,9 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                       {lead.call.direction === 'INBOUND' ? 'Inbound phone' : 'Outbound phone'}
                     </span>
                     <span className="text-[#8B949E] font-mono text-[11px]">
-                      {lead.call.durationSeconds > 0 ? `(${lead.call.durationSeconds}s)` : '(No duration)'}
+                      {lead.call.durationSeconds > 0
+                        ? `(${lead.call.durationSeconds}s)`
+                        : '(No duration)'}
                     </span>
                   </div>
                   <span className="text-[11px] font-mono text-[#8B949E]">
@@ -200,21 +200,21 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                   <span>Budget</span>
                   <span className="font-mono text-white">{lead.budgetRange || 'Not provided'}</span>
                 </div>
-                              </div>
+              </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Timeline</span>
                   <span className="font-mono text-white">{lead.timeline || 'Not provided'}</span>
                 </div>
-                              </div>
+              </div>
 
               <div className="space-y-1">
                 <div className="flex justify-between text-[11px] text-[#8B949E]">
                   <span>Authority</span>
                   <span className="font-mono text-white">{lead.authority || 'Not provided'}</span>
                 </div>
-                              </div>
+              </div>
             </div>
           </div>
 

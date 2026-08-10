@@ -28,12 +28,12 @@ Production URL: [voxdesk-ai.vercel.app](https://voxdesk-ai.vercel.app)
 
 ## Channels
 
-| Channel | Canonical record | Realtime layer | Status rule |
-| --- | --- | --- | --- |
-| Website voice | Conversation | ElevenLabs WebRTC | Requires a configured, verified language and agent |
-| Inbound phone | Conversation + Call | Telnyx SIP to ElevenLabs | Requires number, routing, SIP, agent, and webhook verification |
-| Outbound phone | Conversation + Call + OutboundAttempt | ElevenLabs SIP through Telnyx | Requires approved workflow and all compliance gates |
-| Web chat | Conversation | VoxDesk orchestrator | Uses the same knowledge, tools, CRM, and evaluation boundaries |
+| Channel        | Canonical record                      | Realtime layer                | Status rule                                                    |
+| -------------- | ------------------------------------- | ----------------------------- | -------------------------------------------------------------- |
+| Website voice  | Conversation                          | ElevenLabs WebRTC             | Requires a configured, verified language and agent             |
+| Inbound phone  | Conversation + Call                   | Telnyx SIP to ElevenLabs      | Requires number, routing, SIP, agent, and webhook verification |
+| Outbound phone | Conversation + Call + OutboundAttempt | ElevenLabs SIP through Telnyx | Requires approved workflow and all compliance gates            |
+| Web chat       | Conversation                          | VoxDesk orchestrator          | Uses the same knowledge, tools, CRM, and evaluation boundaries |
 
 ## Architecture
 
