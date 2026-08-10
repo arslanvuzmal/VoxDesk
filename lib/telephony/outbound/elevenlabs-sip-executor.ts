@@ -139,8 +139,7 @@ async function prepareOutbound(
     !phoneNumber?.voiceProviderPhoneNumberId ||
     !phoneNumber.numberEncrypted ||
     !trainingPack ||
-    (phoneNumber.trainingPackVersionId &&
-      phoneNumber.trainingPackVersionId !== trainingPack.id)
+    (phoneNumber.trainingPackVersionId && phoneNumber.trainingPackVersionId !== trainingPack.id)
   ) {
     return null;
   }
@@ -320,7 +319,8 @@ export async function executeElevenLabsSipOutbound(
     await releaseCallLeases(prepared.callId, leases.leases);
     return {
       accepted: false,
-      category: error instanceof DOMException && error.name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
+      category:
+        error instanceof DOMException && error.name === 'TimeoutError' ? 'TIMEOUT' : 'NETWORK',
       retryable: false,
     };
   }

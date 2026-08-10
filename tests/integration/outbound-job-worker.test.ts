@@ -140,15 +140,13 @@ describe('outbound job worker', () => {
       recipient: { id: 'recipient-a', workspaceId: 'workspace-a', campaignId: 'campaign-a' },
     });
     mocks.readiness.mockResolvedValue({ report: { eligibleRecipientIds: ['recipient-a'] } });
-    const executor = vi
-      .fn()
-      .mockResolvedValue({
-        accepted: true,
-        callId: 'call-a',
-        conversationId: 'conversation-a',
-        providerConversationId: 'elevenlabs-conversation-a',
-        sipCallId: 'sip-call-a',
-      });
+    const executor = vi.fn().mockResolvedValue({
+      accepted: true,
+      callId: 'call-a',
+      conversationId: 'conversation-a',
+      providerConversationId: 'elevenlabs-conversation-a',
+      sipCallId: 'sip-call-a',
+    });
     const result = await processOutboundJob(claimedJob, executor);
     expect(result).toBe('SUCCEEDED');
     expect(executor).toHaveBeenCalledWith(expect.objectContaining({ idempotencyKey: 'attempt-a' }));
