@@ -8,7 +8,7 @@ export async function GET() {
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   const apiKeyConfigured = Boolean(apiKey);
   const agentId =
-    process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+    process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
   const agentConfigured = Boolean(agentId);
 
   let agentVerified = false;
