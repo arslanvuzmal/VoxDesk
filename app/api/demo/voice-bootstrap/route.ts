@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   }
 
   const agentId =
-    process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+    process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
 
   if (!agentId) {
     return NextResponse.json(
