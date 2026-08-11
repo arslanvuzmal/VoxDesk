@@ -1,12 +1,11 @@
-# VoxDesk AI — Provider Cost Controls & Budgeting
+# Provider Cost Controls
 
-**Owner:** Arslan Vuzmal Lone
+VoxDesk treats voice and outbound execution as cost-bearing operations.
 
----
+- Public telephony simulation never dials PSTN or consumes Telnyx call minutes.
+- Live outbound work is constrained by campaign approval, consent, suppression, local calling window, attempt limits, caller-ID eligibility, provider readiness, and concurrency leases.
+- Demo/session rate limits and workspace quotas protect provider and application capacity.
+- Provider failures do not create a second call or claim an action succeeded.
+- Production limits are customer configuration, not public marketing claims.
 
-## Cost Control Directives
-
-- **OpenRouter Model Selection:** Configured via `OPENROUTER_MODEL` (defaulting to low-cost conversational models like `openai/gpt-4o-mini`).
-- **ElevenLabs Models:** Text-to-speech uses ultra low-cost `eleven_flash_v2_5`; STT uses `scribe_v2_realtime`.
-- **Character & Turn Budgets:** Agent replies are enforced under 350 characters server-side before calling ElevenLabs TTS.
-- **Graceful Fallbacks:** If provider credits expire or API keys are omitted, the application automatically switches to Web Speech API fallback.
+See [campaign controls](operations/campaign-controls.md), [telephony](architecture/telephony.md), and [production readiness](operations/production-readiness.md).

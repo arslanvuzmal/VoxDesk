@@ -1,9 +1,25 @@
-<!-- BEGIN:nextjs-agent-rules -->
+# VoxDesk Engineering Instructions
 
-# This is NOT the Next.js you know
+This is a security-sensitive, multi-tenant Next.js application. Read the relevant local Next.js documentation before changing Next APIs or routing conventions.
 
-This version has breaking changes â€” APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+## Working loop
 
-This block is written and re-added by `next dev` â€” verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+Discover -> audit -> plan -> implement -> test -> review diff -> document -> commit. Keep changes focused and do not reset, force-push, delete data, or discard user work.
 
-<!-- END:nextjs-agent-rules -->
+## Non-negotiable boundaries
+
+- Resolve session, membership, role, workspace, then resource. IDs never grant authority.
+- Models request actions; server-owned tools authorize, validate, apply idempotency, and persist safe results.
+- Provider webhooks require raw-body verification, timestamp/replay checks, event identity, prompt acknowledgement, and asynchronous projection.
+- Simulation is explicit and authenticated. It never calls Telnyx or enters public provider webhook routes.
+- Telnyx is the production PSTN/SIP boundary and ElevenLabs is the conversational boundary. Keep provider code out of UI components.
+- Use additive migrations and review SQL. Never use `db push` for production delivery.
+- Never invent data, weaken auth, bypass security validation, commit secrets, or claim provider verification without an authorized test.
+
+## Verification
+
+Run the smallest relevant tests first, then `npx prisma validate`, lint, typecheck, and the affected suite. Review `git diff --check`. Browser tests must target a VoxDesk server, not another project sharing the local port.
+
+## Documentation
+
+Update docs when behavior, provider boundaries, activation requirements, migration delivery, or user-visible capability state changes. Use the vocabulary: implemented, configured, verified, simulated, activation-required, and planned.

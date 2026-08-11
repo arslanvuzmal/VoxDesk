@@ -1,7 +1,21 @@
 # Supervised improvement loop
 
-Conversation finalization can produce deterministic and structured evaluation results. Analysis roles create observations; they cannot change production.
+VoxDesk does not allow conversation analysis to mutate production agent behavior automatically.
 
-Observation → Proposal → Human approval → Immutable candidate AgentVersion → Required golden-suite runs → Regression gate → Bounded canary → Human promotion → Monitoring → Rollback.
+```mermaid
+flowchart LR
+  Conversation --> Evaluation --> Observation --> Proposal --> Review[Human review]
+  Review --> Candidate[Candidate version] --> Golden[Golden evaluation suite]
+  Golden --> Canary --> Promote[Human promotion]
+  Promote --> Monitor --> Rollback
+```
 
-Approval requires a target agent and explicit evaluation-suite IDs. Every suite must have a passing run for the candidate version and zero critical failures. Canary completion requires its configured sample, zero critical failures, and no regression flag. Promotion atomically deactivates the previous production deployment and activates the candidate. Rollback restores the most recent known previous deployment and records actor, reason, and restored version.
+## Lifecycle controls
+
+- Evaluators create observations with evidence and a bounded root-cause hypothesis.
+- A proposal identifies its affected business, language, agent version, required evaluation cases, risk, and rollback plan.
+- Approval creates an immutable candidate; it does not replace the production version.
+- A candidate must complete required evaluation suites without critical failure before it can be canaried.
+- Promotion and rollback are recorded as auditable state transitions. Rollback restores the most recent known previous deployment.
+
+This lifecycle is suitable for gradual, human-supervised improvement. It is not evidence that every production configuration has completed a canary. See [product capabilities](../product/capabilities.md) for current capability status.

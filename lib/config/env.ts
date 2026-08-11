@@ -94,6 +94,33 @@ const envSchema = z.object({
   ALLOW_PRODUCTION_SEED: z.string().default('false'),
 });
 
+const PRODUCTION_SECURITY_SECRETS = [
+  'AUTH_SECRET',
+  'ENCRYPTION_KEY',
+  'INTERNAL_API_SECRET',
+  'DEMO_SESSION_SECRET',
+  'IP_HASH_SECRET',
+  'PHONE_HASH_SECRET',
+] as const;
+
+export function validateProductionSecurityEnvironment(
+  source: NodeJS.ProcessEnv = process.env
+): string[] {
+  if (source.NODE_ENV !== 'production') return [];
+
+  const failures: string[] = PRODUCTION_SECURITY_SECRETS.filter(name => {
+    const value = source[name];
+    return !value || value.trim().length < 32 || value.startsWith('portfolio-demo-');
+  });
+
+  const encryptionKey = source.ENCRYPTION_KEY;
+  if (encryptionKey && !/^[a-fA-F0-9]{64}$/.test(encryptionKey)) {
+    failures.push('ENCRYPTION_KEY (must be a 64-character hexadecimal key)');
+  }
+
+  return [...new Set(failures)];
+}
+
 function getEnv() {
   const result = envSchema.safeParse(process.env);
   if (!result.success) {
@@ -103,6 +130,12 @@ function getEnv() {
         .join(', ')}`
     );
   }
+
+  const securityFailures = validateProductionSecurityEnvironment();
+  if (securityFailures.length > 0) {
+    throw new Error(`Invalid production security configuration: ${securityFailures.join(', ')}`);
+  }
+
   return result.data;
 }
 

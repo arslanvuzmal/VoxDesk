@@ -2,7 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 
 const isCI = Boolean(process.env.CI);
 const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
-const localBaseUrl = 'http://127.0.0.1:3000';
+const localPort = Number(process.env.PLAYWRIGHT_PORT || '3000');
+const localBaseUrl = `http://127.0.0.1:${localPort}`;
+const localServerCommand = isCI
+  ? `npm run start -- -p ${localPort}`
+  : `npm run dev -- -p ${localPort}`;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -24,7 +28,7 @@ export default defineConfig({
   webServer: externalBaseUrl
     ? undefined
     : {
-        command: isCI ? 'npm run start' : 'npm run dev',
+        command: localServerCommand,
         url: localBaseUrl,
         reuseExistingServer: !isCI,
         timeout: 120000,

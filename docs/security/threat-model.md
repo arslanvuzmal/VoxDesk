@@ -1,7 +1,16 @@
-# Threat model
+# Threat Model
 
-Protected assets include tenant data, provider credentials, telephone spend, recordings, transcripts, CRM actions, campaigns, and production agent versions.
+| Threat                              | Boundary                        | Primary control                                                            | Test/evidence                               | Residual risk                                      |
+| ----------------------------------- | ------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------- |
+| Broken authentication/session theft | Browser to application          | HttpOnly session handling, server validation, rotation/invalidation design | Session and tenant tests                    | Deployment cookie configuration must be reviewed.  |
+| BOLA/tenant leakage                 | Route/service to workspace data | Membership and workspace-scoped queries; non-disclosing failures           | Tenant isolation tests                      | New routes require the same discipline.            |
+| Tool injection                      | Agent/browser to tool gateway   | Signed context, schemas, policy, idempotency                               | Tool context/authorization tests            | Policy coverage must grow with tools.              |
+| Webhook forgery/replay              | Provider to webhook             | Raw-body signature, timestamp bounds, event ID inbox                       | Telnyx/ElevenLabs webhook tests             | Provider key rotation and delivery monitoring.     |
+| SSRF                                | Custom outbound integration     | Destination validation and safe adapter restrictions                       | Security review/tests where adapter enabled | DNS/redirect behavior requires ongoing review.     |
+| XSS/PII leakage                     | Transcript/UI/logging           | Escaped rendering, masking, safe logs, retention policy                    | Route/security review                       | Customer-configured content can be risky.          |
+| Recording/consent failure           | Call policy to provider         | Explicit recording state and policy gates                                  | Recording policy tests                      | Jurisdiction/business policy is customer-specific. |
+| Campaign/cost abuse                 | Operator to outbound execution  | Consent, suppression, windows, attempts, capacity, approvals               | Campaign/outbound tests                     | Provider and plan limits vary.                     |
+| Duplicate/race side effects         | Webhooks/jobs/tools             | Event identities, execution IDs, transactions, leases                      | Provider/appointment/campaign tests         | Reconciliation requires operational monitoring.    |
+| Dependency compromise               | Build supply chain              | Lockfile, Dependabot, dependency review, owner settings                    | CI and repository settings                  | Alerts need maintainer response.                   |
 
-Primary threats are BOLA/IDOR, broken authentication and function authorization, webhook forgery and replay, prompt/tool injection, duplicate side effects, cross-tenant memory, SSRF, session fixation, XSS, sensitive logging, credential leakage, concurrency races, and cost exhaustion.
-
-Trust boundaries exist at browser sessions, demo sessions, provider webhooks, realtime tool requests, external adapters, background jobs, and deployment promotion. Controls must fail closed and retain correlation and audit evidence. Security testing reduces known risk; it is not proof of zero vulnerabilities.
+Security testing reduces known risk; it is not a statement of compliance or zero vulnerabilities.
