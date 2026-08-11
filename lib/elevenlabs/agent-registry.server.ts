@@ -22,7 +22,7 @@ export function isElevenLabsConfigured(
 
   if (presetKey === 'LEGAL' && language === 'en-US') {
     const agentId =
-      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+      process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
     return Boolean(agentId);
   }
 
@@ -40,7 +40,7 @@ export function resolveElevenLabsAgent(
 
   if (presetKey === 'LEGAL' && language === 'en-US') {
     const agentId =
-      process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+      process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
 
     if (!agentId) return null;
 

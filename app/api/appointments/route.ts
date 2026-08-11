@@ -1,17 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AppointmentStatus, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/database';
+import { requireWorkspaceAccess } from '@/lib/auth/require-session';
+
+const APPOINTMENT_STATUSES = new Set<string>(Object.values(AppointmentStatus));
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const status = searchParams.get('status');
+    const workspace = await requireWorkspaceAccess(
+      req,
+      searchParams.get('workspaceId') || undefined,
+      'calls:view'
+    );
+    if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    const whereClause: any = {
-      workspaceId: 'ws_demo_default',
+    const whereClause: Prisma.AppointmentWhereInput = {
+      workspaceId: workspace.workspaceId,
     };
 
     if (status && status !== 'ALL') {
-      whereClause.status = status;
+      if (!APPOINTMENT_STATUSES.has(status)) {
+        return NextResponse.json({ error: 'Invalid appointment status.' }, { status: 400 });
+      }
+      whereClause.status = status as AppointmentStatus;
     }
 
     try {

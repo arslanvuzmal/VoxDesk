@@ -1,44 +1,62 @@
-import { ShieldCheck, Clock } from 'lucide-react';
+import { prisma } from '@/lib/database';
+import { requireDashboardContext } from '@/lib/auth/dashboard-context';
 
-export default function AuditLogsPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function AuditLogsPage() {
+  const { workspaceId } = await requireDashboardContext();
+  const logs = await prisma.auditLog.findMany({
+    where: { workspaceId },
+    orderBy: { createdAt: 'desc' },
+    take: 100,
+    include: { user: { select: { name: true, email: true } } },
+  });
+
   return (
-    <div className="space-y-6 select-none">
-      <div className="border-b border-[#E2E8F0] pb-4">
-        <h1 className="text-xl font-bold text-[#0F172A] tracking-tight">
-          System Audit & Governance Logs
-        </h1>
-        <p className="text-xs text-[#64748B]">
-          Immutable record of workspace configuration changes, agent updates, and authentication
-          events.
+    <div className="space-y-6">
+      <header>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Settings</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Audit log</h1>
+        <p className="mt-1 text-sm text-slate-600">
+          Recorded workspace configuration and operational actions. Sensitive values are omitted.
         </p>
-      </div>
-
-      <div className="rounded-xl bg-white border border-[#E2E8F0] overflow-hidden shadow-sm">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-[#F8FAFC] text-[#64748B] border-b border-[#E2E8F0] text-[11px] font-bold uppercase tracking-wider">
-            <tr>
-              <th className="px-4 py-3">Event Type</th>
-              <th className="px-4 py-3">Actor</th>
-              <th className="px-4 py-3">Target Resource</th>
-              <th className="px-4 py-3 font-mono">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
-            <tr className="hover:bg-[#F8FAFC]">
-              <td className="px-4 py-3 font-semibold text-[#0F172A]">AGENT_PROVISIONED</td>
-              <td className="px-4 py-3">Arslan Vuzmal</td>
-              <td className="px-4 py-3 font-mono text-[11px]">Maya (agent_3701kzc5...)</td>
-              <td className="px-4 py-3 font-mono text-[#64748B]">Aug 6, 2026 11:10 PM</td>
-            </tr>
-            <tr className="hover:bg-[#F8FAFC]">
-              <td className="px-4 py-3 font-semibold text-[#0F172A]">ENV_CONFIG_UPDATED</td>
-              <td className="px-4 py-3">System Admin</td>
-              <td className="px-4 py-3 font-mono text-[11px]">ELEVENLABS_API_KEY</td>
-              <td className="px-4 py-3 font-mono text-[#64748B]">Aug 6, 2026 10:45 PM</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      </header>
+      {logs.length === 0 ? (
+        <div className="rounded-lg border border-slate-200 bg-white p-8">
+          <h2 className="text-sm font-semibold text-slate-950">No audit events recorded</h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Audited configuration and workflow actions will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500">
+              <tr>
+                <th className="px-4 py-3 font-medium">Action</th>
+                <th className="px-4 py-3 font-medium">Actor</th>
+                <th className="px-4 py-3 font-medium">Resource</th>
+                <th className="px-4 py-3 font-medium">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {logs.map(log => (
+                <tr key={log.id}>
+                  <td className="px-4 py-3 font-medium text-slate-950">{log.action}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {log.user?.name || log.user?.email || 'System'}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {log.entityType}
+                    {log.entityId ? ` Â· ${log.entityId}` : ''}
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{log.createdAt.toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

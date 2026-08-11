@@ -1,0 +1,9 @@
+# Solo-maintainer ownership. Security-sensitive paths require explicit maintainer review.
+* @arslanvuzmal
+
+/lib/security/ @arslanvuzmal
+/lib/auth/ @arslanvuzmal
+/lib/telephony/ @arslanvuzmal
+/prisma/ @arslanvuzmal
+/docs/security/ @arslanvuzmal
+/.github/workflows/ @arslanvuzmal

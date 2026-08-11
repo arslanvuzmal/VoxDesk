@@ -1,119 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { outboundHandler } from '@/lib/telephony/outbound';
+import { z } from 'zod';
+import { prisma } from '@/lib/database';
 import { featureFlags } from '@/lib/features/flags';
+import { requireWorkspaceAccess } from '@/lib/auth/require-session';
+
+const OutboundRequestSchema = z.object({
+  contactId: z.string().min(1),
+  workflowType: z.enum([
+    'APPOINTMENT_REMINDER',
+    'REQUESTED_CALLBACK',
+    'CUSTOMER_FOLLOW_UP',
+    'MISSING_INFORMATION_REMINDER',
+    'SERVICE_UPDATE',
+    'CONSENTED_LEAD_FOLLOW_UP',
+    'SURVEY_REQUEST',
+  ]),
+  campaignId: z.string().min(1).optional(),
+});
 
 export async function POST(req: NextRequest) {
-  try {
-    const outboundEnabled = await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED');
-    const campaignsEnabled = await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED');
+  const workspace = await requireWorkspaceAccess(req, undefined, 'outbound:execute');
+  if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    if (!outboundEnabled) {
-      return NextResponse.json(
-        { error: 'Outbound telephony not enabled', code: 'FEATURE_DISABLED' },
-        { status: 503 }
-      );
-    }
-
-    const body = await req.json();
-    const {
-      workspaceId,
-      businessId,
-      agentId,
-      agentVersionId,
-      toNumber,
-      fromNumber,
-      workflowType,
-      language,
-      trainingPackVersion,
-      contactId,
-      campaignId,
-      openingDisclosure,
-      maxAttempts,
-      retryIntervalMinutes,
-      callingWindowStart,
-      callingWindowEnd,
-      timeZone,
-    } = body;
-
-    if (
-      !workspaceId ||
-      !businessId ||
-      !agentId ||
-      !agentVersionId ||
-      !toNumber ||
-      !fromNumber ||
-      !workflowType ||
-      !language
-    ) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    if (campaignId && !campaignsEnabled) {
-      return NextResponse.json(
-        { error: 'Campaigns not enabled', code: 'FEATURE_DISABLED' },
-        { status: 503 }
-      );
-    }
-
-    const result = await outboundHandler.initiateOutboundCall({
-      workspaceId,
-      businessId,
-      agentId,
-      agentVersionId,
-      toNumber,
-      fromNumber,
-      workflowType,
-      language,
-      trainingPackVersion: trainingPackVersion || 1,
-      contactId,
-      campaignId,
-      openingDisclosure,
-      maxAttempts,
-      retryIntervalMinutes,
-      callingWindowStart,
-      callingWindowEnd,
-      timeZone,
-    });
-
-    if (!result.success) {
-      return NextResponse.json(
-        {
-          error: result.error,
-          code: 'OUTBOUND_HANDLER_FAILED',
-          blockedReason: result.blockedReason,
-        },
-        { status: result.blockedReason ? 409 : 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      callId: result.callId,
-    });
-  } catch (error) {
-    console.error('[TELEPHONY OUTBOUND ERROR]', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  if (!(await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED'))) {
+    return NextResponse.json(
+      { error: { code: 'FEATURE_DISABLED', message: 'Outbound telephony is not enabled.' } },
+      { status: 503 }
+    );
   }
+
+  const parsed = OutboundRequestSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { code: 'VALIDATION', message: 'Invalid outbound request.' } },
+      { status: 400 }
+    );
+  }
+
+  const contact = await prisma.contact.findFirst({
+    where: { id: parsed.data.contactId, workspaceId: workspace.workspaceId },
+    select: { id: true, phoneEncrypted: true },
+  });
+  if (!contact?.phoneEncrypted) {
+    return NextResponse.json(
+      { error: { code: 'NOT_FOUND', message: 'An eligible contact phone was not found.' } },
+      { status: 404 }
+    );
+  }
+
+  if (parsed.data.campaignId) {
+    const campaign = await prisma.campaign.findFirst({
+      where: { id: parsed.data.campaignId, workspaceId: workspace.workspaceId },
+      select: { id: true },
+    });
+    if (!campaign) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Campaign was not found.' } },
+        { status: 404 }
+      );
+    }
+  }
+
+  return NextResponse.json(
+    {
+      error: {
+        code: 'CALLER_ID_REQUIRES_CONFIGURATION',
+        message:
+          'Outbound calling requires a verified encrypted caller-ID configuration. No call was initiated.',
+      },
+    },
+    { status: 503 }
+  );
 }
 
 export async function GET(req: NextRequest) {
-  const outboundEnabled = await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED');
-  const campaignsEnabled = await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED');
-  const telnyxEnabled = await featureFlags.isEnabled('TELNYX_TELEPHONY_ENABLED');
+  const workspace = await requireWorkspaceAccess(req, undefined, 'campaigns:view');
+  if ('errorResponse' in workspace) return workspace.errorResponse;
 
   return NextResponse.json({
-    outboundEnabled,
-    campaignsEnabled,
-    telnyxEnabled,
-    provider: 'telnyx',
-    supportedWorkflows: [
-      'APPOINTMENT_REMINDER',
-      'REQUESTED_CALLBACK',
-      'CUSTOMER_FOLLOW_UP',
-      'MISSING_INFORMATION_REMINDER',
-      'SERVICE_UPDATE',
-      'CONSENTED_LEAD_FOLLOW_UP',
-      'SURVEY_REQUEST',
-    ],
+    data: {
+      outboundEnabled: await featureFlags.isEnabled('TELNYX_OUTBOUND_ENABLED'),
+      campaignsEnabled: await featureFlags.isEnabled('OUTBOUND_CAMPAIGNS_ENABLED'),
+      telnyxEnabled: await featureFlags.isEnabled('TELNYX_TELEPHONY_ENABLED'),
+      provider: 'TELNYX',
+    },
   });
 }

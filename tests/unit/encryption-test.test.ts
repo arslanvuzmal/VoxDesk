@@ -20,8 +20,13 @@ describe('Encryption & Masking Security Utilities', () => {
 
   it('should mask phone numbers safely', () => {
     const masked = maskPhone('+1 (555) 234-5678');
-    expect(masked).toBe('+1 (55***-5678');
+    expect(masked).toBe('***5678');
     expect(masked).not.toContain('234');
+  });
+
+  it('does not fabricate a phone or email when no value exists', () => {
+    expect(maskPhone('')).toBe('Not provided');
+    expect(maskEmail('')).toBe('Not provided');
   });
 
   it('should mask email addresses safely', () => {

@@ -329,6 +329,6 @@ export function createCallContextFromTelniWebhook(
     campaignId: undefined,
     language: 'en-US',
     trainingPackVersion: 1,
-    recordingConsent: true,
+    recordingConsent: false,
   });
 }

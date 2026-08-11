@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/ui/navbar';
 import { Briefcase, AlertTriangle } from 'lucide-react';
+import { DEFAULT_DEMO_CONFIGURATION, type DemoScenario } from '@/lib/demo/configuration';
 
 // Client-only dynamic import with SSR disabled to prevent WebRTC/WebAudio hydration exceptions
 const ElevenLabsVoiceController = dynamic(
@@ -14,9 +15,8 @@ const ElevenLabsVoiceController = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-8 rounded-xl bg-white border border-[#E2E8F0] text-center text-xs text-[#64748B] font-mono space-y-2 max-w-4xl mx-auto shadow-sm">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#1D4ED8] animate-ping inline-block" />
-        <p>Loading ElevenLabs Realtime WebRTC Engine...</p>
+      <div className="mx-auto max-w-4xl border border-white/[0.08] bg-[#0D0F12] p-8 text-center text-xs text-[#A1A8B3]">
+        <p>Preparing the live conversationâ€¦</p>
       </div>
     ),
   }
@@ -25,6 +25,7 @@ const ElevenLabsVoiceController = dynamic(
 export default function DemoPage() {
   const [selectedPresetKey, setSelectedPresetKey] = useState<string>('LEGAL');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en-US');
+  const [selectedScenario, setSelectedScenario] = useState<DemoScenario>('QUALIFICATION');
   const [selectionNotice, setSelectionNotice] = useState<string | null>(null);
 
   const presets = [
@@ -85,36 +86,36 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
+    <div className="flex min-h-screen flex-col bg-[#08090B] text-[#F4F5F7]">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
-        <div className="max-w-4xl mx-auto space-y-8 py-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+        <div className="mx-auto max-w-4xl space-y-10">
           {/* Header */}
           <div className="text-center space-y-3">
-            <span className="px-3 py-1 rounded-full bg-[#EFF6FF] text-[#1D4ED8] font-mono text-xs border border-[#1D4ED8]/20 inline-flex items-center gap-1.5 font-semibold">
-              ElevenLabs Realtime Voice Production Sandbox
+            <span className="inline-flex border border-[#78AFFF]/25 bg-[#78AFFF]/[0.08] px-2.5 py-1 text-[11px] font-medium text-[#78AFFF]">
+              Fictional demonstration workspace
             </span>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight">
-              Live Voice Agent Sandbox
+            <h1 className="text-3xl font-medium tracking-[-0.04em] text-[#F4F5F7] sm:text-4xl">
+              Live business conversation
             </h1>
-            <p className="text-sm text-[#64748B] max-w-xl mx-auto">
-              Test real-time speech conversation over WebRTC powered by ElevenLabs Conversational
-              AI.
+            <p className="mx-auto max-w-xl text-sm leading-6 text-[#A1A8B3]">
+              Speak with a configured demonstration business and watch the conversation become
+              structured operational data.
             </p>
           </div>
 
           {selectionNotice && (
-            <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FCD34D] flex items-center space-x-3 text-[#78350F] text-xs">
-              <AlertTriangle className="w-4 h-4 shrink-0 text-[#B45309]" />
+            <div className="flex items-center space-x-3 border border-[#D8AE69]/25 bg-[#D8AE69]/[0.08] p-4 text-xs text-[#D8AE69]">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{selectionNotice}</span>
             </div>
           )}
 
           {/* STEP 1: ORGANIZATION PRESET SELECTION */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase text-[#64748B] tracking-wider">
-              1. Select Industry Organization Profile
+            <h3 className="text-xs font-medium uppercase tracking-[0.12em] text-[#737C88]">
+              1. Business
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -125,24 +126,25 @@ export default function DemoPage() {
                     key={p.presetKey}
                     type="button"
                     onClick={() => handleSelectPreset(p.presetKey, p.supported)}
-                    className={`p-4 rounded-xl border text-left transition-all space-y-2 relative shadow-sm ${
+                    disabled={!p.supported}
+                    className={`relative min-h-28 space-y-2 border p-4 text-left transition-colors duration-200 ${
                       isSelected
-                        ? 'bg-white border-[#1D4ED8] shadow-md ring-2 ring-[#1D4ED8]/10'
+                        ? 'border-[#78AFFF]/60 bg-[#121519]'
                         : p.supported
-                          ? 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1]'
-                          : 'bg-[#F1F5F9] border-[#E2E8F0] opacity-60 cursor-not-allowed'
+                          ? 'border-white/[0.08] bg-[#0D0F12] hover:border-white/[0.13]'
+                          : 'cursor-not-allowed border-white/[0.06] bg-[#0D0F12] opacity-45'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#0F172A] text-sm">{p.name}</span>
+                      <span className="text-sm font-medium text-[#F4F5F7]">{p.name}</span>
                       <Briefcase
-                        className={`w-4 h-4 ${isSelected ? 'text-[#1D4ED8]' : 'text-[#64748B]'}`}
+                        className={`h-4 w-4 ${isSelected ? 'text-[#78AFFF]' : 'text-[#737C88]'}`}
                       />
                     </div>
-                    <p className="text-xs text-[#64748B] line-clamp-2">{p.tagline}</p>
+                    <p className="line-clamp-2 text-xs leading-5 text-[#A1A8B3]">{p.tagline}</p>
                     {!p.supported && (
-                      <span className="inline-block mt-1 text-[10px] font-mono text-[#B45309] bg-[#FFFBEB] px-2 py-0.5 rounded border border-[#FCD34D]">
-                        Not configured for live provider
+                      <span className="mt-1 inline-block text-[10px] text-[#D8AE69]">
+                        Requires provider setup
                       </span>
                     )}
                   </button>
@@ -153,46 +155,76 @@ export default function DemoPage() {
 
           {/* STEP 2: LANGUAGE SELECTION */}
           <div className="space-y-3">
-            <h3 className="text-xs font-semibold uppercase text-[#64748B] tracking-wider">
-              2. Select Spoken Language
+            <h3 className="text-xs font-medium uppercase tracking-[0.12em] text-[#737C88]">
+              2. Language
             </h3>
 
             <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => handleSelectLanguage('en-US', true)}
-                className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all shadow-sm ${
+                className={`min-h-11 border p-3 text-center text-xs font-medium transition-colors ${
                   selectedLanguage === 'en-US'
-                    ? 'bg-white border-[#1D4ED8] text-[#1D4ED8] ring-2 ring-[#1D4ED8]/10'
-                    : 'bg-white border-[#E2E8F0] text-[#475569]'
+                    ? 'border-[#78AFFF]/60 bg-[#121519] text-[#78AFFF]'
+                    : 'border-white/[0.08] bg-[#0D0F12] text-[#A1A8B3]'
                 }`}
               >
-                🇬🇧 English (en-US)
+                English (en-US)
               </button>
 
               <button
                 type="button"
-                onClick={() => handleSelectLanguage('ur-PK', false)}
-                className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
+                disabled
+                className="flex min-h-11 cursor-not-allowed flex-col items-center gap-1 border border-white/[0.06] bg-[#0D0F12] p-3 text-center text-xs font-medium text-[#737C88] opacity-50"
               >
-                <span>🇵🇰 Urdu (اردو)</span>
-                <span className="text-[9px] text-[#B45309]">Not configured for live provider</span>
+                <span>Urdu (Ø§Ø±Ø¯Ùˆ)</span>
+                <span className="text-[9px] text-[#D8AE69]">Requires provider setup</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleSelectLanguage('es-ES', false)}
-                className="p-3 rounded-xl border text-center text-xs font-semibold bg-[#F1F5F9] border-[#E2E8F0] text-[#94A3B8] opacity-60 cursor-not-allowed flex flex-col items-center gap-1"
+                disabled
+                className="flex min-h-11 cursor-not-allowed flex-col items-center gap-1 border border-white/[0.06] bg-[#0D0F12] p-3 text-center text-xs font-medium text-[#737C88] opacity-50"
               >
-                <span>🇪🇸 Spanish (Español)</span>
-                <span className="text-[9px] text-[#B45309]">Not configured for live provider</span>
+                <span>Spanish (EspaÃ±ol)</span>
+                <span className="text-[9px] text-[#D8AE69]">Requires provider setup</span>
               </button>
             </div>
           </div>
 
-          {/* SINGLE BUTTON CLIENT VOICE CONTROLLER */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-medium uppercase tracking-[0.12em] text-[#737C88]">
+              3. Workflow
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(['QUALIFICATION', 'BOOKING', 'ESCALATION', 'ROUTINE'] as DemoScenario[]).map(
+                scenario => (
+                  <button
+                    key={scenario}
+                    type="button"
+                    onClick={() => setSelectedScenario(scenario)}
+                    className={`min-h-11 border px-3 text-xs font-medium transition-colors ${
+                      selectedScenario === scenario
+                        ? 'border-[#78AFFF]/60 bg-[#121519] text-[#78AFFF]'
+                        : 'border-white/[0.08] bg-[#0D0F12] text-[#A1A8B3] hover:border-white/[0.13]'
+                    }`}
+                  >
+                    {scenario.replace('_', ' ')}
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+
           <div className="pt-4">
-            <ElevenLabsVoiceController />
+            <ElevenLabsVoiceController
+              configuration={{
+                ...DEFAULT_DEMO_CONFIGURATION,
+                presetKey: selectedPresetKey as 'LEGAL',
+                language: selectedLanguage as 'en-US',
+                scenario: selectedScenario,
+              }}
+            />
           </div>
         </div>
       </main>

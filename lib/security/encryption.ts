@@ -18,11 +18,7 @@ export class DecryptionError extends Error {
 }
 
 function getSecretKey(): Buffer {
-  const secret =
-    process.env.PII_ENCRYPTION_KEY ||
-    env.DEMO_SESSION_SECRET ||
-    'default_voxdesk_pii_secure_key_32_bytes_long!!';
-  return crypto.createHash('sha256').update(secret).digest();
+  return crypto.createHash('sha256').update(env.ENCRYPTION_KEY).digest();
 }
 
 export function encryptSensitiveValue(value: string): string {
@@ -82,14 +78,14 @@ export function decryptSensitiveValue(encryptedValue: string): string {
 }
 
 export function maskPhone(phone: string): string {
-  if (!phone) return '+1 (555) ***-****';
-  const cleaned = phone.trim();
-  if (cleaned.length < 7) return '***-****';
-  return `${cleaned.slice(0, 6)}***-${cleaned.slice(-4)}`;
+  if (!phone) return 'Not provided';
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 4) return '****';
+  return `***${digits.slice(-4)}`;
 }
 
 export function maskEmail(email: string): string {
-  if (!email || !email.includes('@')) return 'c***r@demo.voxdesk.ai';
+  if (!email || !email.includes('@')) return 'Not provided';
   const [user, domain] = email.split('@');
   const maskedUser = user.length > 2 ? `${user[0]}***${user[user.length - 1]}` : `${user[0]}***`;
   return `${maskedUser}@${domain}`;

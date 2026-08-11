@@ -1,83 +1,36 @@
-import {
-  CalendarProvider,
-  AvailableSlot,
-  AppointmentCreateInput,
-  CalendarAppointmentRecord,
-} from './interface';
+import type { AvailableSlot, CalendarAppointmentRecord, CalendarProvider } from './interface';
+
+const MESSAGE =
+  'Cal.com is not configured with a verified production adapter. No calendar action was performed.';
 
 export class CalComProvider implements CalendarProvider {
   public readonly providerType = 'CALCOM';
-  private apiKey: string;
 
-  constructor() {
-    this.apiKey = process.env.CALCOM_API_KEY || '';
+  private unavailable(): never {
+    throw new Error(MESSAGE);
   }
 
   async listServices(): Promise<string[]> {
-    return ['Cal.com Strategy Session (30 mins)', 'Cal.com Technical Onboarding (60 mins)'];
+    return this.unavailable();
   }
 
-  async checkAvailability(
-    _service: string,
-    targetDate: Date,
-    _timezone: string
-  ): Promise<AvailableSlot[]> {
-    const slot = new Date(targetDate);
-    slot.setHours(11, 0, 0, 0);
-    return [
-      {
-        startTime: slot,
-        endTime: new Date(slot.getTime() + 30 * 60 * 1000),
-        formattedTime: '11:00 AM EST',
-        available: true,
-      },
-    ];
+  async checkAvailability(): Promise<AvailableSlot[]> {
+    return this.unavailable();
   }
 
-  async createAppointment(input: AppointmentCreateInput): Promise<CalendarAppointmentRecord> {
-    return {
-      id: `calcom-${Date.now()}`,
-      externalEventId: `calcom-booking-${Date.now()}`,
-      callerName: input.callerName,
-      service: input.service,
-      startTime: input.startTime,
-      endTime: input.endTime,
-      timezone: input.timezone,
-      status: 'CONFIRMED',
-    };
+  async createAppointment(): Promise<CalendarAppointmentRecord> {
+    return this.unavailable();
   }
 
-  async rescheduleAppointment(
-    appointmentId: string,
-    newStartTime: Date,
-    timezone: string
-  ): Promise<CalendarAppointmentRecord> {
-    return {
-      id: appointmentId,
-      externalEventId: `calcom-${appointmentId}`,
-      callerName: 'Caller',
-      service: 'Strategy Session',
-      startTime: newStartTime,
-      endTime: new Date(newStartTime.getTime() + 30 * 60 * 1000),
-      timezone,
-      status: 'RESCHEDULED',
-    };
+  async rescheduleAppointment(): Promise<CalendarAppointmentRecord> {
+    return this.unavailable();
   }
 
-  async cancelAppointment(_appointmentId: string): Promise<boolean> {
-    return true;
+  async cancelAppointment(): Promise<boolean> {
+    return this.unavailable();
   }
 
-  async getAppointment(appointmentId: string): Promise<CalendarAppointmentRecord | null> {
-    return {
-      id: appointmentId,
-      externalEventId: `calcom-${appointmentId}`,
-      callerName: 'Daniel Brooks',
-      service: 'Strategy Session',
-      startTime: new Date(),
-      endTime: new Date(Date.now() + 30 * 60 * 1000),
-      timezone: 'America/New_York',
-      status: 'CONFIRMED',
-    };
+  async getAppointment(): Promise<CalendarAppointmentRecord | null> {
+    return this.unavailable();
   }
 }

@@ -1,5 +1,5 @@
-import { LiveCallConsole } from '@/components/calls/live-console';
+import { redirect } from 'next/navigation';
 
-export default function LiveConsoleDashboardPage() {
-  return <LiveCallConsole />;
+export default function LiveConsoleDashboardPage(): never {
+  redirect('/dashboard');
 }

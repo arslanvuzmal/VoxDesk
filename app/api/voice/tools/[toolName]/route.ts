@@ -1,205 +1,195 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getOrganizationProfile } from '@/lib/organization/registry';
-import { legalTrainingPack } from '@/lib/organization/presets/legal';
-import { generateRealAvailableSlots } from '@/lib/conversation/availability';
-import { persistFinalCallResult } from '@/lib/database/persistence';
+import { prisma } from '@/lib/database';
+import {
+  signConversationContext,
+  verifyConversationContext,
+} from '@/lib/security/conversation-context';
+import {
+  executeDatabaseTool,
+  isSupportedDatabaseTool,
+  ToolExecutionError,
+} from '@/lib/voice-agent/tool-executor';
 
 const ToolExecutionSchema = z.object({
-  sessionId: z.string().optional(),
-  businessId: z.string().optional().default('biz-northstar-legal'),
-  presetKey: z.string().optional().default('LEGAL'),
-  parameters: z.record(z.unknown()).optional().default({}),
+  toolExecutionId: z.string().min(8).max(200),
+  parameters: z.record(z.unknown()).default({}),
 });
+
+const MUTATING_TOOLS = new Set([
+  'create_or_update_contact',
+  'hold_appointment_slot',
+  'book_appointment',
+  'reschedule_appointment',
+  'cancel_appointment',
+  'create_opportunity',
+  'update_opportunity',
+  'create_task',
+  'complete_task',
+  'schedule_callback',
+  'create_follow_up',
+  'record_opt_out',
+  'request_human_handoff',
+]);
+
+function getContextToken(req: NextRequest): string | null {
+  const explicit = req.headers.get('x-voxdesk-conversation-context');
+  const authorization = req.headers.get('authorization');
+  return explicit || (authorization?.startsWith('Bearer ') ? authorization.slice(7) : null);
+}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ toolName: string }> }
 ) {
   const { toolName } = await params;
-  const correlationId = `tool_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
-  const startedAt = Date.now();
+  const correlationId = crypto.randomUUID();
+  const token = getContextToken(req);
 
+  if (!token) {
+    return NextResponse.json(
+      { error: { code: 'AUTHENTICATION', message: 'Signed conversation context is required.' } },
+      { status: 401 }
+    );
+  }
+
+  let context;
   try {
-    const body = await req.json().catch(() => ({}));
-    const parseResult = ToolExecutionSchema.safeParse(body);
+    context = verifyConversationContext(token);
+  } catch {
+    return NextResponse.json(
+      { error: { code: 'AUTHORIZATION', message: 'Conversation context is invalid or expired.' } },
+      { status: 403 }
+    );
+  }
 
-    if (!parseResult.success) {
+  const parsed = ToolExecutionSchema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: { code: 'VALIDATION', message: 'Invalid tool request.', correlationId } },
+      { status: 400 }
+    );
+  }
+
+  if (isSupportedDatabaseTool(toolName)) {
+    try {
+      const data = await executeDatabaseTool(
+        toolName,
+        parsed.data.toolExecutionId,
+        parsed.data.parameters,
+        context
+      );
+      const refreshedContext =
+        toolName === 'create_or_update_contact' && typeof data.contactId === 'string'
+          ? signConversationContext({ ...context, contactId: data.contactId })
+          : undefined;
+      return NextResponse.json({
+        data: refreshedContext ? { ...data, conversationContextToken: refreshedContext } : data,
+        meta: { correlationId },
+      });
+    } catch (error) {
+      if (error instanceof ToolExecutionError) {
+        return NextResponse.json(
+          { error: { code: error.code, message: error.message, correlationId } },
+          { status: error.status }
+        );
+      }
       return NextResponse.json(
         {
-          success: false,
-          error: 'Invalid tool execution parameters.',
-          details: parseResult.error.flatten(),
+          error: {
+            code: 'UNKNOWN',
+            message: 'The business action could not be completed.',
+            correlationId,
+          },
+        },
+        { status: 500 }
+      );
+    }
+  }
+
+  if (MUTATING_TOOLS.has(toolName)) {
+    return NextResponse.json(
+      {
+        error: {
+          code: 'TOOL_NOT_CONFIGURED',
+          message: 'This business action is not configured. No record was created or changed.',
           correlationId,
         },
+      },
+      { status: 501 }
+    );
+  }
+
+  if (toolName === 'get_business_information') {
+    const business = await prisma.businessProfile.findFirst({
+      where: { id: context.businessId, workspaceId: context.workspaceId },
+      select: {
+        id: true,
+        businessName: true,
+        description: true,
+        timezone: true,
+        openingHours: true,
+        holidayRules: true,
+        defaultLanguage: true,
+      },
+    });
+    if (!business) {
+      return NextResponse.json(
+        { error: { code: 'NOT_FOUND', message: 'Business information was not found.' } },
+        { status: 404 }
+      );
+    }
+    return NextResponse.json({ data: business, meta: { correlationId } });
+  }
+
+  if (toolName === 'search_business_knowledge') {
+    const query = z.string().min(2).max(500).safeParse(parsed.data.parameters.query);
+    if (!query.success) {
+      return NextResponse.json(
+        { error: { code: 'VALIDATION', message: 'A knowledge query is required.' } },
         { status: 400 }
       );
     }
-
-    const { presetKey, parameters } = parseResult.data;
-    const profile = getOrganizationProfile(presetKey);
-
-    let resultPayload: any = {};
-
-    switch (toolName) {
-      case 'get_business_information': {
-        resultPayload = {
-          businessName: profile.name,
-          industry: profile.industry,
-          workingHours: profile.workingHours,
-          location: '500 Fifth Avenue, Suite 2400, New York, NY 10110',
-          primaryPhone: legalTrainingPack.business.primaryPhone,
-          services: profile.services,
-          disclaimer: profile.complianceDisclaimer['en-US'],
-        };
-        break;
-      }
-
-      case 'check_availability': {
-        const slots = generateRealAvailableSlots(presetKey);
-        resultPayload = {
-          available: true,
-          slotsCount: slots.length,
-          slots: slots.map(s => ({
-            slotId: s.slotId,
-            formattedDate: s.formattedDate,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            timezone: s.timezone,
-          })),
-        };
-        break;
-      }
-
-      case 'hold_appointment_slot': {
-        const slotId = (parameters.slotId as string) || `slot_legal_1_${Date.now()}`;
-        const realSlots = generateRealAvailableSlots(presetKey);
-        const selectedSlot = realSlots[0];
-
-        resultPayload = {
-          held: true,
-          holdId: `hold_${Date.now()}_${Math.random().toString(36).slice(2)}`,
-          slotId,
-          startTime: selectedSlot.startTime,
-          endTime: selectedSlot.endTime,
-          formattedDate: selectedSlot.formattedDate,
-          expiresInSeconds: 600,
-        };
-        break;
-      }
-
-      case 'confirm_appointment': {
-        const callerName =
-          (parameters.callerName as string) || (parameters.fullName as string) || 'Valued Caller';
-        const contactPhone =
-          (parameters.contactPhone as string) || (parameters.phone as string) || '+15550192834';
-        const slotId = (parameters.slotId as string) || `slot_legal_1_${Date.now()}`;
-        const realSlots = generateRealAvailableSlots(presetKey);
-        const selectedSlot = realSlots[0];
-
-        const appointmentId = `appt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-        resultPayload = {
-          confirmed: true,
-          appointmentId,
-          callerName,
-          service: selectedSlot.serviceName,
-          startTime: selectedSlot.startTime,
-          endTime: selectedSlot.endTime,
-          formattedDate: selectedSlot.formattedDate,
-          status: 'CONFIRMED',
-        };
-        break;
-      }
-
-      case 'create_or_update_lead': {
-        const callerName =
-          (parameters.fullName as string) ||
-          (parameters.callerName as string) ||
-          'Prospective Client';
-        const leadId = `lead_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-
-        resultPayload = {
-          created: true,
-          leadId,
-          name: callerName,
-          category: parameters.score ? (Number(parameters.score) >= 75 ? 'HOT' : 'WARM') : 'WARM',
-          status: 'NEW',
-        };
-        break;
-      }
-
-      case 'prepare_follow_up': {
-        resultPayload = {
-          followUpScheduled: true,
-          recommendedTimeframe: 'Within 2 business hours',
-          summary:
-            (parameters.summary as string) || 'Follow up regarding legal intake consultation.',
-        };
-        break;
-      }
-
-      case 'prepare_human_handoff': {
-        const handoffId = `handoff_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-        resultPayload = {
-          handoffPrepared: true,
-          handoffId,
-          destinationDepartment: legalTrainingPack.escalationPolicy.destinationDepartment,
-          urgency: (parameters.urgency as string) || 'CRITICAL',
-          status: 'PREPARED',
-          callbackMessage: 'I’ve prepared an urgent callback request for the on-call team.',
-        };
-        break;
-      }
-
-      case 'record_unanswered_question': {
-        resultPayload = {
-          recorded: true,
-          question: (parameters.question as string) || 'Unanswered customer inquiry',
-          status: 'LOGGED_FOR_FOLLOWUP',
-        };
-        break;
-      }
-
-      case 'complete_call': {
-        resultPayload = {
-          completed: true,
-          summary: (parameters.summary as string) || 'Call completed successfully.',
-        };
-        break;
-      }
-
-      default: {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Unknown tool '${toolName}'.`,
-            correlationId,
-          },
-          { status: 404 }
-        );
-      }
-    }
-
-    const latencyMs = Date.now() - startedAt;
-
-    return NextResponse.json({
-      success: true,
-      toolName,
-      latencyMs,
-      result: resultPayload,
-      correlationId,
-    });
-  } catch (error: any) {
-    console.error(`[TOOL EXECUTION ERROR] tool=${toolName} correlationId=${correlationId}:`, error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: `Tool execution for '${toolName}' failed.`,
-        code: 'TOOL_EXECUTION_FAILED',
-        correlationId,
+    const terms = query.data.trim().split(/\s+/).slice(0, 8);
+    const now = new Date();
+    const knowledge = await prisma.knowledgeItem.findMany({
+      where: {
+        workspaceId: context.workspaceId,
+        language: context.language,
+        status: 'ACTIVE',
+        verifiedAt: { not: null },
+        AND: [
+          { OR: [{ effectiveFrom: null }, { effectiveFrom: { lte: now } }] },
+          { OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+        ],
+        OR: terms.flatMap(term => [
+          { title: { contains: term, mode: 'insensitive' as const } },
+          { question: { contains: term, mode: 'insensitive' as const } },
+          { content: { contains: term, mode: 'insensitive' as const } },
+          { answer: { contains: term, mode: 'insensitive' as const } },
+        ]),
       },
-      { status: 500 }
-    );
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        question: true,
+        answer: true,
+        content: true,
+        language: true,
+        version: true,
+        source: true,
+      },
+      take: 5,
+    });
+    return NextResponse.json({
+      data: { found: knowledge.length > 0, items: knowledge },
+      meta: { correlationId },
+    });
   }
+
+  return NextResponse.json(
+    { error: { code: 'NOT_FOUND', message: 'Tool is not available.', correlationId } },
+    { status: 404 }
+  );
 }

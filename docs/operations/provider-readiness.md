@@ -1,12 +1,12 @@
 # Provider Readiness
 
-The provider readiness matrix (`lib/telephony/provider-readiness.ts`) verifies actual configuration state for:
+Readiness is derived from `lib/telephony/capability-matrix.ts` and the health routes. It intentionally separates implementation from configuration and verification.
 
-- Web Voice (`ELEVENLABS`)
-- Inbound Telephony (`TELNYX`)
-- Outbound Telephony (`TELNYX`)
-- Persistence (`POSTGRESQL`, `UPSTASH_REDIS`)
+| State                 | Meaning                                                                                                    |
+| --------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `SIMULATION_READY`    | Simulation mode and persistence prerequisites are available. No PSTN call can be placed.                   |
+| `PROVIDER_CONFIGURED` | Some Telnyx resources are present, but live prerequisites are incomplete.                                  |
+| `LIVE_READY`          | Required live settings are present. Provider verification and authorized call evidence are still separate. |
+| `REQUIRES_ACTIVATION` | Customer/provider resources are missing.                                                                   |
 
-Status values: `configured` (variables present), `verified` (real safe check passed, currently set equal to configured for safety until full live checks are implemented), `provider` name, `message` (honest capability description).
-
-Never display "Live" based only on environment variables.
+`/api/health/telephony` reports sanitized mode, readiness, activation requirements, and provider status. It must not return credentials, unmasked numbers, or provider response bodies.

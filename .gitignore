@@ -20,6 +20,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
 # Database & IDE
 *.sqlite
@@ -41,3 +42,6 @@ tsconfig.tsbuildinfo
 playwright-report/
 test-results/
 .env*
+
+# Generated repository analysis
+graphify-out/
