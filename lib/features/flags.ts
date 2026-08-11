@@ -199,7 +199,10 @@ export async function getProviderReadiness(workspaceId: string): Promise<{
   if (elevenLabsConfigured) {
     try {
       const { ElevenLabsClient } = await import('@elevenlabs/elevenlabs-js');
-      const agentId = process.env.ELEVENLABS_AGENT_ID_LEGAL_EN || process.env.ELEVENLABS_AGENT_ID;
+      // The portfolio deployment has one configured ElevenLabs agent. Keep the
+      // legacy per-preset variable only as a backwards-compatible fallback so a
+      // stale value can never override the agent selected in Vercel.
+      const agentId = process.env.ELEVENLABS_AGENT_ID || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN;
       if (agentId) {
         const client = new ElevenLabsClient({ apiKey: process.env.ELEVENLABS_API_KEY! });
         const agent = await client.conversationalAi.agents.get(agentId);
