@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         startedAt: true,
         durationSeconds: true,
         requiresReview: true,
+        call: { select: { provider: true, executionMode: true, simulationScenario: true } },
         contact: { select: { name: true, company: true } },
         agent: { select: { name: true } },
       },

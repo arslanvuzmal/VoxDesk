@@ -283,6 +283,7 @@ enum OpportunityStage {
 }
 
 enum ProviderType {
+  SIMULATION
   DEMO
   TWILIO
   VAPI
@@ -299,6 +300,11 @@ enum ProviderType {
   HUBSPOT
   GENERIC_WEBHOOK
   TELNYX
+}
+
+enum CallExecutionMode {
+  SIMULATION
+  LIVE
 }
 
 model User {
@@ -593,6 +599,9 @@ model Call {
   agentId                String
   agentVersionId         String?
   provider               ProviderType          @default(DEMO)
+  executionMode          CallExecutionMode     @default(LIVE)
+  simulationScenario     String?
+  simulationVersion      String?
   providerCallControlId  String?
   providerCallSessionId  String?
   providerCallLegId      String?
@@ -642,6 +651,7 @@ model Call {
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([workspaceId, createdAt])
+  @@index([executionMode, createdAt])
   @@map("calls")
 }
 

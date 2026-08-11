@@ -16,6 +16,7 @@ import {
   CallTerminationReason,
   SipHeaders,
 } from '@/lib/telephony/contracts';
+import { assertLiveTelephonyConfiguration } from '@/lib/telephony/mode';
 
 interface TelnyxCall {
   call_control_id: string;
@@ -127,6 +128,7 @@ export class TelnyxProvider implements TelephonyProvider {
   }
 
   async startCall(options: CallStartOptions): Promise<TelephonyCallRecord> {
+    assertLiveTelephonyConfiguration();
     const fromNumber = options.callerIdNumber || this.getCallerId(options.direction);
     const toNumber = options.callerNumber;
 
@@ -178,6 +180,7 @@ export class TelnyxProvider implements TelephonyProvider {
   }
 
   async endCall(providerCallId: string): Promise<boolean> {
+    assertLiveTelephonyConfiguration();
     try {
       await this.request('POST', `/calls/${providerCallId}/actions/hangup`, {});
       return true;
@@ -191,6 +194,7 @@ export class TelnyxProvider implements TelephonyProvider {
     targetNumber: string,
     commandId?: string
   ): Promise<boolean> {
+    assertLiveTelephonyConfiguration();
     try {
       await this.request('POST', `/calls/${providerCallId}/actions/transfer`, {
         destination: targetNumber,

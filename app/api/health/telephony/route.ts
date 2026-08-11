@@ -1,27 +1,60 @@
 import { NextResponse } from 'next/server';
-import { TelnyxProvider } from '@/lib/telephony/providers/telnyx';
+import { prisma } from '@/lib/database';
+import { getTelephonyCapabilityMatrix } from '@/lib/telephony/capability-matrix';
+import { getTelephonyProvider } from '@/lib/telephony/providers/factory';
 
 export async function GET() {
-  const configured = Boolean(process.env.TELNYX_API_KEY && process.env.TELNYX_CONNECTION_ID);
-  if (!configured) {
-    return NextResponse.json({
-      status: 'NOT_CONFIGURED',
-      provider: 'TELNYX',
-      configured: false,
-      verified: false,
-    });
+  const matrix = getTelephonyCapabilityMatrix();
+  let databaseReachable = false;
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    databaseReachable = true;
+  } catch {
+    databaseReachable = false;
+  }
+  let providerHealth = null;
+
+  try {
+    providerHealth = await getTelephonyProvider().healthCheck();
+  } catch {
+    // Live mode is intentionally fail-closed. The capability matrix supplies
+    // the actionable, non-sensitive activation requirements.
+    providerHealth = {
+      providerType: 'TELNYX',
+      status: 'MISCONFIGURED',
+      latencyMs: 0,
+      message: 'Live PSTN activation requirements are incomplete.',
+    };
   }
 
-  const result = await new TelnyxProvider().healthCheck();
-  const verified = result.status === 'OPERATIONAL';
   return NextResponse.json(
     {
-      status: verified ? 'HEALTHY' : 'DEGRADED',
-      provider: 'TELNYX',
-      configured: true,
-      verified,
-      latencyMs: result.latencyMs,
+      status:
+        databaseReachable &&
+        (matrix.readiness === 'SIMULATION_READY' || matrix.readiness === 'LIVE_READY')
+          ? 'READY'
+          : databaseReachable
+            ? matrix.readiness
+            : 'UNAVAILABLE',
+      mode: matrix.mode.toUpperCase(),
+      provider: matrix.providerArchitecture,
+      readiness: matrix.readiness,
+      livePstn: matrix.livePstn,
+      simulation: {
+        ...matrix.simulation,
+        verified: databaseReachable,
+        status: databaseReachable ? matrix.simulation.status : 'NOT_CONFIGURED',
+        reason: databaseReachable
+          ? matrix.simulation.reason
+          : 'The configured CRM database could not be reached.',
+      },
+      capabilities: matrix.capabilities,
+      activationRequirements: matrix.activationRequirements,
+      persistence: {
+        database: { configured: Boolean(process.env.DATABASE_URL), verified: databaseReachable },
+      },
+      providerHealth,
     },
-    { status: verified ? 200 : 503 }
+    { headers: { 'Cache-Control': 'no-store, private' } }
   );
 }

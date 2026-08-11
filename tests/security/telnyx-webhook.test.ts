@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TelnyxProvider } from '@/lib/telephony/providers/telnyx';
 
 describe('Telnyx webhook verification and identity', () => {
@@ -8,8 +8,32 @@ describe('Telnyx webhook verification and identity', () => {
   const provider = new TelnyxProvider({ publicKey: publicKeyPem });
   const body = JSON.stringify({ data: { id: 'event-1' } });
 
+  const liveEnvironment = {
+    TELEPHONY_MODE: 'live',
+    DATABASE_URL: 'postgresql://demo:demo@localhost:5432/voxdesk',
+    APP_URL: 'https://example.test',
+    ELEVENLABS_API_KEY: 'test-key',
+    ELEVENLABS_AGENT_ID: 'test-agent',
+    TELNYX_API_KEY: 'test-key',
+    TELNYX_PUBLIC_KEY: publicKeyPem,
+    TELNYX_CONNECTION_ID: 'connection-a',
+    TELNYX_PRIMARY_PHONE_NUMBER: '+15555550123',
+    TELNYX_OUTBOUND_VOICE_PROFILE_ID: 'profile-a',
+  };
+  const previousEnvironment = Object.fromEntries(
+    Object.keys(liveEnvironment).map(key => [key, process.env[key]])
+  );
+
+  beforeEach(() => {
+    Object.assign(process.env, liveEnvironment);
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
+    for (const [key, value] of Object.entries(previousEnvironment)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
   });
 
   function headers(timestamp: number, value = body) {

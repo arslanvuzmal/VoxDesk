@@ -1,8 +1,34 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TelnyxProvider } from '@/lib/telephony/providers/telnyx';
 
 describe('Telnyx outbound caller ID', () => {
-  afterEach(() => vi.unstubAllGlobals());
+  const liveEnvironment = {
+    TELEPHONY_MODE: 'live',
+    DATABASE_URL: 'postgresql://demo:demo@localhost:5432/voxdesk',
+    APP_URL: 'https://example.test',
+    ELEVENLABS_API_KEY: 'test-key',
+    ELEVENLABS_AGENT_ID: 'test-agent',
+    TELNYX_API_KEY: 'test-key',
+    TELNYX_PUBLIC_KEY: 'test-public-key',
+    TELNYX_CONNECTION_ID: 'connection-1',
+    TELNYX_PRIMARY_PHONE_NUMBER: '+15555550123',
+    TELNYX_OUTBOUND_VOICE_PROFILE_ID: 'profile-1',
+  };
+  const previousEnvironment = Object.fromEntries(
+    Object.keys(liveEnvironment).map(key => [key, process.env[key]])
+  );
+
+  beforeEach(() => {
+    Object.assign(process.env, liveEnvironment);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    for (const [key, value] of Object.entries(previousEnvironment)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
 
   it('uses the server-resolved eligible caller ID', async () => {
     const fetchMock = vi.fn().mockResolvedValue({

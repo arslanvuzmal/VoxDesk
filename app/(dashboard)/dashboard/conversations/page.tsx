@@ -14,6 +14,11 @@ interface ConversationRow {
   startedAt: string;
   durationSeconds: number | null;
   requiresReview: boolean;
+  call: {
+    provider: string;
+    executionMode: 'SIMULATION' | 'LIVE';
+    simulationScenario: string | null;
+  } | null;
   contact: { name: string; company: string | null } | null;
   agent: { name: string } | null;
 }
@@ -95,6 +100,7 @@ export default function ConversationsPage() {
             <tr>
               <th className="px-4 py-3">Contact</th>
               <th className="px-4 py-3">Direction / channel</th>
+              <th className="px-4 py-3">Execution</th>
               <th className="px-4 py-3">Intent</th>
               <th className="px-4 py-3">State</th>
               <th className="px-4 py-3">Language</th>
@@ -106,19 +112,19 @@ export default function ConversationsPage() {
           <tbody className="divide-y divide-[#E2E8F0] text-[#334155]">
             {loading ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-[#64748B]">
+                <td colSpan={9} className="p-8 text-center text-[#64748B]">
                   Loading conversationsâ€¦
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-[#B91C1C]">
+                <td colSpan={9} className="p-8 text-center text-[#B91C1C]">
                   {error}
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-8 text-center text-[#64748B]">
+                <td colSpan={9} className="p-8 text-center text-[#64748B]">
                   No conversations yet. New calls and website conversations will appear here.
                 </td>
               </tr>
@@ -135,6 +141,13 @@ export default function ConversationsPage() {
                   </td>
                   <td className="px-4 py-3">
                     {row.direction} Â· {row.channel.replace('_', ' ')}
+                  </td>
+                  <td className="px-4 py-3">
+                    {row.call?.executionMode === 'SIMULATION'
+                      ? `Simulation${row.call.simulationScenario ? ` · ${row.call.simulationScenario}` : ''}`
+                      : row.call
+                        ? 'Live provider'
+                        : 'Not provided'}
                   </td>
                   <td className="px-4 py-3">{row.intent || 'Not provided'}</td>
                   <td className="px-4 py-3">

@@ -20,9 +20,32 @@ Business conversations often fail after the customer speaks: calls are missed, d
 - A unified internal CRM and contact timeline
 - Human-supervised evaluation, canary, promotion, and rollback
 
-## Product demo
+## Voice & telephony architecture
 
-The public demo uses an isolated fictional workspace and deterministic adapters where a live integration is unavailable. Demo records and provider readiness are explicitly labelled. It cannot dial arbitrary telephone numbers or mutate customer integrations.
+- **ElevenLabs** provides realtime conversational intelligence, turn handling, voice, and post-call intelligence.
+- **Telnyx** provides the production PSTN, SIP, phone-number, transfer, and signed-webhook layer.
+- **VoxDesk** owns authorization, business policy, CRM state, campaign controls, tool execution, persistence, and audit evidence.
+
+## Portfolio deployment
+
+The public portfolio intentionally runs in deterministic **Telephony Simulation Mode**. It exercises VoxDesk's normalized provider contracts, call-state machinery, authorized tools, CRM persistence, campaign controls, and audit trail without purchasing a number or initiating a paid PSTN call.
+
+Every simulated record is explicitly marked `SIMULATION` and uses `sim_…` provider identifiers. It is never represented as a live telephone call.
+
+**Production telephony architecture is implemented. Live PSTN activation requires customer-provided Telnyx resources.**
+
+## Enabling live telephony
+
+1. Create a Telnyx Voice API application and configure `/api/webhooks/telnyx/voice`.
+2. Configure `TELNYX_CONNECTION_ID` and `TELNYX_PUBLIC_KEY`.
+3. Purchase or attach a customer-owned Telnyx number and set `TELNYX_PRIMARY_PHONE_NUMBER`.
+4. Configure `TELNYX_OUTBOUND_VOICE_PROFILE_ID` where outbound calling is required.
+5. Import the SIP phone into ElevenLabs and assign `ELEVENLABS_AGENT_ID`.
+6. Configure the ElevenLabs post-call webhook.
+7. Set `TELEPHONY_MODE=live` and run provider-readiness verification.
+8. Test owned, authorized inbound and outbound numbers before enabling campaigns.
+
+In `TELEPHONY_MODE=live`, VoxDesk fails closed; it never falls back to simulation.
 
 Production URL: [voxdesk-ai.vercel.app](https://voxdesk-ai.vercel.app)
 
@@ -191,15 +214,9 @@ Do not use development secrets or demo authentication in production.
 
 ## Environment
 
-Production fails closed when required security secrets are absent. Important groups include:
+`DATABASE_URL` is required for persisted CRM data. `TELEPHONY_MODE` defaults to `simulation`, where Telnyx carrier resources are deliberately optional. `live` requires the Telnyx, ElevenLabs, application URL, webhook, and database prerequisites reported by `/api/health/telephony`.
 
-- Application: `APP_URL`, `DATABASE_URL`, `DIRECT_URL`
-- Security: `AUTH_SECRET`, `ENCRYPTION_KEY`, `INTERNAL_API_SECRET`, `IP_HASH_SECRET`, `PHONE_HASH_SECRET`
-- Demo isolation: `DEMO_SESSION_SECRET` and explicit demo limits
-- ElevenLabs: API key, webhook secret, agent and imported SIP phone mappings
-- Telnyx: API key, public key, connection, outbound profile, SIP, and webhook configuration
-- Redis: REST URL and token
-- Feature flags default to disabled
+Never commit provider credentials or introduce placeholder provider values.
 
 Never commit provider credentials.
 

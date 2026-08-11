@@ -3,6 +3,7 @@ import { prisma } from '@/lib/database';
 import { env, validateE164PhoneNumber } from '@/lib/config/env';
 import { decryptSensitiveValue, maskPhone } from '@/lib/security/encryption';
 import { acquireCallLeases, releaseCallLeases } from '@/lib/telephony/concurrency';
+import { getTelephonyMode } from '@/lib/telephony/mode';
 
 const ElevenLabsOutboundResponseSchema = z.object({
   success: z.boolean(),
@@ -245,6 +246,9 @@ async function prepareOutbound(
 export async function executeElevenLabsSipOutbound(
   request: CanonicalOutboundExecutionRequest
 ): Promise<CanonicalOutboundExecutionResult> {
+  if (getTelephonyMode() !== 'live') {
+    return { accepted: false, category: 'AUTHORIZATION', retryable: false };
+  }
   if (!env.ELEVENLABS_API_KEY) {
     return { accepted: false, category: 'PROVIDER_UNAVAILABLE', retryable: false };
   }

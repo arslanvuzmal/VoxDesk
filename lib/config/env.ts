@@ -10,6 +10,7 @@ const envSchema = z.object({
   APP_URL: z.string().url().optional().default('http://localhost:3000'),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
+  TELEPHONY_MODE: z.enum(['simulation', 'live']).default('simulation'),
 
   ELEVENLABS_API_KEY: z.string().min(1).optional(),
   ELEVENLABS_AGENT_ID: z.string().min(1).optional(),
@@ -111,15 +112,16 @@ export function getMissingEnvironmentVariables(): string[] {
 
 export function reportMissingVariables(): void {
   const missing = getMissingEnvironmentVariables();
-  if (missing.length > 0) console.error('Missing required environment variables:', missing.join(', '));
+  if (missing.length > 0)
+    console.error('Missing required environment variables:', missing.join(', '));
 }
 
 export function getProviderReadiness() {
   const elevenLabsConfigured = Boolean(env.ELEVENLABS_API_KEY && env.ELEVENLABS_AGENT_ID);
   const telnyxConfigured = Boolean(
     env.TELNYX_API_KEY &&
-      env.TELNYX_CONNECTION_ID &&
-      (env.TELNYX_PRIMARY_PHONE_NUMBER || env.TELNYX_PHONE_NUMBER)
+    env.TELNYX_CONNECTION_ID &&
+    (env.TELNYX_PRIMARY_PHONE_NUMBER || env.TELNYX_PHONE_NUMBER)
   );
 
   return {
