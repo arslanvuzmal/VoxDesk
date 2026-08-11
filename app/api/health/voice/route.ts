@@ -63,7 +63,21 @@ export async function GET() {
     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
     'local-development';
 
-  const readyForVoice = apiKeyConfigured && agentConfigured && agentVerified;
+  const readinessIssues: string[] = [];
+  if (!apiKeyConfigured) readinessIssues.push('ELEVENLABS_API_KEY is not configured.');
+  if (!agentConfigured) readinessIssues.push('ELEVENLABS_AGENT_ID is not configured.');
+  if (apiKeyConfigured && agentConfigured && !agentVerified) {
+    readinessIssues.push('The configured ElevenLabs agent could not be verified.');
+  }
+  if (!databaseConfigured) readinessIssues.push('DATABASE_URL is not configured.');
+  if (databaseConfigured && !databaseReachable) {
+    readinessIssues.push('The CRM database could not be reached.');
+  }
+
+  // A demo conversation is only live when both the voice provider and the
+  // canonical CRM persistence path are available. Otherwise the interface
+  // must not imply a conversation was captured when it cannot be stored.
+  const readyForVoice = readinessIssues.length === 0;
   const readyForTelephony =
     readiness.inboundTelephony.configured && readiness.inboundTelephony.verified;
 
@@ -71,6 +85,7 @@ export async function GET() {
     {
       readyForVoice,
       readyForTelephony,
+      readinessIssues,
       deploymentCommit,
       elevenLabs: {
         apiConfigured: apiKeyConfigured,

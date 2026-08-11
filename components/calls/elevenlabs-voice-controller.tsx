@@ -148,8 +148,15 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
       }
       const health = await healthRes.json();
       if (!health.readyForVoice) {
+        const issues = Array.isArray(health.readinessIssues)
+          ? health.readinessIssues.filter(
+              (issue: unknown): issue is string => typeof issue === 'string'
+            )
+          : [];
         throw new Error(
-          'Voice service is not ready. ElevenLabs API key or agent verification failed.'
+          issues.length > 0
+            ? `Voice service is not ready. ${issues.join(' ')}`
+            : 'Voice service is not ready. Check ElevenLabs and CRM configuration.'
         );
       }
 
