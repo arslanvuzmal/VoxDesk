@@ -192,7 +192,14 @@ SELECT
     c."createdAt",
     CURRENT_TIMESTAMP
 FROM "calls" c
-JOIN "business_profiles" b ON b."workspaceId" = c."workspaceId"
+-- A Call has no business foreign key. Backfill only workspaces with exactly one business;
+-- ambiguous tenant data remains in Call for explicit routing/review instead of guessing.
+JOIN (
+  SELECT "workspaceId", MIN("id") AS "id"
+  FROM "business_profiles"
+  GROUP BY "workspaceId"
+  HAVING COUNT(*) = 1
+) b ON b."workspaceId" = c."workspaceId"
 LEFT JOIN "contacts" ct ON ct."id" = c."contactId" AND ct."workspaceId" = c."workspaceId"
 LEFT JOIN "agent_versions" av ON av."id" = c."agentVersionId" AND av."agentId" = c."agentId"
 LEFT JOIN "language_profiles" lp ON lp."workspaceId" = c."workspaceId" AND lp."languageCode" = c."language"
