@@ -55,13 +55,13 @@ const envSchema = z.object({
   // Deprecated paths may read these while they are removed. They are never
   // deployment requirements and no provider action is allowed without its own
   // explicit provider credentials.
-  AUTH_SECRET: z.string().optional(),
-  ENCRYPTION_KEY: z.string().optional(),
-  INTERNAL_API_SECRET: z.string().optional(),
-  DEMO_SESSION_SECRET: z.string().optional(),
-  IP_HASH_SECRET: z.string().optional(),
-  PHONE_HASH_SECRET: z.string().optional(),
-  DEMO_DATA_ENCRYPTION_KEY: z.string().optional(),
+  AUTH_SECRET: z.string().default('portfolio-demo-auth-disabled'),
+  ENCRYPTION_KEY: z.string().default('portfolio-demo-data-not-encrypted'),
+  INTERNAL_API_SECRET: z.string().default('portfolio-demo-internal-signing-disabled'),
+  DEMO_SESSION_SECRET: z.string().default('portfolio-demo-session-disabled'),
+  IP_HASH_SECRET: z.string().default('portfolio-demo-rate-limit'),
+  PHONE_HASH_SECRET: z.string().default('portfolio-demo-phone'),
+  DEMO_DATA_ENCRYPTION_KEY: z.string().default('portfolio-demo-data-not-encrypted'),
   UPSTASH_REDIS_REST_URL: z.string().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
