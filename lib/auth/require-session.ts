@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
+import { hashToken } from '@/lib/auth';
+import { hasPermission, PermissionAction, WorkspaceRole } from '@/lib/permissions';
 
 export interface AuthenticatedUserSession {
   userId: string;
@@ -10,21 +12,8 @@ export interface AuthenticatedUserSession {
 export async function requireAuthUser(
   req: NextRequest
 ): Promise<{ user: AuthenticatedUserSession } | { errorResponse: NextResponse }> {
-  // Allow explicit public demo mode header
-  const isDemoSandbox =
-    req.headers.get('x-demo-sandbox') === 'true' || req.headers.get('x-voxdesk-demo') === 'true';
   const authHeader = req.headers.get('authorization');
   const sessionCookie = req.cookies.get('voxdesk_session')?.value;
-
-  if (isDemoSandbox) {
-    return {
-      user: {
-        userId: 'usr_demo_operator',
-        email: 'operator@voxdesk.ai',
-        name: 'Demo Operator',
-      },
-    };
-  }
 
   if (!authHeader && !sessionCookie) {
     return {
@@ -39,11 +28,11 @@ export async function requireAuthUser(
     const token = sessionCookie || authHeader?.replace('Bearer ', '');
     if (token) {
       const session = await prisma.session.findUnique({
-        where: { tokenHash: token },
+        where: { tokenHash: hashToken(token) },
         include: { user: true },
       });
 
-      if (session && session.expiresAt > new Date()) {
+      if (session && session.expiresAt > new Date() && session.user.status === 'ACTIVE') {
         return {
           user: {
             userId: session.user.id,
@@ -72,44 +61,53 @@ export async function requireAuthUser(
 
 export async function requireWorkspaceAccess(
   req: NextRequest,
-  requestedWorkspaceId?: string
-): Promise<{ workspaceId: string } | { errorResponse: NextResponse }> {
+  requestedWorkspaceId?: string,
+  permission?: PermissionAction
+): Promise<
+  { workspaceId: string; userId: string; role: WorkspaceRole } | { errorResponse: NextResponse }
+> {
   const auth = await requireAuthUser(req);
   if ('errorResponse' in auth) {
     return { errorResponse: auth.errorResponse };
   }
 
   const user = auth.user;
-  const isDemoSandbox = user.userId === 'usr_demo_operator';
-
-  if (isDemoSandbox) {
-    return { workspaceId: 'ws_demo_default' };
-  }
-
-  const targetWorkspaceId = requestedWorkspaceId || 'ws_demo_default';
 
   try {
     const member = await prisma.workspaceMember.findFirst({
       where: {
         userId: user.userId,
-        workspaceId: targetWorkspaceId,
+        ...(requestedWorkspaceId ? { workspaceId: requestedWorkspaceId } : {}),
       },
+      orderBy: { id: 'asc' },
     });
 
-    if (!member && targetWorkspaceId !== 'ws_demo_default') {
+    if (!member) {
       return {
         errorResponse: NextResponse.json(
-          {
-            error: 'Forbidden: You do not have access to this workspace.',
-            code: 'FORBIDDEN_WORKSPACE',
-          },
-          { status: 403 }
+          { error: 'Resource not found.', code: 'NOT_FOUND' },
+          { status: 404 }
         ),
       };
     }
-  } catch {
-    // If table query fails, fallback safely for demo workspace
-  }
 
-  return { workspaceId: targetWorkspaceId };
+    const role = member.role as WorkspaceRole;
+    if (permission && !hasPermission(role, permission)) {
+      return {
+        errorResponse: NextResponse.json(
+          { error: 'Resource not found.', code: 'NOT_FOUND' },
+          { status: 404 }
+        ),
+      };
+    }
+
+    return { workspaceId: member.workspaceId, userId: user.userId, role };
+  } catch {
+    return {
+      errorResponse: NextResponse.json(
+        { error: 'Authorization service unavailable.', code: 'AUTHORIZATION_UNAVAILABLE' },
+        { status: 503 }
+      ),
+    };
+  }
 }

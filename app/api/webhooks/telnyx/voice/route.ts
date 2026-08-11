@@ -1,9 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { after, NextRequest, NextResponse } from 'next/server';
 import { TelnyxProvider } from '@/lib/telephony/providers/telnyx';
 import { CallStateMachine, CallContext } from '@/lib/telephony/call-state-machine';
 import { prisma } from '@/lib/database';
 import { env } from '@/lib/config/env';
-import crypto from 'crypto';
+import { syncConversationProjectionIfEnabled } from '@/lib/conversation/persistence';
+import type { IdentifiedTelnyxEvent } from '@/lib/telephony/events/telnyx-inbox';
+import { queueTelnyxEvent } from '@/lib/telephony/events/telnyx-handler';
+import { isOutOfOrderEvent, resolveCallContext } from '@/lib/telephony/events/telnyx-routing';
+import { hashPhoneNumber } from '@/lib/security/identifiers';
+import { projectProviderHandoffState } from '@/lib/telephony/handoffs/project-handoff-event';
+import { reconcileOutboundAttemptFromEvent } from '@/lib/telephony/outbound/reconciliation';
 
 const telnyxProvider = new TelnyxProvider();
 
@@ -18,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     const isValid = await telnyxProvider.verifyWebhook(headersObj, rawBody);
 
-    if (!isValid && process.env.NODE_ENV === 'production') {
+    if (!isValid) {
       console.warn('[TELNYX WEBHOOK] Invalid signature');
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
     }
@@ -30,188 +36,68 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 });
     }
 
-    const event = telnyxProvider.parseWebhookEvent(parsedBody);
-
-    await storeWebhookEvent(event);
-
-    const callContext = await resolveCallContext(event);
-    if (!callContext) {
-      console.warn('[TELNYX WEBHOOK] Could not resolve call context');
-      return NextResponse.json({ received: true, queued: true });
+    const parsedEvent = telnyxProvider.parseWebhookEvent(parsedBody);
+    const event = parsedEvent as IdentifiedTelnyxEvent;
+    if (!event.providerEventId) {
+      return NextResponse.json({ error: 'Provider event ID is required' }, { status: 400 });
     }
 
-    const machine = new CallStateMachine(callContext);
-    const transitioned = machine.transitionTo(event.callState, {
-      type: event.eventType,
-      payload: event.rawPayload,
-      providerEventId: event.providerEventId || event.providerCallControlId,
-    });
-
-    if (!transitioned) {
-      console.warn('[TELNYX WEBHOOK] Invalid state transition', {
-        from: callContext.state,
-        to: event.callState,
-        eventType: event.eventType,
-      });
-    }
-
-    if (event.terminationReason) {
-      machine.setTerminationReason(event.terminationReason);
-    }
-
-    await persistCallState(machine.getContext());
-
-    if (isTerminalState(event.callState)) {
-      await finalizeCall(machine.getContext());
-    }
-
-    return NextResponse.json({
-      received: true,
-      provider: 'TELNYX',
-      eventType: event.eventType,
-      providerCallControlId: event.providerCallControlId,
-      callState: event.callState,
-      direction: event.direction,
-    });
+    return queueTelnyxEvent(event, after, processTelnyxEvent);
   } catch (error) {
     console.error('[TELNYX WEBHOOK ERROR]', error);
     return NextResponse.json({ error: 'Webhook processing error' }, { status: 500 });
   }
 }
 
-async function storeWebhookEvent(event: {
-  eventType: string;
-  providerCallControlId: string;
-  providerCallSessionId?: string;
-  providerCallLegId?: string;
-  timestamp: Date;
-  rawPayload: Record<string, unknown>;
-  direction: string;
-  fromNumber?: string;
-  toNumber?: string;
-  callState: string;
-  terminationReason?: string;
-}): Promise<void> {
-  try {
-    await prisma.webhookDelivery.create({
-      data: {
-        webhookEndpointId: 'telnyx-voice',
-        event: event.eventType,
-        payload: JSON.parse(JSON.stringify(event.rawPayload)),
-        responseCode: 200,
-        status: 'SUCCESS',
-      },
-    });
-  } catch (error) {
-    console.error('[TELNYX WEBHOOK] Failed to store event:', error);
-  }
-}
+async function processTelnyxEvent(
+  event: IdentifiedTelnyxEvent
+): Promise<{ workspaceId?: string; outOfOrder?: boolean }> {
+  const callContext = await resolveCallContext(event);
+  if (!callContext) return {};
 
-async function resolveCallContext(event: {
-  eventType: string;
-  providerCallControlId: string;
-  providerCallSessionId?: string;
-  providerCallLegId?: string;
-  timestamp: Date;
-  rawPayload: Record<string, unknown>;
-  direction: string;
-  fromNumber?: string;
-  toNumber?: string;
-  callState: string;
-  terminationReason?: string;
-}): Promise<CallContext | null> {
-  const existingCall = await prisma.call.findFirst({
-    where: {
-      providerCallControlId: event.providerCallControlId,
-    },
+  const latestEvent = await prisma.callEvent.findFirst({
+    where: { callId: callContext.id },
+    orderBy: { occurredAt: 'desc' },
+    select: { occurredAt: true },
   });
-
-  if (existingCall) {
-    return {
-      id: existingCall.id,
-      workspaceId: existingCall.workspaceId,
-      businessId: existingCall.workspaceId,
-      agentId: existingCall.agentId,
-      agentVersionId: existingCall.agentId,
-      direction: event.direction as 'INBOUND' | 'OUTBOUND' | 'WEB',
-      channel: 'PHONE',
-      provider: 'TELNYX',
-      providerCallControlId: event.providerCallControlId,
-      providerCallSessionId: event.providerCallSessionId,
-      providerCallLegId: event.providerCallLegId,
-      callerNumber: event.fromNumber || '',
-      callerName: existingCall.callerName || undefined,
-      contactId: existingCall.leadId || undefined,
-      campaignId: undefined,
-      language: 'en-US',
-      trainingPackVersion: 1,
-      state: existingCall.status as any,
-      startedAt: existingCall.startedAt,
-      answeredAt: existingCall.answeredAt || undefined,
-      endedAt: existingCall.endedAt || undefined,
-      durationSeconds: existingCall.durationSeconds,
-      terminationReason: event.terminationReason as any,
-      outcome: existingCall.outcome || undefined,
-      recordingConsent: existingCall.recordingConsent,
-      recordingUrl: undefined,
-      transcription: [],
-      events: [],
-      metadata: {},
-    };
+  if (isOutOfOrderEvent(event.timestamp, latestEvent?.occurredAt)) {
+    return { workspaceId: callContext.workspaceId, outOfOrder: true };
   }
 
-  if (event.direction === 'INBOUND' && event.fromNumber) {
-    const phoneNumber = await prisma.phoneNumber.findFirst({
-      where: { numberMasked: { contains: event.toNumber?.slice(-10) || '' } },
-      include: { workspace: true, agent: true },
+  const machine = new CallStateMachine(callContext);
+  machine.transitionTo(event.callState, {
+    type: event.eventType,
+    payload: {
+      direction: event.direction,
+      callState: event.callState,
+      terminationReason: event.terminationReason,
+      timestamp: event.timestamp.toISOString(),
+    },
+    providerEventId: event.providerEventId,
+  });
+  if (event.terminationReason) machine.setTerminationReason(event.terminationReason);
+  await persistCallState(machine.getContext());
+  if (callContext.direction === 'OUTBOUND') {
+    await reconcileOutboundAttemptFromEvent({
+      callId: callContext.id,
+      workspaceId: callContext.workspaceId,
+      state: event.callState,
+      occurredAt: event.timestamp,
+      terminationReason: event.terminationReason,
     });
-
-    if (phoneNumber?.workspace && phoneNumber?.agent && phoneNumber.agentId) {
-      const newCall = await prisma.call.create({
-        data: {
-          workspaceId: phoneNumber.workspaceId,
-          agentId: phoneNumber.agentId,
-          provider: 'TELNYX',
-          providerCallControlId: event.providerCallControlId,
-          direction: 'INBOUND',
-          callerNumberMasked: maskPhoneNumber(event.fromNumber || ''),
-          callerName: undefined,
-          status: event.callState as any,
-          startedAt: new Date(),
-          recordingConsent: true,
-        },
-      });
-
-      return {
-        id: newCall.id,
-        workspaceId: phoneNumber.workspaceId,
-        businessId: phoneNumber.workspaceId,
-        agentId: phoneNumber.agentId,
-        agentVersionId: phoneNumber.agentId,
-        direction: 'INBOUND',
-        channel: 'PHONE',
-        provider: 'TELNYX',
-        providerCallControlId: event.providerCallControlId,
-        providerCallSessionId: event.providerCallSessionId,
-        providerCallLegId: event.providerCallLegId,
-        callerNumber: event.fromNumber || '',
-        callerName: undefined,
-        contactId: undefined,
-        campaignId: undefined,
-        language: 'en-US',
-        trainingPackVersion: 1,
-        state: event.callState as any,
-        startedAt: new Date(),
-        durationSeconds: 0,
-        recordingConsent: true,
-        transcription: [],
-        events: [],
-        metadata: {},
-      };
-    }
   }
-
-  return null;
+  if (
+    ['HUMAN_TRANSFER_PENDING', 'HUMAN_CONNECTED', 'FAILED', 'CANCELLED'].includes(event.callState)
+  ) {
+    await projectProviderHandoffState(
+      callContext.id,
+      callContext.workspaceId,
+      event.callState as 'HUMAN_TRANSFER_PENDING' | 'HUMAN_CONNECTED' | 'FAILED' | 'CANCELLED',
+      event.timestamp
+    );
+  }
+  if (isTerminalState(event.callState)) await finalizeCall(machine.getContext());
+  return { workspaceId: callContext.workspaceId };
 }
 
 async function persistCallState(context: CallContext): Promise<void> {
@@ -219,6 +105,9 @@ async function persistCallState(context: CallContext): Promise<void> {
     await prisma.call.update({
       where: { id: context.id },
       data: {
+        providerCallControlId: context.providerCallControlId,
+        providerCallSessionId: context.providerCallSessionId,
+        providerCallLegId: context.providerCallLegId,
         status: context.state as any,
         answeredAt: context.answeredAt,
         endedAt: context.endedAt,
@@ -270,6 +159,7 @@ async function persistCallState(context: CallContext): Promise<void> {
         },
       });
     }
+    await syncConversationProjectionIfEnabled(context.id).catch(() => undefined);
   } catch (error) {
     console.error('[TELNYX WEBHOOK] Persist call state failed:', error);
   }
@@ -454,15 +344,6 @@ async function createImprovementObservations(context: CallContext): Promise<void
       },
     });
   }
-}
-
-function maskPhoneNumber(phone: string): string {
-  if (phone.length < 4) return '****';
-  return phone.slice(0, -4).replace(/\d/g, '*') + phone.slice(-4);
-}
-
-function hashPhoneNumber(phone: string): string {
-  return crypto.createHash('sha256').update(phone).digest('hex');
 }
 
 function isTerminalState(state: string): boolean {

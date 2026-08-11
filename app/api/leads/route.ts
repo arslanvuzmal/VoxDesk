@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { LeadCategory, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/database';
+import { requireWorkspaceAccess } from '@/lib/auth/require-session';
+
+const LEAD_CATEGORIES = new Set<string>(Object.values(LeadCategory));
 
 export async function GET(req: NextRequest) {
   try {
@@ -7,9 +11,15 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category');
     const status = searchParams.get('status');
+    const workspace = await requireWorkspaceAccess(
+      req,
+      searchParams.get('workspaceId') || undefined,
+      'calls:view'
+    );
+    if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    const whereClause: any = {
-      workspaceId: 'ws_demo_default',
+    const whereClause: Prisma.LeadWhereInput = {
+      workspaceId: workspace.workspaceId,
     };
 
     if (search) {
@@ -21,7 +31,10 @@ export async function GET(req: NextRequest) {
     }
 
     if (category && category !== 'ALL') {
-      whereClause.category = category;
+      if (!LEAD_CATEGORIES.has(category)) {
+        return NextResponse.json({ error: 'Invalid lead category.' }, { status: 400 });
+      }
+      whereClause.category = category as LeadCategory;
     }
 
     if (status && status !== 'ALL') {

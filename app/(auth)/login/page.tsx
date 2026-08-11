@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 function LoginForm() {
   const router = useRouter();
@@ -13,8 +13,8 @@ function LoginForm() {
   const callbackUrl =
     rawCallback && rawCallback.startsWith('/dashboard') ? rawCallback : '/dashboard';
 
-  const [email, setEmail] = useState('owner@northstarlegal.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,22 +52,6 @@ function LoginForm() {
         <h1 className="text-2xl font-bold text-[#0F172A] tracking-tight">Sign In to VoxDesk</h1>
         <p className="text-xs text-[#64748B]">
           Access voice operations, live call console, and call history.
-        </p>
-      </div>
-
-      {/* Demo Credentials Box */}
-      <div className="p-3.5 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-xs font-mono space-y-1.5 text-[#334155]">
-        <div className="flex items-center gap-1.5 font-bold text-[#15803D]">
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>DEMO WORKSPACE CREDENTIALS:</span>
-        </div>
-        <p>
-          <span className="text-[#64748B]">Email:</span>{' '}
-          <strong className="text-[#0F172A]">owner@northstarlegal.com</strong>
-        </p>
-        <p>
-          <span className="text-[#64748B]">Password:</span>{' '}
-          <strong className="text-[#0F172A]">password123</strong>
         </p>
       </div>
 
@@ -115,7 +99,7 @@ function LoginForm() {
           ← Return to Home
         </Link>
         <Link href="/demo" className="text-[#1D4ED8] hover:underline font-semibold">
-          Explore Demo Sandbox →
+          Explore Fictional Demo →
         </Link>
       </div>
     </div>

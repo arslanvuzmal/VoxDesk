@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useConversation } from '@elevenlabs/react';
 import {
   Mic,
-  MicOff,
   PhoneOff,
   Volume2,
   CheckCircle,
@@ -12,8 +11,8 @@ import {
   Loader2,
   Shield,
   Clock,
-  Sparkles,
 } from 'lucide-react';
+import type { DemoConfiguration } from '@/lib/demo/configuration';
 
 export type CallState =
   | 'IDLE'
@@ -42,7 +41,7 @@ export interface VoiceTranscriptLine {
 
 export interface FinalizationResult {
   sessionId: string;
-  providerConversationId: string;
+  providerConversationId: string | null;
   durationSeconds: number;
   callerTurns: number;
   agentTurns: number;
@@ -51,7 +50,7 @@ export interface FinalizationResult {
   warnings: string[];
 }
 
-export function ElevenLabsVoiceController() {
+export function ElevenLabsVoiceController({ configuration }: { configuration: DemoConfiguration }) {
   const [callState, setCallState] = useState<CallState>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcripts, setTranscripts] = useState<VoiceTranscriptLine[]>([]);
@@ -149,8 +148,15 @@ export function ElevenLabsVoiceController() {
       }
       const health = await healthRes.json();
       if (!health.readyForVoice) {
+        const issues = Array.isArray(health.readinessIssues)
+          ? health.readinessIssues.filter(
+              (issue: unknown): issue is string => typeof issue === 'string'
+            )
+          : [];
         throw new Error(
-          'Voice service is not ready. ElevenLabs API key or agent verification failed.'
+          issues.length > 0
+            ? `Voice service is not ready. ${issues.join(' ')}`
+            : 'Voice service is not ready. Check ElevenLabs and CRM configuration.'
         );
       }
 
@@ -195,9 +201,10 @@ export function ElevenLabsVoiceController() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          presetKey: 'LEGAL',
-          language: 'en-US',
-          scenario: 'QUALIFICATION',
+          presetKey: configuration.presetKey,
+          language: configuration.language,
+          scenario: configuration.scenario,
+          channel: configuration.channel,
         }),
       });
 
@@ -262,7 +269,7 @@ export function ElevenLabsVoiceController() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId,
-            providerConversationId: providerConversationId || 'conv_masked_realtime',
+            providerConversationId,
             transcript: transcripts,
             startedAt,
             endedAt,
@@ -318,32 +325,33 @@ export function ElevenLabsVoiceController() {
   ].includes(callState);
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl text-slate-100 font-sans">
+    <section className="mx-auto w-full max-w-4xl border border-white/[0.08] bg-[#0D0F12] p-4 text-[#F4F5F7] sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+      <div className="flex flex-col gap-4 border-b border-white/[0.08] pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center space-x-3">
-          <div className="p-3 bg-indigo-600/20 border border-indigo-500/30 rounded-xl text-indigo-400">
-            <Sparkles className="w-6 h-6" />
+          <div className="flex h-10 w-10 items-center justify-center border border-[#78AFFF]/25 bg-[#78AFFF]/[0.08] text-[#78AFFF]">
+            <Volume2 className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white">
-              Northstar Legal Consultations
+            <h2 className="text-lg font-medium tracking-[-0.02em] text-[#F4F5F7]">
+              {configuration.businessName}
             </h2>
-            <p className="text-xs text-slate-400">
-              Agent: <span className="font-semibold text-slate-200">Maya</span> (Virtual
-              Receptionist) • Language: English (en-US)
+            <p className="mt-1 text-xs text-[#737C88]">
+              Agent:{' '}
+              <span className="font-semibold text-slate-200">{configuration.agentDisplayName}</span>{' '}
+              Â· Language: {configuration.language}
             </p>
           </div>
         </div>
 
         <div className="flex items-center space-x-3">
-          <div className="px-3 py-1 bg-slate-800 border border-slate-700 rounded-full text-xs text-slate-300 flex items-center space-x-1.5">
-            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="flex items-center space-x-1.5 border border-white/[0.08] px-2.5 py-1 text-xs text-[#A1A8B3]">
+            <Shield className="h-3.5 w-3.5 text-[#75D6C9]" />
             <span>WebRTC Encrypted</span>
           </div>
 
           {isCallActive && (
-            <div className="px-3 py-1 bg-amber-500/10 border border-amber-500/30 rounded-full text-xs font-mono text-amber-400 flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1.5 border border-[#D8AE69]/25 bg-[#D8AE69]/[0.08] px-2.5 py-1 font-mono text-xs text-[#D8AE69]">
               <Clock className="w-3.5 h-3.5" />
               <span>{formatTime(timeRemaining)}</span>
             </div>
@@ -352,23 +360,22 @@ export function ElevenLabsVoiceController() {
       </div>
 
       {/* Main Call Body */}
-      <div className="my-8 flex flex-col items-center justify-center min-h-[220px]">
+      <div className="my-6 flex min-h-[220px] flex-col items-center justify-center">
         {callState === 'IDLE' && (
           <div className="text-center space-y-6">
-            <div className="w-20 h-20 mx-auto rounded-full bg-indigo-600/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 animate-pulse">
-              <Volume2 className="w-10 h-10" />
+            <div className="mx-auto flex h-12 w-12 items-center justify-center border border-white/[0.13] bg-[#121519] text-[#78AFFF]">
+              <Volume2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Ready for Legal Intake Call</h3>
-              <p className="text-sm text-slate-400 max-w-md mx-auto mt-1">
-                Click below to start a live WebRTC audio call with Maya. Speak naturally to test
-                intake, qualification, and interruption handling.
+              <h3 className="text-lg font-medium tracking-tight text-[#F4F5F7]">Ready to talk</h3>
+              <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-[#A1A8B3]">
+                Start a live WebRTC conversation using the selected configured scenario.
               </p>
             </div>
             <button
               onClick={handleStartCall}
               id="start-live-voice-call-btn"
-              className="px-8 py-3.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 transition-all duration-200 flex items-center space-x-2.5 mx-auto"
+              className="mx-auto flex min-h-11 items-center space-x-2.5 bg-[#78AFFF] px-6 py-3 text-sm font-medium text-[#08090B] transition-colors duration-200 hover:bg-[#91BEFF]"
             >
               <Mic className="w-5 h-5" />
               <span>Start Live Voice Call</span>
@@ -397,31 +404,33 @@ export function ElevenLabsVoiceController() {
 
         {isCallActive && (
           <div className="w-full space-y-6">
-            <div className="flex items-center justify-between p-4 bg-slate-950/60 border border-slate-800 rounded-xl">
+            <div className="flex items-center justify-between border border-white/[0.08] bg-[#121519] p-4">
               <div className="flex items-center space-x-3">
-                <div className="relative">
+                <div aria-hidden="true">
                   <div
-                    className={`w-3 h-3 rounded-full ${
+                    className={`h-2.5 w-2.5 ${
                       callState === 'AGENT_SPEAKING'
-                        ? 'bg-emerald-400 animate-ping'
+                        ? 'bg-[#75D6C9]'
                         : callState === 'CALLER_SPEAKING'
-                          ? 'bg-indigo-400 animate-pulse'
-                          : 'bg-emerald-500'
+                          ? 'bg-[#78AFFF]'
+                          : 'border border-[#75D6C9]'
                     }`}
                   />
                 </div>
-                <span className="text-sm font-medium text-slate-200">
-                  {callState === 'AGENT_SPEAKING' && 'Maya is speaking...'}
+                <span className="text-sm font-medium text-[#F4F5F7]" aria-live="polite">
+                  {callState === 'AGENT_SPEAKING' &&
+                    `${configuration.agentDisplayName} is speaking...`}
                   {callState === 'CALLER_SPEAKING' && 'Listening to caller...'}
-                  {callState === 'LISTENING' && 'Maya is listening...'}
-                  {callState === 'CONNECTED' && "Call Connected — Waiting for Maya's greeting..."}
+                  {callState === 'LISTENING' && `${configuration.agentDisplayName} is listening...`}
+                  {callState === 'CONNECTED' &&
+                    `Call connected â€” waiting for ${configuration.agentDisplayName}'s greeting...`}
                 </span>
               </div>
 
               <button
                 onClick={() => handleEndCall('USER_ENDED')}
                 id="end-live-voice-call-btn"
-                className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg shadow-md transition-colors flex items-center space-x-2"
+                className="flex min-h-11 items-center space-x-2 border border-[#E48686]/30 bg-[#E48686]/[0.08] px-4 py-2 text-sm font-medium text-[#E48686] transition-colors hover:bg-[#E48686]/[0.14]"
               >
                 <PhoneOff className="w-4 h-4" />
                 <span>End Call</span>
@@ -429,29 +438,28 @@ export function ElevenLabsVoiceController() {
             </div>
 
             {/* Live Transcript View */}
-            <div className="h-64 overflow-y-auto p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-3">
+            <div className="h-72 overflow-y-auto border border-white/[0.08] bg-[#08090B] px-4">
               {transcripts.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-xs text-slate-500 italic">
-                  Conversation transcripts will appear here in real-time...
+                <div className="flex h-full items-center justify-center text-xs text-[#737C88]">
+                  Transcript will appear when the provider sends a completed turn.
                 </div>
               ) : (
                 transcripts.map(t => (
                   <div
                     key={t.id}
-                    className={`flex flex-col ${t.role === 'CALLER' ? 'items-end' : 'items-start'}`}
+                    className="grid grid-cols-[64px_96px_1fr] gap-3 border-b border-white/[0.06] py-3 text-sm last:border-b-0"
                   >
-                    <div
-                      className={`max-w-[80%] p-3 rounded-xl text-sm ${
-                        t.role === 'CALLER'
-                          ? 'bg-indigo-600 text-white rounded-br-none'
-                          : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
-                      }`}
-                    >
-                      <p className="text-xs font-semibold mb-1 opacity-75">
-                        {t.role === 'CALLER' ? 'Caller' : 'Maya (Northstar Legal)'}
-                      </p>
-                      <p>{t.text}</p>
-                    </div>
+                    <time className="font-mono text-[11px] tabular-nums text-[#737C88]">
+                      {new Date(t.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                      })}
+                    </time>
+                    <span className="text-xs font-medium text-[#A1A8B3]">
+                      {t.role === 'CALLER' ? 'Caller' : configuration.agentDisplayName}
+                    </span>
+                    <p className="leading-5 text-[#F4F5F7]">{t.text}</p>
                   </div>
                 ))
               )}
@@ -471,11 +479,10 @@ export function ElevenLabsVoiceController() {
             <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl flex items-start space-x-3">
               <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-semibold text-emerald-300">
-                  Call Finalized Truthfully
-                </h4>
+                <h4 className="text-sm font-semibold text-emerald-300">Conversation ended</h4>
                 <p className="text-xs text-emerald-400/80 mt-0.5">
-                  The voice session completed successfully via ElevenLabs WebRTC.
+                  Provider reconciliation is pending. CRM completion is shown only after confirmed
+                  provider data arrives.
                 </p>
               </div>
             </div>
@@ -570,6 +577,6 @@ export function ElevenLabsVoiceController() {
           <span className="text-slate-400">Latency / Metrics:</span> Not measured
         </div>
       </div>
-    </div>
+    </section>
   );
 }

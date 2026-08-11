@@ -1,0 +1,48 @@
+name: Bug report
+description: Report a reproducible product, API, provider-boundary, or documentation defect.
+title: "bug: "
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Commit SHA or deployment
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options: [local, preview, production, simulation, live-provider]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result and redacted logs
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Browser, runtime, and screenshots
+      description: Remove credentials, tokens, full phone numbers, emails, transcripts, and other sensitive data.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed sensitive data and this is not a security vulnerability.
+          required: true

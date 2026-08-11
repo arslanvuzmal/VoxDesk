@@ -1,64 +1,95 @@
-name: VoxDesk CI Pipeline
+name: VoxDesk CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ main, fix/*, feat/* ]
+    branches: [main, 'codex/**', 'feat/**', 'fix/**', 'docs/**', 'refactor/**', 'security/**', 'test/**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: voxdesk-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
+  NEXT_TELEMETRY_DISABLED: 1
+  AUTH_SECRET: ci-only-auth-secret-not-used-outside-validation
+  ENCRYPTION_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  INTERNAL_API_SECRET: ci-only-internal-secret-not-used-outside-validation
+  DEMO_SESSION_SECRET: ci-only-demo-session-secret-not-used-outside-validation
+  IP_HASH_SECRET: ci-only-ip-hash-secret-not-used-outside-validation
+  PHONE_HASH_SECRET: ci-only-phone-hash-secret-not-used-outside-validation
 
 jobs:
-  verify:
-    name: Build & Test Verification
+  quality:
+    name: Repository validation
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
-      NEXT_TELEMETRY_DISABLED: 1
-
+    timeout-minutes: 12
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js Environment
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx prisma validate
+      - run: npm run format:check
+      - run: npm run docs:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run audit:routes
 
-      - name: Install Dependencies
-        run: npm ci
+  tests:
+    name: Unit, integration, and security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run test:unit
+      - run: npm run test:integration
+      - run: npm run test:security
 
-      - name: Validate Prisma Schema
-        run: npx prisma validate
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
 
-      - name: Check Formatting
-        run: npm run format:check
-
-      - name: Lint Codebase
-        run: npm run lint
-
-      - name: Typecheck TypeScript
-        run: npm run typecheck
-
-      - name: Run Unit Tests
-        run: npm run test:unit
-
-      - name: Run Integration Tests
-        run: npm run test:integration
-
-      - name: Run Security Tests
-        run: npm run test:security
-
-      - name: Audit Routes
-        run: npm run audit:routes
-
-      - name: Build Next.js Production Bundle
-        run: npm run build
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E Tests
-        run: npm run test:e2e
-        env:
-          PLAYWRIGHT_BASE_URL: https://voxdesk-ai.vercel.app
+  e2e:
+    name: Browser acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v7
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

@@ -1,20 +1,24 @@
-# Webhook Security
+# Webhook security
 
-## Telnyx ED25519 Verification
+Real provider webhooks are not a simulation entry point. Simulation enters internal services through an authorized, validated path.
 
-Every webhook from `/api/webhooks/telnyx/voice` verifies:
+```mermaid
+flowchart LR
+  Raw[Raw provider request] --> Verify[Verify signature and timestamp]
+  Verify --> Identify[Read provider event ID]
+  Identify --> Deduplicate[Persist idempotency record]
+  Deduplicate --> Ack[Return fast acknowledgement]
+  Ack --> Queue[Async projection and reconciliation]
+```
 
-1. `TELNYX_PUBLIC_KEY` is configured
-2. The ED25519 signature header (`x-telnyx-ed25519-signature`) is present
-3. The timestamp header (`x-telnyx-timestamp`) is within 5 minutes tolerance
-4. Event idempotency is checked by provider event ID
+## Telnyx voice
 
-Invalid signatures are rejected in production (`NODE_ENV === 'production'`).
+`/api/webhooks/telnyx/voice` verifies the configured Telnyx public key/signature and timestamp freshness, normalizes the provider event, and applies provider-event idempotency. It preserves safe payload metadata and defers slow CRM, analytics, and reconciliation work.
 
-## Raw Event Storage
+## ElevenLabs post-call
 
-Raw webhook payloads are stored safely before acknowledgment. Sensitive transcript content is not included in general analytics logs.
+The post-call route verifies its raw-body HMAC and timestamp before a provider event can finalize a conversation. ElevenLabs post-call data is reconciled with VoxDesk tool state and Telnyx carrier events; it is not trusted as proof that a server-side tool mutation succeeded.
 
-## Async Processing
+## Failure behavior
 
-Business logic (LLM evaluation, database aggregation, analytics) runs asynchronously after acknowledgment. The webhook response is returned quickly to prevent provider retries.
+Invalid signatures, stale timestamps, malformed events, and replayed events are rejected. Provider events can arrive duplicated or out of order, so processing is idempotent and reconciliation uses correlation identifiers and transition rules. Safe logs include correlation/provider-event identifiers, not provider credentials or full customer payloads.

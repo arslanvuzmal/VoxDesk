@@ -7,7 +7,7 @@ export interface TelephonyProvider {
   assignPhoneNumber(agentId: string, phoneNumber: string): Promise<boolean>;
   startCall(options: CallStartOptions): Promise<TelephonyCallRecord>;
   endCall(providerCallId: string): Promise<boolean>;
-  transferCall(providerCallId: string, targetNumber: string): Promise<boolean>;
+  transferCall(providerCallId: string, targetNumber: string, commandId?: string): Promise<boolean>;
   getCall(providerCallId: string): Promise<TelephonyCallRecord | null>;
   listCalls(agentId: string): Promise<TelephonyCallRecord[]>;
   verifyWebhook(headers: Record<string, string>, body: string): Promise<boolean>;
@@ -34,6 +34,7 @@ export interface CallStartOptions {
   agentId: string;
   agentVersionId: string;
   callerNumber: string;
+  callerIdNumber?: string;
   callerName?: string;
   direction: CallDirection;
   channel: CallChannel;
@@ -49,6 +50,7 @@ export interface TelephonyCallRecord {
   providerCallControlId: string;
   providerCallSessionId?: string;
   providerCallLegId?: string;
+  connectionId?: string;
   providerConversationId?: string;
   agentId: string;
   agentVersionId: string;
@@ -68,6 +70,7 @@ export interface WebhookEventPayload {
   providerCallControlId: string;
   providerCallSessionId?: string;
   providerCallLegId?: string;
+  connectionId?: string;
   providerEventId?: string;
   timestamp: Date;
   rawPayload: Record<string, unknown>;

@@ -12,6 +12,8 @@ import {
 import { prisma } from '@/lib/database';
 import { acquireCallLeases, releaseCallLeases } from '@/lib/telephony/concurrency';
 import { featureFlags } from '@/lib/features/flags';
+import { hashPhoneNumber } from '@/lib/security/identifiers';
+import { isWithinCallingWindow } from '@/lib/telephony/outbound/calling-window';
 
 export interface OutboundCallRequest {
   workspaceId: string;
@@ -166,6 +168,7 @@ export class OutboundTelephonyHandler {
         agentId: request.agentId,
         agentVersionId: request.agentVersionId,
         callerNumber: request.toNumber,
+        callerIdNumber: request.fromNumber,
         direction: 'OUTBOUND',
         channel: 'PHONE',
         language: request.language,
@@ -285,29 +288,56 @@ export class OutboundTelephonyHandler {
     }
 
     if (request.contactId) {
-      const consent = await prisma.consentRecord.findFirst({
-        where: {
-          contactId: request.contactId,
-          consentType: 'OUTBOUND_CALL',
-          consentStatus: 'GRANTED',
-          revokedAt: null,
-        },
-      });
+      const [contact, consent, preference] = await Promise.all([
+        prisma.contact.findFirst({
+          where: {
+            id: request.contactId,
+            workspaceId: request.workspaceId,
+            phoneHash: hashPhoneNumber(request.toNumber),
+          },
+          select: { id: true },
+        }),
+        prisma.consentRecord.findFirst({
+          where: {
+            workspaceId: request.workspaceId,
+            contactId: request.contactId,
+            consentType: 'OUTBOUND_CALL',
+            consentStatus: 'GRANTED',
+            revokedAt: null,
+          },
+        }),
+        prisma.communicationPreference.findFirst({
+          where: { workspaceId: request.workspaceId, contactId: request.contactId },
+        }),
+      ]);
 
-      if (!consent) {
+      if (!contact || !consent) {
         return {
           valid: false,
           reason: 'Contact has not granted outbound call consent',
           blockedReason: 'CONSENT_MISSING',
         };
       }
+      if (preference?.doNotCall) {
+        return {
+          valid: false,
+          reason: 'Contact communication preference blocks calls',
+          blockedReason: 'DNC_VIOLATION',
+        };
+      }
+    } else {
+      return {
+        valid: false,
+        reason: 'Outbound calls require a persisted contact',
+        blockedReason: 'CONSENT_MISSING',
+      };
     }
 
     const suppression = await prisma.suppressionEntry.findFirst({
       where: {
         workspaceId: request.workspaceId,
-        phoneHash: await this.hashPhoneNumber(request.toNumber),
-        expiresAt: { gte: new Date() },
+        phoneHash: hashPhoneNumber(request.toNumber),
+        OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
       },
     });
 
@@ -315,9 +345,17 @@ export class OutboundTelephonyHandler {
       return { valid: false, reason: 'Number is on suppression list', blockedReason: 'SUPPRESSED' };
     }
 
+    if (!request.callingWindowStart || !request.callingWindowEnd || !request.timeZone) {
+      return {
+        valid: false,
+        reason: 'A recipient-local calling window is required',
+        blockedReason: 'OUTSIDE_WINDOW',
+      };
+    }
+
     if (request.callingWindowStart && request.callingWindowEnd && request.timeZone) {
       if (
-        !this.isWithinCallingWindow(
+        !isWithinCallingWindow(
           request.callingWindowStart,
           request.callingWindowEnd,
           request.timeZone
@@ -332,8 +370,8 @@ export class OutboundTelephonyHandler {
     }
 
     if (request.campaignId) {
-      const campaign = await prisma.campaign.findUnique({
-        where: { id: request.campaignId },
+      const campaign = await prisma.campaign.findFirst({
+        where: { id: request.campaignId, workspaceId: request.workspaceId },
       });
 
       if (!campaign) {
@@ -362,44 +400,6 @@ export class OutboundTelephonyHandler {
     }
 
     return { valid: true };
-  }
-
-  private isWithinCallingWindow(start: string, end: string, timeZone: string): boolean {
-    try {
-      const now = new Date();
-      const tzOffset = this.getTimezoneOffset(timeZone);
-      const localNow = new Date(now.getTime() + tzOffset * 60 * 1000);
-      const currentMinutes = localNow.getHours() * 60 + localNow.getMinutes();
-
-      const [startHour, startMin] = start.split(':').map(Number);
-      const [endHour, endMin] = end.split(':').map(Number);
-      const startMinutes = startHour * 60 + startMin;
-      const endMinutes = endHour * 60 + endMin;
-
-      if (startMinutes <= endMinutes) {
-        return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-      } else {
-        return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
-      }
-    } catch {
-      return true;
-    }
-  }
-
-  private getTimezoneOffset(timeZone: string): number {
-    try {
-      const date = new Date();
-      const utc = date.toLocaleString('en-US', { timeZone: 'UTC', hour12: false });
-      const local = date.toLocaleString('en-US', { timeZone, hour12: false });
-      return (new Date(local).getTime() - new Date(utc).getTime()) / (1000 * 60);
-    } catch {
-      return 0;
-    }
-  }
-
-  private async hashPhoneNumber(phone: string): Promise<string> {
-    const crypto = await import('crypto');
-    return crypto.createHash('sha256').update(phone).digest('hex');
   }
 
   private buildSipHeaders(context: CallContext, elevenLabsAgentId: string): Record<string, string> {
