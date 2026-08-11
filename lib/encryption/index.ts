@@ -1,11 +1,10 @@
 import crypto from 'crypto';
+import { env } from '@/lib/config/env';
 
 const ALGORITHM = 'aes-256-gcm';
-const DEFAULT_KEY =
-  process.env.ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
 function getKey(): Buffer {
-  return Buffer.from(DEFAULT_KEY.slice(0, 64), 'hex');
+  return Buffer.from(env.ENCRYPTION_KEY.slice(0, 64), 'hex');
 }
 
 export function encryptText(plaintext: string): string {

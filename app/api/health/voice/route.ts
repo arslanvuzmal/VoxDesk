@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
-import { TelnyxProvider } from '@/lib/telephony/providers/telnyx';
 import { getProviderReadiness } from '@/lib/features/flags';
+import { getTelephonyCapabilityMatrix } from '@/lib/telephony/capability-matrix';
+import { getTelephonyProvider } from '@/lib/telephony/providers/factory';
 
 export async function GET() {
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   const apiKeyConfigured = Boolean(apiKey);
   const agentId =
-    process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim() || process.env.ELEVENLABS_AGENT_ID?.trim();
+    process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
   const agentConfigured = Boolean(agentId);
 
   let agentVerified = false;
@@ -24,8 +25,18 @@ export async function GET() {
     }
   }
 
-  const telnyx = new TelnyxProvider();
-  const telnyxHealth = await telnyx.healthCheck();
+  const telephonyMatrix = getTelephonyCapabilityMatrix();
+  let telephonyHealth;
+  try {
+    telephonyHealth = await getTelephonyProvider().healthCheck();
+  } catch {
+    telephonyHealth = {
+      providerType: 'TELNYX',
+      status: 'MISCONFIGURED',
+      latencyMs: 0,
+      message: 'Live PSTN activation requirements are incomplete.',
+    };
+  }
 
   const databaseConfigured = Boolean(process.env.DATABASE_URL);
   let databaseReachable = false;
@@ -63,24 +74,38 @@ export async function GET() {
     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
     'local-development';
 
-  const readyForVoice = apiKeyConfigured && agentConfigured && agentVerified;
-  const readyForTelephony =
-    readiness.inboundTelephony.configured && readiness.inboundTelephony.verified;
+  const readinessIssues: string[] = [];
+  if (!apiKeyConfigured) readinessIssues.push('ELEVENLABS_API_KEY is not configured.');
+  if (!agentConfigured) readinessIssues.push('ELEVENLABS_AGENT_ID is not configured.');
+  if (apiKeyConfigured && agentConfigured && !agentVerified) {
+    readinessIssues.push('The configured ElevenLabs agent could not be verified.');
+  }
+  if (!databaseConfigured) readinessIssues.push('DATABASE_URL is not configured.');
+  if (databaseConfigured && !databaseReachable) {
+    readinessIssues.push('The CRM database could not be reached.');
+  }
+
+  // A demo conversation is only live when both the voice provider and the
+  // canonical CRM persistence path are available. Otherwise the interface
+  // must not imply a conversation was captured when it cannot be stored.
+  const readyForVoice = readinessIssues.length === 0;
+  const readyForTelephony = telephonyMatrix.readiness === 'LIVE_READY';
 
   return NextResponse.json(
     {
       readyForVoice,
       readyForTelephony,
+      readinessIssues,
       deploymentCommit,
       elevenLabs: {
         apiConfigured: apiKeyConfigured,
         agentConfigured,
         agentVerified,
       },
-      telnyx: {
-        status: telnyxHealth.status,
-        latencyMs: telnyxHealth.latencyMs,
-        message: telnyxHealth.message,
+      telephony: {
+        mode: telephonyMatrix.mode.toUpperCase(),
+        readiness: telephonyMatrix.readiness,
+        providerHealth: telephonyHealth,
       },
       persistence: {
         databaseConfigured,

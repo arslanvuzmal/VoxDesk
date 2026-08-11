@@ -1,9 +1,10 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { validateSession } from '@/lib/auth';
+import { prisma } from '@/lib/database';
 import { Sidebar } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { Search, PhoneCall, HelpCircle, Bell } from 'lucide-react';
+import { PhoneCall, HelpCircle } from 'lucide-react';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -13,25 +14,22 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!user) {
     redirect('/login');
   }
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: user.activeWorkspaceId },
+    select: { name: true, businessProfile: { select: { businessName: true } } },
+  });
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans antialiased">
-      <Sidebar user={user} />
+      <Sidebar
+        user={user}
+        workspaceName={workspace?.name || 'Workspace'}
+        businessName={workspace?.businessProfile?.businessName || null}
+      />
       <div className="flex-1 flex flex-col min-w-0">
         {/* White Top Utility Bar */}
         <header className="h-14 bg-white border-b border-[#E2E8F0] px-6 flex items-center justify-between gap-4 sticky top-0 z-20 shrink-0 shadow-sm">
-          {/* Search Bar */}
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
-            <div className="relative w-full max-w-md">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
-              <input
-                type="text"
-                placeholder="Search conversations, contacts, phone numbers..."
-                className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-md pl-9 pr-3 py-1.5 text-xs text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:border-[#1D4ED8] transition-colors"
-                readOnly
-              />
-            </div>
-          </div>
+          <div className="flex-1 text-xs text-[#64748B]">Voice operations</div>
 
           {/* Actions & Navigation Context */}
           <div className="flex items-center gap-3 shrink-0 text-xs">

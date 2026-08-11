@@ -16,7 +16,12 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
   it('should reject non-LEGAL preset or non-en-US language with 400 UNSUPPORTED_CONFIGURATION', async () => {
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
-      body: JSON.stringify({ presetKey: 'HEALTHCARE', language: 'en-US' }),
+      body: JSON.stringify({
+        presetKey: 'HEALTHCARE',
+        language: 'en-US',
+        scenario: 'QUALIFICATION',
+        channel: 'WEB_VOICE',
+      }),
     });
 
     const res = await POST(req);
@@ -30,7 +35,12 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
 
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
-      body: JSON.stringify({ presetKey: 'LEGAL', language: 'en-US' }),
+      body: JSON.stringify({
+        presetKey: 'LEGAL',
+        language: 'en-US',
+        scenario: 'QUALIFICATION',
+        channel: 'WEB_VOICE',
+      }),
     });
 
     const res = await POST(req);
@@ -46,7 +56,12 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
 
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
-      body: JSON.stringify({ presetKey: 'LEGAL', language: 'en-US' }),
+      body: JSON.stringify({
+        presetKey: 'LEGAL',
+        language: 'en-US',
+        scenario: 'QUALIFICATION',
+        channel: 'WEB_VOICE',
+      }),
     });
 
     const res = await POST(req);

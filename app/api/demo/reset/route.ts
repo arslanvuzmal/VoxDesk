@@ -5,14 +5,11 @@ import { env } from '@/lib/config/env';
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get('authorization');
-    const secretKey =
-      env.INTERNAL_API_SECRET || 'c789123456789abcdef0123456789abcdef0123456789abcdef0123456789abc';
 
-    // In local dev or demo mode, allow reset
+    // Preview and production reset is always an explicitly authenticated maintenance action.
+    // Local development remains convenient without making public demo deployments mutable.
     const isAllowed =
-      process.env.NODE_ENV !== 'production' ||
-      env.DEMO_MODE === 'true' ||
-      authHeader === `Bearer ${secretKey}`;
+      process.env.NODE_ENV !== 'production' || authHeader === `Bearer ${env.INTERNAL_API_SECRET}`;
 
     if (!isAllowed) {
       return NextResponse.json(
@@ -29,10 +26,7 @@ export async function POST(req: NextRequest) {
       message: 'Demo session limits, cooldowns, and active session counters cleared.',
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
-    return NextResponse.json(
-      { error: 'Failed to reset demo store.', message: error?.message },
-      { status: 500 }
-    );
+  } catch {
+    return NextResponse.json({ error: 'Failed to reset demo store.' }, { status: 500 });
   }
 }

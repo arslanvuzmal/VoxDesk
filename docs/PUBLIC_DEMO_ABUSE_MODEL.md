@@ -1,13 +1,14 @@
-# VoxDesk AI — Public Demo Abuse Model & Security Safeguards
+# Public Demo Abuse Model
 
-**Owner:** Arslan Vuzmal Lone
+The portfolio demo is an authenticated/authorized application experience with explicit fictional data and deterministic telephony simulation.
 
----
+| Risk                     | Control                                                                                             |
+| ------------------------ | --------------------------------------------------------------------------------------------------- |
+| Carrier spend            | Simulation mode never invokes Telnyx.                                                               |
+| Provider cost exhaustion | Demo/session and workspace rate limits, bounded turns, and duration limits.                         |
+| Tenant leakage           | Workspace-scoped access and separate fictional demo data.                                           |
+| Tool abuse               | Signed conversation context, allowlisted tool schemas, server-owned authorization, and idempotency. |
+| Webhook forgery          | Simulation does not use public webhooks; provider endpoints verify raw signatures and timestamps.   |
+| Misrepresentation        | Every simulated record and result is visibly labelled as simulation.                                |
 
-## Abuse Prevention Architecture
-
-1. **Session Quotas:** Max 3 minutes and 6 conversational turns per demo session.
-2. **Character & Token Caps:** User input capped at 600 chars; agent output capped at 350 chars; LLM tokens capped at 160.
-3. **IP Hash Ledger:** Max 3 demo sessions per IP address per 24-hour period.
-4. **Credential Isolation:** OpenRouter & ElevenLabs API keys exist strictly in server modules guarded by `import "server-only";`. Single-use ephemeral Scribe tokens are issued via `/api/demo/stt-token`.
-5. **Deterministic Fallbacks:** When API keys are unconfigured or provider budgets are reached, the system falls back gracefully to browser Web Speech API without crashing.
+Simulation is not a fallback for an unhealthy live provider. Live telephony must be explicitly activated and verified.

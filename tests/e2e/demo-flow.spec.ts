@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('VoxDesk AI /demo Route Regression Suite', () => {
+test.describe('VoxDesk /demo route', () => {
   test('should render /demo page without client-side exceptions or missing ElevenLabs provider errors', async ({
     page,
   }) => {
@@ -33,7 +33,7 @@ test.describe('VoxDesk AI /demo Route Regression Suite', () => {
     await expect(appErrorHeading).not.toBeVisible();
 
     // 4. Assert header and call button are visible (flexible text matching)
-    await expect(page.getByText(/Live Voice Agent Sandbox|Voice Agent Sandbox/i)).toBeVisible({
+    await expect(page.getByRole('heading', { name: 'Live business conversation' })).toBeVisible({
       timeout: 10000,
     });
     await expect(
@@ -45,6 +45,23 @@ test.describe('VoxDesk AI /demo Route Regression Suite', () => {
       err.includes('useConversation must be used within a ConversationProvider')
     );
     expect(providerError).toBe(false);
+    expect(consoleErrors).toEqual([]);
+  });
+
+  test('contains the complete demo at mobile width without horizontal overflow', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/demo');
+    await expect(page.getByRole('button', { name: 'Start Live Voice Call' })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByRole('button', { name: 'Open navigation' })).toBeVisible();
+    const dimensions = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth);
   });
 
   test('should load authenticated dashboard routes cleanly', async ({ page }) => {
