@@ -73,7 +73,7 @@ const envSchema = z.object({
   CLOUDFLARE_LLM_TIMEOUT_MS: z.string().default('15000'),
   CLOUDFLARE_MAX_OUTPUT_TOKENS: z.string().default('180'),
   CLOUDFLARE_TEMPERATURE: z.string().default('0.35'),
-  CLOUDFLARE_MAX_STT_SECONDS_PER_SESSION: z.string().default('1800'),
+  CLOUDFLARE_MAX_TTS_CHARACTERS_PER_SESSION: z.string().default('1800'),
   CLOUDFLARE_MAX_STT_SECONDS_PER_SESSION: z.string().default('180'),
   CLOUDFLARE_AI_KILL_SWITCH: z.string().default('false'),
   OPENROUTER_API_KEY: z.string().optional(),
