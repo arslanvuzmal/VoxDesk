@@ -60,5 +60,8 @@ describe('tool governance security boundary', () => {
     expect(executor).toContain('options.approvalRequestId !== approval.id');
     expect(executor).toContain('approval.payloadFingerprint !== payloadFingerprint');
     expect(executor).toContain("status: 'CONSUMED'");
+    expect(executor).toContain("where: { id: existing.id, status: 'PENDING_APPROVAL' }");
+    expect(executor).toContain("data: { status: 'EXECUTING' }");
+    expect(executor).toContain('claimed.count !== 1');
   });
 });
