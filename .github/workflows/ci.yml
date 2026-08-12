@@ -36,28 +36,6 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Emit canonical formatting
-        run: |
-          npx prettier --write "app/(dashboard)/dashboard/analytics/page.tsx"
-          echo "FORMATTED_0_BASE64_BEGIN"
-          base64 -w 0 "app/(dashboard)/dashboard/analytics/page.tsx"
-          echo
-          echo "FORMATTED_0_BASE64_END"
-          npx prettier --write "app/(marketing)/architecture/page.tsx"
-          echo "FORMATTED_1_BASE64_BEGIN"
-          base64 -w 0 "app/(marketing)/architecture/page.tsx"
-          echo
-          echo "FORMATTED_1_BASE64_END"
-          npx prettier --write "app/status/page.tsx"
-          echo "FORMATTED_2_BASE64_BEGIN"
-          base64 -w 0 "app/status/page.tsx"
-          echo
-          echo "FORMATTED_2_BASE64_END"
-          npx prettier --write "components/ui/footer.tsx"
-          echo "FORMATTED_3_BASE64_BEGIN"
-          base64 -w 0 "components/ui/footer.tsx"
-          echo
-          echo "FORMATTED_3_BASE64_END"
       - run: npx prisma validate
       - run: npm run format:check
       - run: npm run docs:check

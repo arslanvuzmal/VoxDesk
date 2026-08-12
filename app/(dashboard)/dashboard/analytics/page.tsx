@@ -73,9 +73,7 @@ export default function AnalyticsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">
             Insight
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">
-            Analytics
-          </h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">Analytics</h1>
           <p className="mt-1 text-sm text-[#64748B]">
             Calculated from persisted conversations and confirmed CRM records.
           </p>
@@ -135,7 +133,9 @@ export default function AnalyticsPage() {
                   <div className="flex min-h-12 items-center justify-between gap-4">
                     <dt className="text-[#64748B]">Appointment rate</dt>
                     <dd className="font-semibold text-[#0F172A]">
-                      {metrics.appointmentRate === null ? 'Not provided' : `${metrics.appointmentRate}%`}
+                      {metrics.appointmentRate === null
+                        ? 'Not provided'
+                        : `${metrics.appointmentRate}%`}
                     </dd>
                   </div>
                   <div className="flex min-h-12 items-center justify-between gap-4">

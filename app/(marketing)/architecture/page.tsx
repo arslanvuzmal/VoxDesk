@@ -42,8 +42,8 @@ export default function ArchitecturePage() {
             <Key className="w-8 h-8 text-emerald-400" />
             <h3 className="text-lg font-bold text-white">Webhook HMAC Signature Verification</h3>
             <p className="text-xs text-gray-300 leading-relaxed">
-              Telnyx and ElevenLabs webhooks require provider-specific signature, timestamp, and replay verification
-              verification and timestamp replay protection.
+              Telnyx and ElevenLabs webhooks require provider-specific signature, timestamp, and
+              replay verification verification and timestamp replay protection.
             </p>
           </div>
         </div>

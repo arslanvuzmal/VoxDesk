@@ -12,8 +12,8 @@ export function Footer() {
             <span className="font-medium text-[#F4F5F7]">VoxDesk</span>
           </div>
           <p className="mt-4 max-w-sm leading-5">
-            AI customer operations infrastructure for conversations, CRM actions, and supervised business
-            workflows.
+            AI customer operations infrastructure for conversations, CRM actions, and supervised
+            business workflows.
           </p>
         </div>
         <div>
