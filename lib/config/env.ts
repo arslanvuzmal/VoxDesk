@@ -121,8 +121,17 @@ export function validateProductionSecurityEnvironment(
   return [...new Set(failures)];
 }
 
+export function normalizeEnvironmentInput(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  return Object.fromEntries(
+    Object.entries(source).map(([name, value]) => [
+      name,
+      typeof value === 'string' && value.trim() === '' ? undefined : value,
+    ])
+  );
+}
+
 function getEnv() {
-  const result = envSchema.safeParse(process.env);
+  const result = envSchema.safeParse(normalizeEnvironmentInput(process.env));
   if (!result.success) {
     throw new Error(
       `Invalid environment configuration: ${result.error.issues
