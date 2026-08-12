@@ -20,8 +20,16 @@ function parseHttpUrl(value: string, source: string): string {
   }
 }
 
+function readApplicationUrlEnvironment(): ApplicationUrlEnvironment {
+  return {
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    VERCEL_URL: process.env.VERCEL_URL,
+  };
+}
+
 export function resolveApplicationUrl(
-  environment: ApplicationUrlEnvironment = process.env,
+  environment: ApplicationUrlEnvironment = readApplicationUrlEnvironment()
 ): string {
   const configuredUrl = environment.NEXT_PUBLIC_APP_URL?.trim();
 
@@ -30,7 +38,8 @@ export function resolveApplicationUrl(
   }
 
   const vercelHostname =
-    environment.VERCEL_PROJECT_PRODUCTION_URL?.trim() || environment.VERCEL_URL?.trim();
+    environment.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
+    environment.VERCEL_URL?.trim();
 
   if (vercelHostname) {
     const vercelUrl = /^https?:\/\//i.test(vercelHostname)
