@@ -15,10 +15,15 @@ const mocks = vi.hoisted(() => {
   return {
     tx,
     conversationFindFirst: vi.fn(),
-    executionFindUnique: vi.fn(),
+    executionFindFirst: vi.fn(),
+    executionFindMany: vi.fn(),
     executionCreate: vi.fn(),
     executionUpdate: vi.fn(),
-    transaction: vi.fn(async (callback: (client: typeof tx) => unknown) => callback(tx)),
+    stateFindUnique: vi.fn(),
+    auditCreate: vi.fn(),
+    transaction: vi.fn(async (input: ((client: typeof tx) => unknown) | Promise<unknown>[]) =>
+      Array.isArray(input) ? Promise.all(input) : input(tx)
+    ),
   };
 });
 
@@ -26,10 +31,13 @@ vi.mock('@/lib/database', () => ({
   prisma: {
     conversation: { findFirst: mocks.conversationFindFirst },
     conversationToolExecution: {
-      findUnique: mocks.executionFindUnique,
+      findFirst: mocks.executionFindFirst,
+      findMany: mocks.executionFindMany,
       create: mocks.executionCreate,
       update: mocks.executionUpdate,
     },
+    conversationState: { findUnique: mocks.stateFindUnique },
+    auditLog: { create: mocks.auditCreate },
     $transaction: mocks.transaction,
   },
 }));
@@ -59,9 +67,12 @@ describe('authorized appointment tools', () => {
       callId: 'call-a',
       agentId: 'agent-a',
     });
-    mocks.executionFindUnique.mockResolvedValue(null);
+    mocks.executionFindFirst.mockResolvedValue(null);
+    mocks.executionFindMany.mockResolvedValue([]);
     mocks.executionCreate.mockResolvedValue({ id: 'execution-a' });
     mocks.executionUpdate.mockResolvedValue({});
+    mocks.stateFindUnique.mockResolvedValue(null);
+    mocks.auditCreate.mockResolvedValue({});
     mocks.tx.businessProfile.findFirst.mockResolvedValue({ timezone: 'America/New_York' });
     mocks.tx.conversationToolExecution.update.mockResolvedValue({});
     mocks.tx.auditLog.create.mockResolvedValue({});
