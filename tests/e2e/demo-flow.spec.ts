@@ -23,12 +23,12 @@ test.describe('VoxDesk /demo route', () => {
       page.getByText('Application error: a client-side exception has occurred')
     ).not.toBeVisible();
 
-    await expect(
-      page.getByRole('heading', { name: 'Conversations into operations.' })
-    ).toBeVisible({ timeout: 10000 });
-    await expect(
-      page.getByRole('button', { name: 'Start Live Voice Call' })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Conversations into operations.' })).toBeVisible(
+      { timeout: 10000 }
+    );
+    await expect(page.getByRole('button', { name: 'Start Live Voice Call' })).toBeVisible({
+      timeout: 10000,
+    });
 
     expect(
       consoleErrors.some(error =>
@@ -44,9 +44,9 @@ test.describe('VoxDesk /demo route', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/demo');
 
-    await expect(
-      page.getByRole('button', { name: 'Start Live Voice Call' })
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Start Live Voice Call' })).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page.getByRole('button', { name: 'Open navigation' })).toBeVisible();
 
     const dimensions = await page.evaluate(() => ({

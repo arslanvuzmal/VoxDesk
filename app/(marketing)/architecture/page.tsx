@@ -1,12 +1,4 @@
-import {
-  Activity,
-  Database,
-  LockKeyhole,
-  Phone,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from 'lucide-react';
+import { Activity, Database, LockKeyhole, Phone, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 
 const layers = [
@@ -122,9 +114,7 @@ export default function ArchitecturePage() {
                 </div>
                 <div>
                   <dt className="text-[#64748B]">VoxDesk</dt>
-                  <dd className="mt-1 text-[#DCE6F2]">
-                    Operations, CRM, policy and analytics
-                  </dd>
+                  <dd className="mt-1 text-[#DCE6F2]">Operations, CRM, policy and analytics</dd>
                 </div>
               </dl>
             </div>

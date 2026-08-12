@@ -96,14 +96,8 @@ export function DemoStudio() {
     [scenario]
   );
   const onStateChange = useCallback((next: CallState) => setState(next), []);
-  const onTranscriptChange = useCallback(
-    (next: VoiceTranscriptLine[]) => setTranscript(next),
-    []
-  );
-  const onFinalization = useCallback(
-    (next: FinalizationResult | null) => setResult(next),
-    []
-  );
+  const onTranscriptChange = useCallback((next: VoiceTranscriptLine[]) => setTranscript(next), []);
+  const onFinalization = useCallback((next: FinalizationResult | null) => setResult(next), []);
   const disabled = !['IDLE', 'COMPLETED', 'FAILED'].includes(state);
 
   const effects = [
@@ -201,9 +195,7 @@ export function DemoStudio() {
             <div className="flex items-center gap-3">
               <Volume2 className="h-4 w-4 text-[#6EE7F9]" />
               <span className="text-sm font-medium">{configuration.businessName}</span>
-              <span className="text-xs text-[#64748B]">
-                Agent {configuration.agentDisplayName}
-              </span>
+              <span className="text-xs text-[#64748B]">Agent {configuration.agentDisplayName}</span>
             </div>
             <StatePill state={state} />
           </div>
@@ -253,9 +245,7 @@ export function DemoStudio() {
                 <CheckCircle2 className="h-4 w-4" />
                 CRM receipt ready
               </div>
-              <p className="mt-2 text-xs text-[#94A3B8]">
-                Session {result.sessionId} persisted.
-              </p>
+              <p className="mt-2 text-xs text-[#94A3B8]">Session {result.sessionId} persisted.</p>
             </div>
           )}
         </aside>
