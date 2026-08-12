@@ -36,6 +36,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Emit canonical analytics formatting
+        run: |
+          npx prettier --write "app/(dashboard)/dashboard/analytics/page.tsx"
+          echo "FORMATTED_ANALYTICS_BASE64_BEGIN"
+          base64 -w 0 "app/(dashboard)/dashboard/analytics/page.tsx"
+          echo
+          echo "FORMATTED_ANALYTICS_BASE64_END"
       - run: npx prisma validate
       - run: npm run format:check
       - run: npm run docs:check
