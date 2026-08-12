@@ -40,12 +40,6 @@ export interface ToolPolicyEvaluator {
 export const TOOL_POLICY_VERSION = '2026-08-12.1';
 
 const EXTERNAL_COMMUNICATION_TOOLS = new Set(['schedule_callback', 'create_follow_up']);
-const SENSITIVE_MUTATION_TOOLS = new Set([
-  'create_or_update_contact',
-  'reschedule_appointment',
-  'cancel_appointment',
-]);
-
 const BASE_RISK: Record<string, number> = {
   check_availability: 5,
   record_opt_out: 0,
