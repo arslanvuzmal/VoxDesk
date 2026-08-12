@@ -13,6 +13,7 @@ export interface ToolPolicyInput {
   sessionId: string;
   workspaceId: string;
   agentId: string;
+  contactId: string | null;
   specialist: string | null;
   tool: string;
   parameters: Record<string, unknown>;
@@ -137,10 +138,12 @@ export const deterministicToolPolicyEvaluator: ToolPolicyEvaluator = {
       triggeredPolicyIds.push('PAYLOAD_SENSITIVE_FIELDS');
       reasonCodes.push('SENSITIVE_FIELDS_PRESENT');
     }
-    if (
-      SENSITIVE_MUTATION_TOOLS.has(input.tool) &&
-      input.identityVerificationState !== 'VERIFIED'
-    ) {
+    const requiresVerifiedIdentity =
+      (input.tool === 'create_or_update_contact' &&
+        input.contactId !== null &&
+        hasSensitivePayload) ||
+      ['reschedule_appointment', 'cancel_appointment'].includes(input.tool);
+    if (requiresVerifiedIdentity && input.identityVerificationState !== 'VERIFIED') {
       score += 25;
       triggeredPolicyIds.push('IDENTITY_REQUIRED_FOR_SENSITIVE_MUTATION');
       reasonCodes.push('IDENTITY_NOT_VERIFIED');
