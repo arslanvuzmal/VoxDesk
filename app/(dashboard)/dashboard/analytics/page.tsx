@@ -52,9 +52,7 @@ export default function AnalyticsPage() {
       setMetrics(payload.data);
     } catch (fetchError) {
       setMetrics(null);
-      setError(
-        fetchError instanceof Error ? fetchError.message : 'Analytics data is unavailable.'
-      );
+      setError(fetchError instanceof Error ? fetchError.message : 'Analytics data is unavailable.');
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/auth/dashboard-context', () => ({
-  requireDashboardContext: vi.fn().mockResolvedValue({ workspaceId: 'workspace-a' }),
+  requireDashboardPermission: vi.fn().mockResolvedValue({ workspaceId: 'workspace-a' }),
 }));
 vi.mock('@/lib/database', () => ({
   prisma: {
