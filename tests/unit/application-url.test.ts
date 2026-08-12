@@ -8,7 +8,7 @@ describe('resolveApplicationUrl', () => {
       resolveApplicationUrl({
         NEXT_PUBLIC_APP_URL: '   ',
         VERCEL_PROJECT_PRODUCTION_URL: 'voxdesk-ai.vercel.app',
-      }),
+      })
     ).toBe('https://voxdesk-ai.vercel.app');
   });
 
@@ -17,13 +17,13 @@ describe('resolveApplicationUrl', () => {
       resolveApplicationUrl({
         NEXT_PUBLIC_APP_URL: '',
         VERCEL_URL: 'voxdesk-git-fix-example.vercel.app',
-      }),
+      })
     ).toBe('https://voxdesk-git-fix-example.vercel.app');
   });
 
   it('falls back to localhost outside Vercel', () => {
     expect(resolveApplicationUrl({ NEXT_PUBLIC_APP_URL: '' })).toBe(
-      'http://localhost:3000',
+      'http://localhost:3000'
     );
   });
 
@@ -31,7 +31,7 @@ describe('resolveApplicationUrl', () => {
     expect(
       resolveApplicationUrl({
         NEXT_PUBLIC_APP_URL: ' https://example.com/path ',
-      }),
+      })
     ).toBe('https://example.com');
   });
 
@@ -39,7 +39,7 @@ describe('resolveApplicationUrl', () => {
     expect(() =>
       resolveApplicationUrl({
         NEXT_PUBLIC_APP_URL: 'not-a-url',
-      }),
+      })
     ).toThrow('NEXT_PUBLIC_APP_URL must be an absolute HTTP(S) URL');
   });
 });
