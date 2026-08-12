@@ -71,7 +71,7 @@ jobs:
       - name: Commit generated baseline to the temporary branch
         run: |
           set -euo pipefail
-          if git diff --quiet -- .database-bootstrap/neon-empty-database.sql; then
+          if [ -z "$(git status --porcelain -- .database-bootstrap/neon-empty-database.sql)" ]; then
             exit 0
           fi
           git config user.name "github-actions[bot]"
