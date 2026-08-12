@@ -41,17 +41,17 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Format branch-only UX files
-        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/flagship-product-experience'
-        env:
-          GH_TOKEN: ${{ github.token }}
+        if: github.event_name == 'pull_request' && github.head_ref == 'feat/flagship-product-experience'
         run: |
+          git fetch origin feat/flagship-product-experience
+          git checkout feat/flagship-product-experience
           npx prettier --write 'app/(marketing)/architecture/page.tsx' components/demo/demo-studio.tsx tests/e2e/demo-flow.spec.ts
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add 'app/(marketing)/architecture/page.tsx' components/demo/demo-studio.tsx tests/e2e/demo-flow.spec.ts
           if git diff --cached --quiet; then exit 0; fi
           git commit -m 'style: apply repository formatter [skip ci]'
-          git push
+          git push origin HEAD:feat/flagship-product-experience
       - run: npx prisma validate
       - run: npm run format:check
       - run: npm run docs:check
