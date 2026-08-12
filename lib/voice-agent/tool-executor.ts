@@ -103,11 +103,7 @@ const UpdateOpportunitySchema = z
 export class ToolExecutionError extends Error {
   constructor(
     public readonly code:
-      | 'VALIDATION'
-      | 'AUTHORIZATION'
-      | 'POLICY_DENIED'
-      | 'CONFLICT'
-      | 'NOT_FOUND',
+      'VALIDATION' | 'AUTHORIZATION' | 'POLICY_DENIED' | 'CONFLICT' | 'NOT_FOUND',
     message: string,
     public readonly status: number
   ) {
@@ -125,7 +121,9 @@ export class ToolApprovalRequiredError extends Error {
 }
 
 function jsonStringArray(value: Prisma.JsonValue | null | undefined): string[] {
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
 }
 
 function executionDataCategories(value: Prisma.JsonValue | null | undefined): string[] {
@@ -418,7 +416,11 @@ export async function executeDatabaseTool(
         if (raced?.status === 'PENDING_APPROVAL' && raced.approvalRequest) {
           throw new ToolApprovalRequiredError(raced.approvalRequest.id);
         }
-        throw new ToolExecutionError('CONFLICT', 'This tool execution is already in progress.', 409);
+        throw new ToolExecutionError(
+          'CONFLICT',
+          'This tool execution is already in progress.',
+          409
+        );
       }
       throw error;
     }
