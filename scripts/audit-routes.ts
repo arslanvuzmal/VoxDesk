@@ -107,9 +107,7 @@ async function checkSourceRoutes(): Promise<number> {
     const redirectExists = redirectSources.has(route.path);
 
     if (pageExists || redirectExists) {
-      console.log(
-        `[PASS] ${route.name} (${route.path}) -> ${pageExists ? 'page' : 'redirect'}`
-      );
+      console.log(`[PASS] ${route.name} (${route.path}) -> ${pageExists ? 'page' : 'redirect'}`);
     } else {
       failed += 1;
       console.error(`[FAIL] ${route.name} (${route.path}) -> no page or redirect`);

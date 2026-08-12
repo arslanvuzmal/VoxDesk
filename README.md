@@ -7,17 +7,19 @@
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 
-[Live demo](https://voxdesk-ai.vercel.app) · [Architecture](docs/architecture/overview.md) · [Documentation](docs/README.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
+[Architecture](docs/architecture/overview.md) · [Documentation](docs/README.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
+
+> Deployment is intentionally deferred until repository verification and merge are complete. The Vercel URL will be published only after its deployed SHA and smoke tests are verified.
 
 VoxDesk turns customer conversations into tenant-scoped, authorized operational state: contacts, conversations, appointments, opportunities, tasks, follow-ups, handoffs, and audit evidence. It is designed to evolve from AI reception into a controlled customer-service operating layer.
 
-## Public demo and production activation
+## Portfolio simulation and production activation
 
-The public portfolio uses `TELEPHONY_MODE=simulation`. A deterministic simulator sends normalized events through VoxDesk's call-state, authorization, persistence, CRM, and audit paths. It never purchases a number or places a PSTN call.
+The portfolio configuration uses `TELEPHONY_MODE=simulation`. A deterministic simulator sends normalized events through VoxDesk's call-state, authorization, persistence, CRM, and audit paths. It never purchases a number or places a PSTN call.
 
 The production architecture keeps **ElevenLabs** as the realtime conversational layer and **Telnyx** as the PSTN/SIP layer. Live calling is activation-required: it needs customer-owned Telnyx resources, configured ElevenLabs SIP, verified webhooks, and authorized provider tests. A configured value is not treated as verified connectivity.
 
-| Capability                             | Implemented | Public demo             | Production              |
+| Capability                             | Implemented | Portfolio demo          | Production              |
 | -------------------------------------- | ----------- | ----------------------- | ----------------------- |
 | Conversation, CRM, tasks, appointments | Yes         | Database-dependent      | Yes                     |
 | Web voice                              | Yes         | Configuration-dependent | Configuration-dependent |

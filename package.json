@@ -2,7 +2,7 @@
   "name": "voxdesk-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "Configurable AI voice receptionist platform with appointment booking, lead qualification, human escalation, call intelligence and provider-ready telephony integrations.",
+  "description": "AI customer operations infrastructure for voice, chat, CRM workflows, scheduling, human handoffs, controlled telephony, and supervised automation.",
   "author": "Arslan Vuzmal Lone <arslanvuzmallone@gmail.com>",
   "license": "MIT",
   "scripts": {
