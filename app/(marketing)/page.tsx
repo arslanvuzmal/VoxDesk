@@ -66,13 +66,13 @@ export default function LandingPage() {
                   href="/demo"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#78AFFF] px-5 text-sm font-medium text-[#08090B] transition-colors hover:bg-[#91BEFF]"
                 >
-                  Try a Live Conversation <ArrowRight className="h-4 w-4" />
+                  Explore Demo <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/dashboard/conversations"
                   className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/[0.13] bg-[#121519] px-5 text-sm font-medium text-[#F4F5F7] transition-colors hover:bg-[#15191D]"
                 >
-                  Explore the CRM
+                  View Platform
                 </Link>
               </div>
               <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#737C88]">
@@ -256,13 +256,13 @@ export default function LandingPage() {
                 href="/demo"
                 className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#78AFFF] px-5 text-sm font-medium text-[#08090B]"
               >
-                Try a Live Conversation
+                Explore Demo
               </Link>
               <Link
                 href="/dashboard/conversations"
                 className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/[0.13] px-5 text-sm font-medium"
               >
-                Explore the CRM
+                View Platform
               </Link>
             </div>
           </div>

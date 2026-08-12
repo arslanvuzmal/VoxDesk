@@ -50,7 +50,19 @@ export interface FinalizationResult {
   warnings: string[];
 }
 
-export function ElevenLabsVoiceController({ configuration }: { configuration: DemoConfiguration }) {
+export interface ElevenLabsVoiceControllerProps {
+  configuration: DemoConfiguration;
+  onStateChange?: (state: CallState) => void;
+  onTranscriptChange?: (transcript: VoiceTranscriptLine[]) => void;
+  onFinalization?: (result: FinalizationResult | null) => void;
+}
+
+export function ElevenLabsVoiceController({
+  configuration,
+  onStateChange,
+  onTranscriptChange,
+  onFinalization,
+}: ElevenLabsVoiceControllerProps) {
   const [callState, setCallState] = useState<CallState>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcripts, setTranscripts] = useState<VoiceTranscriptLine[]>([]);
@@ -296,6 +308,18 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
     },
     [sessionId, providerConversationId, transcripts]
   );
+
+  useEffect(() => {
+    onStateChange?.(callState);
+  }, [callState, onStateChange]);
+
+  useEffect(() => {
+    onTranscriptChange?.(transcripts);
+  }, [transcripts, onTranscriptChange]);
+
+  useEffect(() => {
+    onFinalization?.(finalResult);
+  }, [finalResult, onFinalization]);
 
   useEffect(() => {
     return () => {
