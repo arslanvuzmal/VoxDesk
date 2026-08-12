@@ -1,8 +1,4 @@
-import {
-  hasPermission,
-  type PermissionAction,
-  type WorkspaceRole,
-} from '@/lib/permissions';
+import { hasPermission, type PermissionAction, type WorkspaceRole } from '@/lib/permissions';
 
 export interface DashboardRouteItem {
   label: string;

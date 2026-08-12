@@ -12,7 +12,10 @@ function when(value: Date | null | undefined) {
 }
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const [{ id }, { workspaceId }] = await Promise.all([params, requireDashboardPermission('calls:view')]);
+  const [{ id }, { workspaceId }] = await Promise.all([
+    params,
+    requireDashboardPermission('calls:view'),
+  ]);
   const contact = await prisma.contact.findFirst({
     where: { id, workspaceId },
     include: {
@@ -51,7 +54,7 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
       id: `appointment-${item.id}`,
       at: item.createdAt,
       label: `Appointment ${item.status.toLowerCase()}`,
-      detail: `${item.service} Â· ${when(item.startTime)}`,
+      detail: `${item.service} · ${when(item.startTime)}`,
     })),
     ...contact.opportunities.map(item => ({
       id: `opportunity-${item.id}`,
@@ -95,11 +98,11 @@ export default async function ContactDetailPage({ params }: { params: Promise<{ 
     <div className="space-y-6">
       <header className="border-b border-[#E2E8F0] pb-4">
         <Link href="/dashboard/contacts" className="text-xs text-[#64748B] hover:text-[#0F172A]">
-          â† Contacts
+          ← Contacts
         </Link>
         <h1 className="mt-3 text-xl font-semibold">{contact.name || 'Not provided'}</h1>
         <p className="mt-1 text-sm text-[#64748B]">
-          {contact.company || 'Company not provided'} Â·{' '}
+          {contact.company || 'Company not provided'} ·{' '}
           {contact.phoneMasked || 'Phone not provided'}
         </p>
       </header>
