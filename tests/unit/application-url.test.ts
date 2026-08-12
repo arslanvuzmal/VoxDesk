@@ -21,7 +21,7 @@ describe('resolveApplicationUrl', () => {
     ).toBe('https://voxdesk-git-fix-example.vercel.app');
   });
 
-  it('falls back to localhost outside Vercel', () => {
+  it('falls back to localhost outside a Vercel deployment', () => {
     expect(resolveApplicationUrl({ NEXT_PUBLIC_APP_URL: '' })).toBe('http://localhost:3000');
   });
 
