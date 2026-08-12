@@ -253,10 +253,17 @@ export async function executeDatabaseTool(
       if (approval.status !== 'APPROVED') {
         throw new ToolApprovalRequiredError(approval.id);
       }
-      await prisma.conversationToolExecution.update({
-        where: { id: existing.id },
-        data: { status: 'AUTHORIZED' },
+      const claimed = await prisma.conversationToolExecution.updateMany({
+        where: { id: existing.id, status: 'PENDING_APPROVAL' },
+        data: { status: 'EXECUTING' },
       });
+      if (claimed.count !== 1) {
+        throw new ToolExecutionError(
+          'CONFLICT',
+          'This approved action is already being executed.',
+          409
+        );
+      }
       approvedRequestId = approval.id;
     } else {
       throw new ToolExecutionError(
@@ -316,7 +323,7 @@ export async function executeDatabaseTool(
           ? ('BLOCKED' as const)
           : decision.outcome === 'ESCALATE'
             ? ('PENDING_APPROVAL' as const)
-            : ('AUTHORIZED' as const),
+            : ('EXECUTING' as const),
       policyOutcome: decision.outcome,
       policyVersion: decision.policyVersion,
       riskLevel: decision.riskLevel,
