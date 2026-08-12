@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function TasksPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('calls:view');
   const tasks = await prisma.task.findMany({
     where: { workspaceId },
     orderBy: [{ status: 'asc' }, { dueAt: 'asc' }],
