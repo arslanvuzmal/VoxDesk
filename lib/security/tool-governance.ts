@@ -78,10 +78,7 @@ function canonicalize(value: unknown, key = ''): unknown {
   return normalized;
 }
 
-export function fingerprintToolPayload(
-  tool: string,
-  parameters: Record<string, unknown>
-): string {
+export function fingerprintToolPayload(tool: string, parameters: Record<string, unknown>): string {
   const canonical = JSON.stringify({ tool, parameters: canonicalize(parameters) });
   return crypto.createHash('sha256').update(canonical).digest('hex');
 }
