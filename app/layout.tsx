@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+
+import { resolveApplicationUrl } from '@/lib/config/application-url';
+
 import './globals.css';
 
-const applicationUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const applicationUrl = resolveApplicationUrl();
 const productDescription =
   'VoxDesk connects customer conversations with tenant-scoped CRM, scheduling, follow-up, and human-handoff workflows.';
 
