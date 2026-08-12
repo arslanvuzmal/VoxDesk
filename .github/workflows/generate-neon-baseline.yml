@@ -1,0 +1,81 @@
+name: Generate Neon baseline
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-neon-baseline-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    if: github.head_ref == 'ops/generate-neon-baseline'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate current schema and Prisma history
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/voxdesk?schema=public
+        run: |
+          set -euo pipefail
+          mkdir -p .database-bootstrap
+          npx prisma migrate diff \
+            --from-empty \
+            --to-schema-datamodel=prisma/schema.prisma \
+            --script > .database-bootstrap/schema.sql
+
+          cat > .database-bootstrap/prisma-history.sql <<'SQL'
+          CREATE TABLE IF NOT EXISTS "_prisma_migrations" (
+            "id" VARCHAR(36) PRIMARY KEY NOT NULL,
+            "checksum" VARCHAR(64) NOT NULL,
+            "finished_at" TIMESTAMPTZ,
+            "migration_name" VARCHAR(255) NOT NULL,
+            "logs" TEXT,
+            "rolled_back_at" TIMESTAMPTZ,
+            "started_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
+            "applied_steps_count" INTEGER NOT NULL DEFAULT 0
+          );
+          SQL
+
+          while IFS= read -r migration_dir; do
+            migration_name="$(basename "$migration_dir")"
+            migration_file="$migration_dir/migration.sql"
+            checksum="$(sha256sum "$migration_file" | awk '{print $1}')"
+            record_id="$(printf '%s' "$migration_name" | sha256sum | cut -c1-32)"
+            printf "INSERT INTO \"_prisma_migrations\" (\"id\", \"checksum\", \"finished_at\", \"migration_name\", \"logs\", \"rolled_back_at\", \"started_at\", \"applied_steps_count\") VALUES ('%s', '%s', CURRENT_TIMESTAMP, '%s', NULL, NULL, CURRENT_TIMESTAMP, 1) ON CONFLICT (\"id\") DO NOTHING;\n" "$record_id" "$checksum" "$migration_name" >> .database-bootstrap/prisma-history.sql
+          done < <(find prisma/migrations -mindepth 1 -maxdepth 1 -type d | sort)
+
+          {
+            printf '%s\n' '-- Generated from the canonical Prisma schema for one-time empty-database initialization.'
+            cat .database-bootstrap/schema.sql
+            printf '\n%s\n' '-- Register the repository migration history after the schema has been initialized.'
+            cat .database-bootstrap/prisma-history.sql
+          } > .database-bootstrap/neon-empty-database.sql
+
+      - name: Commit generated baseline to the temporary branch
+        run: |
+          set -euo pipefail
+          if [ -z "$(git status --porcelain -- .database-bootstrap/neon-empty-database.sql)" ]; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .database-bootstrap/neon-empty-database.sql
+          git commit -m "chore: generate temporary Neon baseline"
+          git push origin HEAD:ops/generate-neon-baseline
