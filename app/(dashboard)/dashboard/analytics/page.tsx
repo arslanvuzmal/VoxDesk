@@ -135,9 +135,7 @@ export default function AnalyticsPage() {
                   <div className="flex min-h-12 items-center justify-between gap-4">
                     <dt className="text-[#64748B]">Appointment rate</dt>
                     <dd className="font-semibold text-[#0F172A]">
-                      {metrics.appointmentRate === null
-                        ? 'Not provided'
-                        : `${metrics.appointmentRate}%`}
+                      {metrics.appointmentRate === null ? 'Not provided' : `${metrics.appointmentRate}%`}
                     </dd>
                   </div>
                   <div className="flex min-h-12 items-center justify-between gap-4">
