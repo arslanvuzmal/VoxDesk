@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "format:check": "prettier --write \"**/*.{ts,tsx,md,json}\" && git diff --exit-code",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
