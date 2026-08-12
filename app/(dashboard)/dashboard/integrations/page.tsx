@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export const dynamic = 'force-dynamic';
 
 export default async function IntegrationsPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('credentials:manage');
   const [providers, calendars, crms] = await Promise.all([
     prisma.providerConnection.findMany({
       where: { workspaceId },
