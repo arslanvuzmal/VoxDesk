@@ -10,6 +10,10 @@ import {
   normalizePhoneNumber,
   phoneLast4,
 } from '@/lib/security/identifiers';
+import {
+  deterministicToolPolicyEvaluator,
+  fingerprintToolPayload,
+} from '@/lib/security/tool-governance';
 
 const ContactSchema = z
   .object({
@@ -98,12 +102,35 @@ const UpdateOpportunitySchema = z
 
 export class ToolExecutionError extends Error {
   constructor(
-    public readonly code: 'VALIDATION' | 'AUTHORIZATION' | 'CONFLICT' | 'NOT_FOUND',
+    public readonly code:
+      | 'VALIDATION'
+      | 'AUTHORIZATION'
+      | 'POLICY_DENIED'
+      | 'CONFLICT'
+      | 'NOT_FOUND',
     message: string,
     public readonly status: number
   ) {
     super(message);
   }
+}
+
+export class ToolApprovalRequiredError extends Error {
+  readonly code = 'APPROVAL_REQUIRED';
+  readonly status = 202;
+
+  constructor(public readonly approvalRequestId: string) {
+    super('This action requires human approval before execution.');
+  }
+}
+
+function jsonStringArray(value: Prisma.JsonValue | null | undefined): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
+function executionDataCategories(value: Prisma.JsonValue | null | undefined): string[] {
+  if (!value || Array.isArray(value) || typeof value !== 'object') return [];
+  return jsonStringArray((value as Prisma.JsonObject).dataCategories);
 }
 
 export async function assertPersistedConversationContext(context: ConversationContext) {
@@ -161,62 +188,240 @@ export function isSupportedDatabaseTool(tool: string): tool is SupportedTool {
   ].includes(tool);
 }
 
+export interface ToolExecutionOptions {
+  approvalRequestId?: string;
+}
+
 export async function executeDatabaseTool(
   tool: SupportedTool,
   toolExecutionId: string,
   parameters: Record<string, unknown>,
-  context: ConversationContext
+  context: ConversationContext,
+  options: ToolExecutionOptions = {}
 ): Promise<Prisma.JsonObject> {
   const conversation = await assertPersistedConversationContext(context);
-  const operationFingerprint = `${tool}:${toolExecutionId}`;
-  const existing = await prisma.conversationToolExecution.findUnique({
+  const payloadFingerprint = fingerprintToolPayload(tool, parameters);
+  const operationFingerprint = payloadFingerprint;
+  let approvedRequestId: string | null = null;
+  const existing = await prisma.conversationToolExecution.findFirst({
     where: {
-      conversationId_operationFingerprint: {
-        conversationId: conversation.id,
-        operationFingerprint,
-      },
+      conversationId: conversation.id,
+      OR: [{ actionId: toolExecutionId }, { operationFingerprint }],
     },
+    include: { approvalRequest: true },
   });
+
   if (existing) {
+    if (
+      existing.actionId === toolExecutionId &&
+      existing.payloadFingerprint &&
+      existing.payloadFingerprint !== payloadFingerprint
+    ) {
+      throw new ToolExecutionError(
+        'CONFLICT',
+        'This action ID was already used with a different payload.',
+        409
+      );
+    }
     if (
       existing.status === 'SUCCEEDED' &&
       existing.safeResult &&
       !Array.isArray(existing.safeResult)
-    )
+    ) {
       return existing.safeResult as Prisma.JsonObject;
-    throw new ToolExecutionError(
-      'CONFLICT',
-      'This tool execution is already in progress or failed.',
-      409
-    );
-  }
-
-  try {
-    await prisma.conversationToolExecution.create({
-      data: {
-        conversationId: conversation.id,
-        tool,
-        operationFingerprint,
-        safeInput: { parameterKeys: Object.keys(parameters).sort() },
-        status: 'AUTHORIZED',
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      const raced = await prisma.conversationToolExecution.findUnique({
-        where: {
-          conversationId_operationFingerprint: {
-            conversationId: conversation.id,
-            operationFingerprint,
-          },
-        },
-      });
-      if (raced?.status === 'SUCCEEDED' && raced.safeResult && !Array.isArray(raced.safeResult)) {
-        return raced.safeResult as Prisma.JsonObject;
-      }
-      throw new ToolExecutionError('CONFLICT', 'This tool execution is already in progress.', 409);
     }
-    throw error;
+    if (existing.status === 'BLOCKED') {
+      throw new ToolExecutionError('POLICY_DENIED', 'Policy denied this action.', 403);
+    }
+    if (existing.status === 'PENDING_APPROVAL' && existing.approvalRequest) {
+      const approval = existing.approvalRequest;
+      if (
+        !options.approvalRequestId ||
+        options.approvalRequestId !== approval.id ||
+        approval.payloadFingerprint !== payloadFingerprint
+      ) {
+        throw new ToolApprovalRequiredError(approval.id);
+      }
+      if (approval.expiresAt <= new Date()) {
+        await prisma.toolApprovalRequest.updateMany({
+          where: { id: approval.id, status: { in: ['PENDING', 'APPROVED'] } },
+          data: { status: 'EXPIRED' },
+        });
+        throw new ToolExecutionError('AUTHORIZATION', 'Tool approval has expired.', 403);
+      }
+      if (approval.status === 'DENIED') {
+        throw new ToolExecutionError('POLICY_DENIED', 'Human approval was denied.', 403);
+      }
+      if (approval.status !== 'APPROVED') {
+        throw new ToolApprovalRequiredError(approval.id);
+      }
+      await prisma.conversationToolExecution.update({
+        where: { id: existing.id },
+        data: { status: 'AUTHORIZED' },
+      });
+      approvedRequestId = approval.id;
+    } else {
+      throw new ToolExecutionError(
+        'CONFLICT',
+        'This tool execution is already in progress or failed.',
+        409
+      );
+    }
+  } else {
+    const [state, history] = await Promise.all([
+      prisma.conversationState.findUnique({
+        where: { conversationId: conversation.id },
+        select: {
+          currentSpecialist: true,
+          identityVerificationState: true,
+          riskFlags: true,
+          complianceFlags: true,
+        },
+      }),
+      prisma.conversationToolExecution.findMany({
+        where: { conversationId: conversation.id },
+        orderBy: { createdAt: 'desc' },
+        take: 25,
+        select: { tool: true, status: true, safeInput: true },
+      }),
+    ]);
+    const decision = await deterministicToolPolicyEvaluator.evaluate({
+      sessionId: conversation.id,
+      workspaceId: context.workspaceId,
+      agentId: context.agentId,
+      contactId: context.contactId,
+      specialist: state?.currentSpecialist || null,
+      tool,
+      parameters,
+      identityVerificationState: state?.identityVerificationState || null,
+      riskFlags: jsonStringArray(state?.riskFlags),
+      complianceFlags: jsonStringArray(state?.complianceFlags),
+      history: history.map(entry => ({
+        tool: entry.tool,
+        status: entry.status,
+        dataCategories: executionDataCategories(entry.safeInput),
+      })),
+    });
+    const safeInput = {
+      parameterKeys: Object.keys(parameters).sort(),
+      dataCategories: decision.dataCategories,
+    };
+    const executionData = {
+      conversationId: conversation.id,
+      tool,
+      actionId: toolExecutionId,
+      operationFingerprint,
+      payloadFingerprint,
+      safeInput,
+      status:
+        decision.outcome === 'DENY'
+          ? ('BLOCKED' as const)
+          : decision.outcome === 'ESCALATE'
+            ? ('PENDING_APPROVAL' as const)
+            : ('AUTHORIZED' as const),
+      policyOutcome: decision.outcome,
+      policyVersion: decision.policyVersion,
+      riskLevel: decision.riskLevel,
+      riskScore: decision.riskScore,
+      triggeredPolicyIds: decision.triggeredPolicyIds,
+      decisionReasonCodes: decision.reasonCodes,
+    };
+
+    try {
+      if (decision.outcome === 'ESCALATE') {
+        const approval = await prisma.$transaction(async tx => {
+          const execution = await tx.conversationToolExecution.create({ data: executionData });
+          const request = await tx.toolApprovalRequest.create({
+            data: {
+              workspaceId: context.workspaceId,
+              conversationId: conversation.id,
+              toolExecutionId: execution.id,
+              actionId: toolExecutionId,
+              tool,
+              payloadFingerprint,
+              policyVersion: decision.policyVersion,
+              riskLevel: decision.riskLevel,
+              riskScore: decision.riskScore,
+              triggeredPolicyIds: decision.triggeredPolicyIds,
+              reasonCodes: decision.reasonCodes,
+              expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            },
+          });
+          await tx.auditLog.create({
+            data: {
+              workspaceId: context.workspaceId,
+              action: 'TOOL_POLICY_ESCALATED',
+              entityType: 'TOOL_APPROVAL_REQUEST',
+              entityId: request.id,
+              metadata: {
+                sessionId: conversation.id,
+                agentId: context.agentId,
+                specialist: state?.currentSpecialist || 'UNASSIGNED',
+                tool,
+                actionId: toolExecutionId,
+                payloadFingerprint,
+                policyVersion: decision.policyVersion,
+                riskLevel: decision.riskLevel,
+                riskScore: decision.riskScore,
+                triggeredPolicyIds: decision.triggeredPolicyIds,
+                reasonCodes: decision.reasonCodes,
+              },
+            },
+          });
+          return request;
+        });
+        throw new ToolApprovalRequiredError(approval.id);
+      }
+
+      await prisma.$transaction([
+        prisma.conversationToolExecution.create({ data: executionData }),
+        prisma.auditLog.create({
+          data: {
+            workspaceId: context.workspaceId,
+            action: decision.outcome === 'DENY' ? 'TOOL_POLICY_DENIED' : 'TOOL_POLICY_ALLOWED',
+            entityType: 'CONVERSATION_TOOL_EXECUTION',
+            entityId: conversation.id,
+            metadata: {
+              sessionId: conversation.id,
+              agentId: context.agentId,
+              specialist: state?.currentSpecialist || 'UNASSIGNED',
+              tool,
+              actionId: toolExecutionId,
+              payloadFingerprint,
+              policyVersion: decision.policyVersion,
+              riskLevel: decision.riskLevel,
+              riskScore: decision.riskScore,
+              triggeredPolicyIds: decision.triggeredPolicyIds,
+              reasonCodes: decision.reasonCodes,
+            },
+          },
+        }),
+      ]);
+      if (decision.outcome === 'DENY') {
+        throw new ToolExecutionError('POLICY_DENIED', 'Policy denied this action.', 403);
+      }
+    } catch (error) {
+      if (error instanceof ToolApprovalRequiredError || error instanceof ToolExecutionError) {
+        throw error;
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const raced = await prisma.conversationToolExecution.findFirst({
+          where: {
+            conversationId: conversation.id,
+            OR: [{ actionId: toolExecutionId }, { operationFingerprint }],
+          },
+          include: { approvalRequest: true },
+        });
+        if (raced?.status === 'SUCCEEDED' && raced.safeResult && !Array.isArray(raced.safeResult)) {
+          return raced.safeResult as Prisma.JsonObject;
+        }
+        if (raced?.status === 'PENDING_APPROVAL' && raced.approvalRequest) {
+          throw new ToolApprovalRequiredError(raced.approvalRequest.id);
+        }
+        throw new ToolExecutionError('CONFLICT', 'This tool execution is already in progress.', 409);
+      }
+      throw error;
+    }
   }
 
   try {
@@ -698,6 +903,12 @@ export async function executeDatabaseTool(
           },
           data: { status: 'SUCCEEDED', safeResult },
         });
+        if (approvedRequestId) {
+          await tx.toolApprovalRequest.updateMany({
+            where: { id: approvedRequestId, status: 'APPROVED' },
+            data: { status: 'CONSUMED', consumedAt: new Date() },
+          });
+        }
         await tx.auditLog.create({
           data: {
             workspaceId: context.workspaceId,
