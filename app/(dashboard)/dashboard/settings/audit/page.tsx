@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AuditLogsPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('audit:view');
   const logs = await prisma.auditLog.findMany({
     where: { workspaceId },
     orderBy: { createdAt: 'desc' },
