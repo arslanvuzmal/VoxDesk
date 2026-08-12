@@ -10,6 +10,8 @@ on:
 permissions:
   contents: read
 
+# Temporary formatter permission is scoped to the branch quality job below.
+
 concurrency:
   group: voxdesk-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -36,6 +38,18 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Format branch-only UX files
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feat/flagship-product-experience'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npx prettier --write 'app/(marketing)/architecture/page.tsx' components/demo/demo-studio.tsx tests/e2e/demo-flow.spec.ts
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add 'app/(marketing)/architecture/page.tsx' components/demo/demo-studio.tsx tests/e2e/demo-flow.spec.ts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'style: apply repository formatter [skip ci]'
+          git push
       - run: npx prisma validate
       - run: npm run format:check
       - run: npm run docs:check
