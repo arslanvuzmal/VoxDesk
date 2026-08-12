@@ -1,58 +1,61 @@
 # Repository Professionalization Audit
 
-**Audited branch:** `codex/voxdesk-finalization` at `7581709`
+**Audit date:** 2026-08-12  
+**Source branch:** `codex/repository-final-polish`  
+**Hardening baseline:** `main` at `0e48997c82b38599eddbf15aa0b7db5c28c8641a`  
+**Scope:** repository structure, product claims, architecture documentation, GitHub controls, CI, security boundaries, tests, and developer experience.
 
-**Default branch at audit time:** `main` at `c530319`
-**Scope:** repository presentation, documentation, GitHub governance, delivery controls, and developer experience. This is a read-only audit; it does not claim live provider verification.
+This audit does not claim a Vercel deployment or live provider verification. Deployment is deliberately deferred until the repository change is merged and re-verified.
 
-## Current state
+## Discovery snapshot
 
-`codex/voxdesk-finalization` is the meaningful implementation branch. It is ahead of `main`, contains the canonical Conversation migration, Telnyx event ingestion, ElevenLabs post-call reconciliation, outbound controls, supervised improvement lifecycle, and explicit simulation/live telephony boundary. PR #4 targets `main`; its latest GitHub Actions CI and Vercel Preview checks were successful at the time of audit.
+- The default branch is `main`.
+- The current architecture includes canonical conversations, provider-neutral call state, Telnyx and simulation telephony providers, ElevenLabs boundaries, tenant authorization, server-owned tools, outbound controls, CRM state, and supervised improvement.
+- The repository contains more than 450 tracked source, test, migration, workflow, and documentation files.
+- Community files, issue forms, pull-request guidance, CODEOWNERS, Dependabot, ADRs, runbooks, and a documentation portal are present.
+- The public portfolio contract distinguishes simulation from live provider activation.
 
 ## Strengths
 
-| Area                   | Evidence                                                                                        | Assessment                                                                                        |
-| ---------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Canonical conversation | `Conversation`, messages, fields, tools, correlations, and migration files in `prisma/`         | Strong domain direction; phone and web channels converge without pretending web activity is PSTN. |
-| Telephony boundary     | `lib/telephony/contracts`, Telnyx provider, event inbox, outbound executor, simulation provider | Clear provider responsibility and simulation/live separation.                                     |
-| Tool safety            | `lib/security/conversation-context.ts`, `lib/voice-agent/tool-executor.ts`, security tests      | Server-owned, scoped context and persisted tool execution are present.                            |
-| Tenant controls        | `lib/auth`, `lib/permissions`, tenant-isolation tests                                           | Workspace-scoped authorization is implemented and tested.                                         |
-| Outbound controls      | campaign readiness, calling window, lease, recipient and authorization tests                    | The repository models controlled operational calling rather than arbitrary browser dialing.       |
-| Quality lifecycle      | `lib/improvement/lifecycle.ts` and lifecycle tests                                              | Promotion, canary, and rollback are designed as supervised gates.                                 |
-| Test coverage shape    | 24 unit, 9 integration, 25 security, and browser test files                                     | The test pyramid is substantially stronger than a demo-only repository.                           |
+- Phone, web voice, and web text converge on a canonical `Conversation` domain.
+- Telnyx owns PSTN/SIP transport, ElevenLabs owns realtime conversation behavior, and VoxDesk owns authorization and business state.
+- Simulation uses explicit simulation identifiers and does not enter through public provider webhooks.
+- Tool execution is server-authorized and tenant-scoped.
+- Provider events and side-effect tools use idempotency controls.
+- Outbound policy includes approval, consent, suppression, calling windows, attempts, readiness, and capacity.
+- The quality lifecycle is supervised: proposals cannot silently mutate production behavior.
+- Unit, integration, security, build, and browser suites run independently in CI.
 
-## Findings and remediation
+## Findings closed in this pass
 
-| Priority | Finding | Evidence | Remediation |
-| --- | --- | --- |
-| High | Root `ARCHITECTURE_AUDIT.md` claims Telnyx, campaigns, improvement, and telephony state machinery do not exist. | It describes commit `35f915d` and conflicts with current code and migrations. | Retire it from the root in favor of durable architecture and audit documentation. |
-| High | Several current docs still describe Cloudflare, OpenRouter, Twilio, Supabase, and browser fallbacks as the product path. | `docs/PROVIDER_COST_CONTROLS.md`, `PUBLIC_DEMO_ABUSE_MODEL.md`, `SCALING_AND_CAPACITY.md`, marketing/status pages, legacy providers. | Clarify canonical Telnyx + ElevenLabs ownership, mark isolated legacy paths, and remove unsupported operational claims. |
-| High | `graphify-out/` is tracked generated analysis/cache output. | Tracked cache JSON, graph HTML, manifests, and reports. | Ignore and remove after confirming it is generated-only; do not remove source or migrations. |
-| Medium | Documentation is fragmented and many architecture documents are short stubs. | `docs/architecture/*`, guides, operations, and security folders. | Add a documentation portal, ADRs, API catalog, operational runbooks, testing strategy, and customer-operations product documentation. |
-| Medium | Repository community/governance files are missing. | No `CONTRIBUTING.md`, `SECURITY.md`, `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `ROADMAP.md`, templates, CODEOWNERS, or Dependabot configuration. | Add focused, solo-maintainer-appropriate files and issue forms. |
-| Medium | CI is a single sequential job with broad default permissions and no cancellation policy. | `.github/workflows/ci.yml`. | Split independent validation/test/build work, add minimal permissions, timeouts, concurrency, and a separate dependency-review workflow. |
-| Medium | Environment example is short and does not describe security, runtime, preview, and live-only variables. | `.env.example`. | Group variables and link to an environment reference without publishing values. |
-| Medium | Legacy runtime configuration supplied predictable placeholder values for several security-critical keys. | `lib/config/env.ts`, `lib/encryption/index.ts`, and the demo-reset route. | Reject missing or placeholder production secrets, remove route/key fallbacks, and keep local simulation behavior explicit. |
-| Medium | Public feature claims and product labels are inconsistent with current scope. | README uses “Voice Operations Platform”; repository metadata says “AI voice receptionist SaaS.” | Position VoxDesk as AI customer operations infrastructure, with an explicit implemented/configured/simulated/activation-required vocabulary. |
-| Low | Legacy provider packages/routes remain in the tree. | `lib/voice/providers/*`, Cloudflare/OpenRouter code, legacy route references. | Do not remove in this pass; classify them as legacy/isolated and schedule a separately tested retirement. |
-| Low | Browser test execution can be contaminated by another application already using port 3000 locally. | Prior Playwright execution received Atlas application content from port 3000. | Document isolated E2E execution and preserve CI's reviewed build path. |
+1. Dependabot had introduced duplicated and unpinned setup actions into CI. The workflow now uses one immutable checkout and Node setup action per job.
+2. Dependency review now has explicit least-privilege permissions, concurrency control, and an immutable action SHA.
+3. Formatting drift blocked repository validation. Canonical Prettier output was restored.
+4. A contact tenant-isolation test mocked an obsolete authorization helper. It now exercises the current permission boundary.
+5. The route audit depended on a deleted Vercel URL. It now audits source pages and redirects by default; remote smoke checks require an explicit `AUDIT_BASE_URL`.
+6. Public copy contained stale provider claims, mojibake, and voice-receptionist-only positioning. Current copy uses the AI customer operations scope and accurate Telnyx/ElevenLabs responsibilities.
+7. The repository linked to a deleted deployment. The link was removed until a deployment is verified.
+8. Browser response-security headers were absent. A tested CSP, permissions policy, framing protection, referrer policy, HSTS, MIME protection, and opener policy now apply to all routes.
 
-## Repository hygiene
+## Repository hygiene and secret review
 
-- `.env.local`, build output, test artifacts, and `node_modules` are ignored.
-- `graphify-out/` is committed despite being generated output and should be removed from version control.
-- A path-only secret scan found fixtures, CI validation values, and generated cache matches. No raw production credential is asserted by this audit. Any credential pasted into chat or placed outside ignored local environment files must be rotated.
-- Existing local `*.log` files are untracked and will be preserved.
+- Generated build output, local environment files, test artifacts, caches, and dependencies are ignored.
+- A path/content scan did not identify a tracked production credential. Test database URLs and CI-only validation values remain clearly scoped fixtures.
+- Secret values previously pasted into chat are outside this repository audit and should be rotated before any deployment.
+- No source, migration history, or customer data was deleted in this pass.
 
-## Customer-operations gap assessment
+## Remaining technical debt
 
-The existing system already supports the operational spine: contacts, conversations, calls, appointments, leads/opportunities, tasks, follow-ups, handoffs, campaigns, consent/suppression controls, evaluation, and supervised improvement. A first-class support Case/Ticket domain, human queues/assignment, SLA policies, email/form adapters, and a unified human inbox are not verified as implemented. They should remain documented roadmap capabilities until deliberately introduced with migrations and acceptance tests.
+- Legacy Cloudflare, OpenRouter, LiveKit, Twilio, Vapi, and Retell adapters remain isolated but tracked. Removing them safely requires a dedicated dependency and route-retirement change.
+- ESLint exits successfully with no errors but reports 287 pre-existing warnings, concentrated in legacy adapters, scripts, fixtures, and unused compatibility parameters. They are not suppressed; they remain visible debt.
+- Live Telnyx, ElevenLabs SIP, Redis, CRM, calendar, migration, and production acceptance require a configured target environment and authorized provider resources.
+- First-class support cases, human queues, SLA enforcement, email/form adapters, and a unified human inbox remain roadmap capabilities.
 
-## Prioritized remediation
+## Prioritized next actions
 
-1. Establish a truthful documentation portal and repository landing page.
-2. Add contribution, security, release, issue, PR, ownership, and dependency-update governance.
-3. Harden CI workflow structure and document repository/ruleset settings that require owner action.
-4. Remove generated repository artifacts and correct stale product/provider documentation.
-5. Document customer-operations evolution, API/error conventions, provider boundaries, failure modes, and test strategy.
-6. Preserve current application architecture; schedule legacy provider retirement as a separate implementation change.
+1. Merge only after all GitHub Actions and pull-request checks pass.
+2. Create a fresh Vercel project from the exact merged SHA.
+3. Configure environment variables without committing values.
+4. Apply reviewed migrations and run deployment/database/health smoke checks.
+5. Verify simulation and web flows before considering authorized provider tests.
+6. Retire legacy providers and eliminate lint warnings in separately reviewable changes.
