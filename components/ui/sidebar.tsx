@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { dashboardRoutes } from '@/lib/navigation/dashboard-routes';
+import { getVisibleDashboardRoutes } from '@/lib/navigation/dashboard-routes';
 import type { SessionUser } from '@/lib/auth';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -52,11 +52,15 @@ export function Sidebar({ user, workspaceName, businessName }: SidebarProps) {
     router.refresh();
   };
 
-  const opsRoutes = dashboardRoutes.filter(r => r.category === 'OPERATIONS');
-  const intelRoutes = dashboardRoutes.filter(r => r.category === 'INTELLIGENCE');
-  const sysRoutes = dashboardRoutes.filter(r => r.category === 'SYSTEM');
+  const visibleRoutes = getVisibleDashboardRoutes(user.activeWorkspaceRole);
+  const opsRoutes = visibleRoutes.filter(route => route.category === 'OPERATIONS');
+  const intelRoutes = visibleRoutes.filter(route => route.category === 'INTELLIGENCE');
+  const sysRoutes = visibleRoutes.filter(route => route.category === 'SYSTEM');
 
-  const renderNavGroup = (title: string, routes: typeof dashboardRoutes) => (
+  const renderNavGroup = (
+    title: string,
+    routes: ReturnType<typeof getVisibleDashboardRoutes>
+  ) => (
     <div className="space-y-1">
       <h3 className="px-3 text-[10px] font-semibold text-[#64748B] uppercase tracking-wider">
         {title}
