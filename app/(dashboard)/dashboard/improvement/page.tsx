@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function ImprovementPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('improvement:view');
   const [observations, proposals, candidates] = await Promise.all([
     prisma.improvementObservation.findMany({
       where: { workspaceId },
