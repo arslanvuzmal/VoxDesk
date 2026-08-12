@@ -48,7 +48,7 @@ export default async function AuditLogsPage() {
                   </td>
                   <td className="px-4 py-3 text-slate-600">
                     {log.entityType}
-                    {log.entityId ? ` Â· ${log.entityId}` : ''}
+                    {log.entityId ? ` · ${log.entityId}` : ''}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{log.createdAt.toLocaleString()}</td>
                 </tr>

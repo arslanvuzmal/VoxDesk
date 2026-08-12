@@ -16,7 +16,7 @@ const ElevenLabsVoiceController = dynamic(
     ssr: false,
     loading: () => (
       <div className="mx-auto max-w-4xl border border-white/[0.08] bg-[#0D0F12] p-8 text-center text-xs text-[#A1A8B3]">
-        <p>Preparing the live conversationâ€¦</p>
+        <p>Preparing the live conversation…</p>
       </div>
     ),
   }
@@ -186,7 +186,7 @@ export default function DemoPage() {
                 disabled
                 className="flex min-h-11 cursor-not-allowed flex-col items-center gap-1 border border-white/[0.06] bg-[#0D0F12] p-3 text-center text-xs font-medium text-[#737C88] opacity-50"
               >
-                <span>Spanish (EspaÃ±ol)</span>
+                <span>Spanish (Español)</span>
                 <span className="text-[9px] text-[#D8AE69]">Requires provider setup</span>
               </button>
             </div>

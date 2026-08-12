@@ -5,12 +5,12 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://voxdesk-ai.vercel.app'),
-  title: 'VoxDesk â€” Voice Operations Platform',
+  title: 'VoxDesk — AI Customer Operations Infrastructure',
   description:
     'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
   authors: [{ name: 'Arslan Vuzmal Lone' }],
   openGraph: {
-    title: 'VoxDesk â€” Voice Operations Platform',
+    title: 'VoxDesk — AI Customer Operations Infrastructure',
     description:
       'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
     url: 'https://voxdesk-ai.vercel.app',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VoxDesk â€” Voice Operations Platform',
+    title: 'VoxDesk — AI Customer Operations Infrastructure',
     description:
       'VoxDesk connects voice conversations with your website, phone system, calendar and CRM. Handle inbound enquiries, qualify opportunities, schedule appointments and prepare human handoffs from one workspace.',
   },

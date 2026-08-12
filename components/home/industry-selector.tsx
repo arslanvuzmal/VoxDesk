@@ -133,7 +133,7 @@ const industryProfiles: IndustryProfile[] = [
       'Access instructions',
     ],
     humanHandoffConditions: ['Active water leak / fire hazard', 'Commercial contract negotiation'],
-    connectedSystems: ['Housecall Pro / ServiceTitan', 'Twilio Voice'],
+    connectedSystems: ['Scheduling adapter', 'Telnyx Voice'],
     statusLabel: 'Requires integration',
     statusColor: 'bg-[#B45309]/10 text-[#B45309] border-[#B45309]/20',
   },

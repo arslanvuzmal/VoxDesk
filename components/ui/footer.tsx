@@ -12,7 +12,7 @@ export function Footer() {
             <span className="font-medium text-[#F4F5F7]">VoxDesk</span>
           </div>
           <p className="mt-4 max-w-sm leading-5">
-            Voice Operations Platform for conversations, CRM actions and supervised business
+            AI customer operations infrastructure for conversations, CRM actions, and supervised business
             workflows.
           </p>
         </div>
@@ -53,7 +53,7 @@ export function Footer() {
         </div>
       </div>
       <div className="mx-auto mt-10 flex max-w-7xl flex-col gap-2 border-t border-white/[0.08] pt-5 font-mono text-[10px] sm:flex-row sm:justify-between">
-        <p>Â© 2026 VoxDesk. Interactive demonstration platform.</p>
+        <p>© 2026 VoxDesk. Interactive demonstration platform.</p>
         <p>Designed and built by Arslan Vuzmal Lone</p>
       </div>
     </footer>

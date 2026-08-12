@@ -18,7 +18,7 @@ export function Navbar() {
           <div>
             <span className="text-base font-semibold tracking-tight text-[#F4F5F7]">VoxDesk</span>
             <span className="-mt-1 block text-[11px] font-medium text-[#737C88]">
-              Voice Operations Platform
+              AI Customer Operations
             </span>
           </div>
         </Link>

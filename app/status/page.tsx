@@ -86,7 +86,7 @@ export default function SystemStatusPage() {
             <div className="flex items-center justify-between p-3 rounded bg-[#171C22] border border-[#272D35]">
               <div>
                 <span className="font-semibold text-white block">
-                  Twilio / Vapi / LiveKit Adapters
+                  Legacy voice adapters
                 </span>
                 <span className="text-[#8B949E] text-[11px]">Live PSTN telephony connections</span>
               </div>

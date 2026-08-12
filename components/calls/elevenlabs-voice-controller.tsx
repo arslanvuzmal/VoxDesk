@@ -339,7 +339,7 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
             <p className="mt-1 text-xs text-[#737C88]">
               Agent:{' '}
               <span className="font-semibold text-slate-200">{configuration.agentDisplayName}</span>{' '}
-              Â· Language: {configuration.language}
+              · Language: {configuration.language}
             </p>
           </div>
         </div>
@@ -423,7 +423,7 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
                   {callState === 'CALLER_SPEAKING' && 'Listening to caller...'}
                   {callState === 'LISTENING' && `${configuration.agentDisplayName} is listening...`}
                   {callState === 'CONNECTED' &&
-                    `Call connected â€” waiting for ${configuration.agentDisplayName}'s greeting...`}
+                    `Call connected — waiting for ${configuration.agentDisplayName}'s greeting...`}
                 </span>
               </div>
 

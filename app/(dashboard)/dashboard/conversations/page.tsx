@@ -113,7 +113,7 @@ export default function ConversationsPage() {
             {loading ? (
               <tr>
                 <td colSpan={9} className="p-8 text-center text-[#64748B]">
-                  Loading conversationsâ€¦
+                  Loading conversations…
                 </td>
               </tr>
             ) : error ? (
@@ -140,7 +140,7 @@ export default function ConversationsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    {row.direction} Â· {row.channel.replace('_', ' ')}
+                    {row.direction} · {row.channel.replace('_', ' ')}
                   </td>
                   <td className="px-4 py-3">
                     {row.call?.executionMode === 'SIMULATION'
@@ -152,7 +152,7 @@ export default function ConversationsPage() {
                   <td className="px-4 py-3">{row.intent || 'Not provided'}</td>
                   <td className="px-4 py-3">
                     {row.status}
-                    {row.requiresReview ? ' Â· Review' : ''}
+                    {row.requiresReview ? ' · Review' : ''}
                   </td>
                   <td className="px-4 py-3">{row.languageCode || 'Not provided'}</td>
                   <td className="px-4 py-3">{row.agent?.name || 'Not assigned'}</td>
