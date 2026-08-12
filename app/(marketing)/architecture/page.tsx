@@ -124,3 +124,5 @@ export default function ArchitecturePage() {
     </div>
   );
 }
+
+// Architecture surfaces are intentionally read-only and provider-truthful.
