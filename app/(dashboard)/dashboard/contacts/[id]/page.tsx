@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 type TimelineItem = { id: string; at: Date; label: string; detail: string; href?: string };
 
@@ -12,7 +12,7 @@ function when(value: Date | null | undefined) {
 }
 
 export default async function ContactDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const [{ id }, { workspaceId }] = await Promise.all([params, requireDashboardContext()]);
+  const [{ id }, { workspaceId }] = await Promise.all([params, requireDashboardPermission('calls:view')]);
   const contact = await prisma.contact.findFirst({
     where: { id, workspaceId },
     include: {
