@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function AppointmentsPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('calls:view');
   const appointments = await prisma.appointment.findMany({
     where: { workspaceId },
     orderBy: { startTime: 'asc' },

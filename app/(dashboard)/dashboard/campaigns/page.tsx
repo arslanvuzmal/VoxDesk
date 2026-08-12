@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function CampaignsPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('campaigns:view');
   const campaigns = await prisma.campaign.findMany({
     where: { workspaceId },
     orderBy: { createdAt: 'desc' },
