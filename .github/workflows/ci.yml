@@ -10,7 +10,6 @@ on:
 permissions:
   contents: read
 
-
 concurrency:
   group: voxdesk-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
