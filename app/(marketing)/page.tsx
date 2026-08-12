@@ -92,7 +92,7 @@ export default function LandingPage() {
                   </p>
                   <p className="mt-4 text-sm font-medium">Sarah Mitchell</p>
                   <p className="mt-5 text-sm leading-6 text-[#A1A8B3]">
-                    â€œI need to move my appointment to Thursday afternoon.â€
+                    “I need to move my appointment to Thursday afternoon.”
                   </p>
                 </div>
                 <div className="border-b border-white/[0.08] p-5 md:border-b-0 md:border-r">
@@ -182,7 +182,7 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="flex items-center justify-center border-y border-white/[0.08] bg-[#0D0F12] px-4 py-8 font-mono text-[11px] uppercase tracking-[0.16em] text-[#78AFFF] lg:border-x lg:border-y-0">
-                â† VoxDesk â†’
+                ← VoxDesk →
               </div>
               <div id="outbound" className="p-6 sm:p-8">
                 <PhoneOutgoing className="h-5 w-5 text-[#78AFFF]" />
@@ -227,7 +227,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="font-mono text-xs uppercase tracking-[0.15em] text-[#78AFFF]">
-                  â†’ VoxDesk â†’
+                  → VoxDesk →
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <span>Contact</span>

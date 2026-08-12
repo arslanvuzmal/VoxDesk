@@ -73,9 +73,7 @@ export default function AnalyticsPage() {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">
             Insight
           </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">
-            Analytics
-          </h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">Analytics</h1>
           <p className="mt-1 text-sm text-[#64748B]">
             Calculated from persisted conversations and confirmed CRM records.
           </p>

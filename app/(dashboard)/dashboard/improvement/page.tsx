@@ -65,7 +65,7 @@ export default async function ImprovementPage() {
                     Expected benefit: {proposal.expectedBenefit}
                   </p>
                   <p className="mt-1 text-xs text-[#475569]">
-                    Risk: {proposal.risk || 'Not provided'} Â· Rollback:{' '}
+                    Risk: {proposal.risk || 'Not provided'} · Rollback:{' '}
                     {proposal.rollbackPath || 'Not provided'}
                   </p>
                 </div>

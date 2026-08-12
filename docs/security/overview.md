@@ -10,5 +10,8 @@ VoxDesk protects tenant-scoped customer operations data, provider credentials, o
 | Duplicate side effects  | Persistent execution IDs and operation fingerprints | Appointment/campaign/provider tests    |
 | Campaign abuse          | Consent, suppression, windows, attempts, capacity   | Outbound authorization/readiness tests |
 | PII exposure            | Encryption/hash/masking controls and safe logs      | Identifier/encryption tests            |
+| Browser attack surface  | CSP, capability, framing, referrer, and HSTS policy | Security-header unit tests             |
 
 Controls reduce risk; they are not a claim of compliance or absence of vulnerabilities.
+
+See [browser security headers](headers.md) for the deployed response-header policy and its documented compatibility tradeoffs.

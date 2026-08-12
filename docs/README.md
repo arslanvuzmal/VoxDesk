@@ -36,6 +36,7 @@ This is the technical documentation portal. Product pages distinguish implemente
 
 - [Security overview](security/overview.md)
 - [Threat model](security/threat-model.md)
+- [Browser security headers](security/headers.md)
 - [PII and retention](security/pii.md)
 - [Production readiness](operations/production-readiness.md)
 - [Runbooks](operations/runbooks/README.md)
