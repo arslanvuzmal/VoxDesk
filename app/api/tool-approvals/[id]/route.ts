@@ -9,10 +9,7 @@ const ApprovalDecisionSchema = z.object({
   comment: z.string().trim().max(1000).optional(),
 });
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const correlationId = crypto.randomUUID();
   const auth = await requireAuthUser(request);
   if ('errorResponse' in auth) return auth.errorResponse;
