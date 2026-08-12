@@ -22,9 +22,7 @@ describe('resolveApplicationUrl', () => {
   });
 
   it('falls back to localhost outside Vercel', () => {
-    expect(resolveApplicationUrl({ NEXT_PUBLIC_APP_URL: '' })).toBe(
-      'http://localhost:3000'
-    );
+    expect(resolveApplicationUrl({ NEXT_PUBLIC_APP_URL: '' })).toBe('http://localhost:3000');
   });
 
   it('normalizes an explicitly configured application URL', () => {

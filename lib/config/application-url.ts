@@ -38,8 +38,7 @@ export function resolveApplicationUrl(
   }
 
   const vercelHostname =
-    environment.VERCEL_PROJECT_PRODUCTION_URL?.trim() ||
-    environment.VERCEL_URL?.trim();
+    environment.VERCEL_PROJECT_PRODUCTION_URL?.trim() || environment.VERCEL_URL?.trim();
 
   if (vercelHostname) {
     const vercelUrl = /^https?:\/\//i.test(vercelHostname)

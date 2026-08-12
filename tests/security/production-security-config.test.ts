@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  normalizeEnvironmentInput,
-  validateProductionSecurityEnvironment,
-} from '@/lib/config/env';
+import { normalizeEnvironmentInput, validateProductionSecurityEnvironment } from '@/lib/config/env';
 
 const validProductionEnvironment: NodeJS.ProcessEnv = {
   NODE_ENV: 'production',
