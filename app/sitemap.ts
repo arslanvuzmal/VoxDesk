@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 
-const applicationUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+import { resolveApplicationUrl } from '@/lib/config/application-url';
+
+const applicationUrl = resolveApplicationUrl();
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
