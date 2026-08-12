@@ -13,6 +13,7 @@ This audit does not claim a Vercel deployment or live provider verification. Dep
 - The current architecture includes canonical conversations, provider-neutral call state, Telnyx and simulation telephony providers, ElevenLabs boundaries, tenant authorization, server-owned tools, outbound controls, CRM state, and supervised improvement.
 - The repository contains more than 450 tracked source, test, migration, workflow, and documentation files.
 - Community files, issue forms, pull-request guidance, CODEOWNERS, Dependabot, ADRs, runbooks, and a documentation portal are present.
+- Private vulnerability reporting is enabled. The only visible repository ruleset is disabled and requires owner action before `main` is protected.
 - The public portfolio contract distinguishes simulation from live provider activation.
 
 ## Strengths
@@ -53,9 +54,10 @@ This audit does not claim a Vercel deployment or live provider verification. Dep
 
 ## Prioritized next actions
 
-1. Merge only after all GitHub Actions and pull-request checks pass.
-2. Create a fresh Vercel project from the exact merged SHA.
-3. Configure environment variables without committing values.
-4. Apply reviewed migrations and run deployment/database/health smoke checks.
-5. Verify simulation and web flows before considering authorized provider tests.
-6. Retire legacy providers and eliminate lint warnings in separately reviewable changes.
+1. Activate the documented solo-maintainer `main` ruleset and verify GitHub code-security settings.
+2. Merge only after all GitHub Actions and pull-request checks pass.
+3. Create a fresh Vercel project from the exact merged SHA.
+4. Configure environment variables without committing values.
+5. Apply reviewed migrations and run deployment/database/health smoke checks.
+6. Verify simulation and web flows before considering authorized provider tests.
+7. Retire legacy providers and eliminate lint warnings in separately reviewable changes.

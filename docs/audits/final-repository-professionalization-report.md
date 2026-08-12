@@ -73,13 +73,18 @@ The GitHub Actions run on the code-bearing head passed:
 
 The final documentation commit must pass the same matrix before merge.
 
+## GitHub configuration
+
+Private vulnerability reporting was verified enabled through the repository API. One ruleset named `just !` exists but is disabled, so `main` is not yet protected by that rule. The connected integration could not verify the remaining Code Security settings or default workflow-token permission. Exact owner steps are documented in [GitHub repository settings](../operations/github-repository-settings.md).
+
 ## CI and release result
 
 GitHub Actions is the clean-install authority. Jobs are split into repository validation, unit/integration/security tests, production build, and browser acceptance. Dependency review runs on pull requests. Deployment is not part of this repository pass and is not represented as successful.
 
 ## Remaining external requirements
 
-- A new Vercel project linked to the exact merged SHA
+- activation of the documented `main` ruleset and confirmation of GitHub Code Security settings
+- a new Vercel project linked to the exact merged SHA
 - target-environment security secrets and database configuration
 - reviewed `prisma migrate deploy`
 - health, runtime-log, browser-console, and exact-SHA checks
