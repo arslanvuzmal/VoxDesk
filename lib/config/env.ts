@@ -121,7 +121,9 @@ export function validateProductionSecurityEnvironment(
   return [...new Set(failures)];
 }
 
-export function normalizeEnvironmentInput(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+export function normalizeEnvironmentInput(
+  source: Readonly<Record<string, string | undefined>>
+): Record<string, string | undefined> {
   return Object.fromEntries(
     Object.entries(source).map(([name, value]) => [
       name,
