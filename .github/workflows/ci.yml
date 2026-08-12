@@ -29,6 +29,8 @@ env:
 jobs:
   quality:
     name: Repository validation
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
