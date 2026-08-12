@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { validateProductionSecurityEnvironment } from '@/lib/config/env';
+import {
+  normalizeEnvironmentInput,
+  validateProductionSecurityEnvironment,
+} from '@/lib/config/env';
 
 const validProductionEnvironment: NodeJS.ProcessEnv = {
   NODE_ENV: 'production',
@@ -12,6 +15,16 @@ const validProductionEnvironment: NodeJS.ProcessEnv = {
 };
 
 describe('production security configuration', () => {
+  it('treats blank optional values as unconfigured without changing real values', () => {
+    const normalized = normalizeEnvironmentInput({
+      DATABASE_URL: 'postgresql://database.example/voxdesk',
+      TELNYX_API_KEY: '   ',
+    });
+
+    expect(normalized.DATABASE_URL).toBe('postgresql://database.example/voxdesk');
+    expect(normalized.TELNYX_API_KEY).toBeUndefined();
+  });
+
   it('rejects missing production secrets', () => {
     const { INTERNAL_API_SECRET: _, ...missingSecret } = validProductionEnvironment;
     expect(validateProductionSecurityEnvironment(missingSecret)).toContain('INTERNAL_API_SECRET');
