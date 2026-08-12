@@ -1,88 +1,98 @@
+import {
+  hasPermission,
+  type PermissionAction,
+  type WorkspaceRole,
+} from '@/lib/permissions';
+
 export interface DashboardRouteItem {
   label: string;
   href: string;
-  permission?: string;
+  permission: PermissionAction;
   iconName?: string;
-  category?: 'OPERATIONS' | 'INTELLIGENCE' | 'SYSTEM';
+  category: 'OPERATIONS' | 'INTELLIGENCE' | 'SYSTEM';
 }
 
 export const dashboardRoutes: DashboardRouteItem[] = [
   {
     label: 'Overview',
     href: '/dashboard',
-    permission: 'VIEW_DASHBOARD',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Conversations',
     href: '/dashboard/conversations',
-    permission: 'VIEW_CALLS',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Contacts',
     href: '/dashboard/contacts',
-    permission: 'VIEW_LEADS',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Appointments',
     href: '/dashboard/appointments',
-    permission: 'VIEW_APPOINTMENTS',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Opportunities',
     href: '/dashboard/opportunities',
-    permission: 'VIEW_LEADS',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Tasks',
     href: '/dashboard/tasks',
-    permission: 'VIEW_TASKS',
+    permission: 'calls:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Campaigns',
     href: '/dashboard/campaigns',
-    permission: 'VIEW_CAMPAIGNS',
+    permission: 'campaigns:view',
     category: 'OPERATIONS',
   },
   {
     label: 'Analytics',
     href: '/dashboard/analytics',
-    permission: 'VIEW_ANALYTICS',
+    permission: 'analytics:view',
     category: 'INTELLIGENCE',
   },
   {
     label: 'Improvement',
     href: '/dashboard/improvement',
-    permission: 'VIEW_IMPROVEMENT',
+    permission: 'improvement:view',
     category: 'INTELLIGENCE',
   },
   {
     label: 'Agent',
     href: '/dashboard/agent',
-    permission: 'MANAGE_AGENTS',
+    permission: 'agents:edit',
     category: 'INTELLIGENCE',
   },
   {
     label: 'Knowledge',
     href: '/dashboard/knowledge',
-    permission: 'MANAGE_AGENTS',
+    permission: 'knowledge:manage',
     category: 'INTELLIGENCE',
   },
   {
     label: 'Integrations',
     href: '/dashboard/integrations',
-    permission: 'MANAGE_INTEGRATIONS',
+    permission: 'credentials:manage',
     category: 'SYSTEM',
   },
   {
     label: 'Settings',
     href: '/dashboard/settings',
-    permission: 'MANAGE_SETTINGS',
+    permission: 'workspace:manage',
     category: 'SYSTEM',
   },
 ];
+
+export function getVisibleDashboardRoutes(role: WorkspaceRole): DashboardRouteItem[] {
+  return dashboardRoutes.filter(route => hasPermission(role, route.permission));
+}
