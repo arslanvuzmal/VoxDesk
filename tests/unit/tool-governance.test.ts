@@ -54,9 +54,7 @@ describe('tool governance', () => {
     );
 
     expect(decision.outcome).toBe('ESCALATE');
-    expect(decision.triggeredPolicyIds).toContain(
-      'IDENTITY_REQUIRED_FOR_SENSITIVE_MUTATION'
-    );
+    expect(decision.triggeredPolicyIds).toContain('IDENTITY_REQUIRED_FOR_SENSITIVE_MUTATION');
   });
 
   it('uses prior session actions when evaluating data egress risk', async () => {
