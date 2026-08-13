@@ -107,7 +107,7 @@ function stableSerialize(value: unknown): string {
     .join(',')}}`;
 }
 
-function payloadFingerprint(parameters: Record<string, unknown>): string {
+export function payloadFingerprint(parameters: Record<string, unknown>): string {
   return crypto.createHash('sha256').update(stableSerialize(parameters)).digest('hex');
 }
 
