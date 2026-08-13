@@ -119,7 +119,7 @@ export async function executeBusinessAction(
 
     case 'CHECK_AVAILABILITY': {
       try {
-        const slots = await getAvailableSlots(profile, req.extractedFields?.preferredDate, workspaceId);
+        const slots = await getAvailableSlots(profile, workspaceId, req.extractedFields?.preferredDate);
         return {
           success: true,
           persisted: false,
