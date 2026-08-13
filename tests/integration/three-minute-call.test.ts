@@ -73,7 +73,7 @@ describe('3-Minute Continuous Voice Call Integration Test', () => {
     // 4. Verify Phone Masking (Req 25)
     const rawPhone = '+15550192834';
     const masked = formatMaskedPhoneNumber(rawPhone);
-    expect(masked).toBe('+1 (555) ***-2834');
+    expect(masked).toBe('***-2834');
     expect(masked).not.toContain('0192834');
   });
 });
