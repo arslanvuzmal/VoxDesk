@@ -478,11 +478,16 @@ export async function runTelephonySimulation(input: {
     await tx.auditLog.create({
       data: {
         workspaceId: context.workspaceId,
-        userId: input.initiatedBy,
+        userId: input.initiatedBy.startsWith('demo-session:') ? undefined : input.initiatedBy,
         action: 'TELEPHONY_SIMULATION_COMPLETED',
         entityType: 'CALL',
         entityId: created.call.id,
-        metadata: { scenario: input.scenario, correlationId, executionMode: 'SIMULATION' },
+        metadata: {
+          scenario: input.scenario,
+          correlationId,
+          executionMode: 'SIMULATION',
+          initiatedBy: input.initiatedBy,
+        },
       },
     });
   });
