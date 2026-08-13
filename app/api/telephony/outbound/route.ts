@@ -66,9 +66,18 @@ export async function POST(req: NextRequest) {
     );
   }
   const [agentVersion, trainingPack, preference] = await Promise.all([
-    prisma.agentVersion.findFirst({ where: { agentId: agent.id }, orderBy: { versionNumber: 'desc' } }),
-    prisma.businessTrainingPack.findFirst({ where: { workspaceId: workspace.workspaceId, agentId: agent.id }, orderBy: { versionNumber: 'desc' } }),
-    prisma.communicationPreference.findUnique({ where: { contactId: contact.id }, select: { timeZone: true } }),
+    prisma.agentVersion.findFirst({
+      where: { agentId: agent.id },
+      orderBy: { versionNumber: 'desc' },
+    }),
+    prisma.businessTrainingPack.findFirst({
+      where: { workspaceId: workspace.workspaceId, agentId: agent.id },
+      orderBy: { versionNumber: 'desc' },
+    }),
+    prisma.communicationPreference.findUnique({
+      where: { contactId: contact.id },
+      select: { timeZone: true },
+    }),
   ]);
   if (!agentVersion || !trainingPack) {
     return NextResponse.json(
@@ -88,10 +97,24 @@ export async function POST(req: NextRequest) {
   }
 
   const campaign = parsed.data.campaignId
-    ? await prisma.campaign.findFirst({ where: { id: parsed.data.campaignId, workspaceId: workspace.workspaceId }, select: { id: true, state: true, callingWindowStart: true, callingWindowEnd: true, maxAttempts: true, retryIntervalMinutes: true, timezoneStrategy: true } })
+    ? await prisma.campaign.findFirst({
+        where: { id: parsed.data.campaignId, workspaceId: workspace.workspaceId },
+        select: {
+          id: true,
+          state: true,
+          callingWindowStart: true,
+          callingWindowEnd: true,
+          maxAttempts: true,
+          retryIntervalMinutes: true,
+          timezoneStrategy: true,
+        },
+      })
     : null;
   if (parsed.data.campaignId && !campaign) {
-    return NextResponse.json({ error: { code: 'NOT_FOUND', message: 'Campaign was not found.' } }, { status: 404 });
+    return NextResponse.json(
+      { error: { code: 'NOT_FOUND', message: 'Campaign was not found.' } },
+      { status: 404 }
+    );
   }
   const handler = new OutboundTelephonyHandler();
   const result = await handler.initiateOutboundCall({
@@ -113,7 +136,15 @@ export async function POST(req: NextRequest) {
     timeZone: preference?.timeZone || business.timezone,
   });
   if (!result.success) {
-    return NextResponse.json({ error: { code: result.blockedReason || 'OUTBOUND_BLOCKED', message: result.error || 'Outbound call was not started.' } }, { status: 409 });
+    return NextResponse.json(
+      {
+        error: {
+          code: result.blockedReason || 'OUTBOUND_BLOCKED',
+          message: result.error || 'Outbound call was not started.',
+        },
+      },
+      { status: 409 }
+    );
   }
   return NextResponse.json({ data: { callId: result.callId, status: 'INITIATING' } }, { status: 202 });
 }
