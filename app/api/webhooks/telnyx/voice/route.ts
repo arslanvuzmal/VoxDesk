@@ -118,8 +118,11 @@ async function persistCallState(context: CallContext): Promise<void> {
     });
 
     for (const event of context.events) {
+      const sequence = context.events.indexOf(event) + 1;
       const existing = await prisma.callEvent.findFirst({
-        where: { callId: context.id, sequence: context.events.indexOf(event) + 1 },
+        where: event.providerEventId
+          ? { callId: context.id, providerEventId: event.providerEventId }
+          : { callId: context.id, sequence },
       });
 
       if (!existing) {
@@ -127,7 +130,8 @@ async function persistCallState(context: CallContext): Promise<void> {
           data: {
             callId: context.id,
             eventType: event.eventType,
-            sequence: context.events.indexOf(event) + 1,
+            sequence,
+            providerEventId: event.providerEventId,
             occurredAt: event.providerTimestamp,
             safePayload: JSON.parse(JSON.stringify(event.payload)),
           },
