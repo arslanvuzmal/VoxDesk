@@ -10,6 +10,17 @@ export interface ToolPolicyResult {
 }
 
 const SENSITIVE_KEY = /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
+const CONSEQUENTIAL_TOOLS = new Set([
+  'create_or_update_contact',
+  'book_appointment',
+  'reschedule_appointment',
+  'cancel_appointment',
+  'create_opportunity',
+  'update_opportunity',
+  'schedule_callback',
+  'record_opt_out',
+]);
+
 const EXTERNAL_DESTINATION_KEY = /external|destination|recipient|toEmail|toPhone|webhook|url/i;
 
 function containsSensitiveKey(value: unknown, path = ''): string[] {
@@ -53,7 +64,11 @@ export function evaluateToolPolicy(input: {
     };
   }
 
-  if (input.priorSuccessfulTools.includes(input.tool) && input.tool !== 'record_opt_out') {
+  if (
+    CONSEQUENTIAL_TOOLS.has(input.tool) &&
+    input.priorSuccessfulTools.includes(input.tool) &&
+    input.tool !== 'record_opt_out'
+  ) {
     return {
       decision: 'DENY',
       riskScore: 55,
