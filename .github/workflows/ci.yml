@@ -37,7 +37,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma validate
-      - run: npm run format:check
+      - run: |
+          npx prettier --write app/demo/page.tsx lib/conversation/persistence.ts
+          git diff -- app/demo/page.tsx lib/conversation/persistence.ts
+          exit 1
       - run: npm run docs:check
       - run: npm run lint
       - run: npm run typecheck
