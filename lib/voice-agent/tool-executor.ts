@@ -185,6 +185,41 @@ export async function executeDatabaseTool(
   const conversation = await assertPersistedConversationContext(context);
   const operationFingerprint = `${tool}:${payloadFingerprint(parameters)}`;
   const inputFingerprint = payloadFingerprint(parameters);
+  const existing = await prisma.conversationToolExecution.findUnique({
+    where: {
+      conversationId_operationFingerprint: {
+        conversationId: conversation.id,
+        operationFingerprint,
+      },
+    },
+  });
+  if (existing) {
+    const recordedFingerprint =
+      existing.safeInput &&
+      typeof existing.safeInput === 'object' &&
+      !Array.isArray(existing.safeInput)
+        ? (existing.safeInput as { inputFingerprint?: unknown }).inputFingerprint
+        : undefined;
+    if (recordedFingerprint && recordedFingerprint !== inputFingerprint) {
+      throw new ToolExecutionError(
+        'CONFLICT',
+        'This idempotency key was already used with a different payload.',
+        409
+      );
+    }
+    if (
+      existing.status === 'SUCCEEDED' &&
+      existing.safeResult &&
+      !Array.isArray(existing.safeResult)
+    ) {
+      return existing.safeResult as Prisma.JsonObject;
+    }
+    throw new ToolExecutionError(
+      'CONFLICT',
+      'This tool execution is already in progress or failed.',
+      409
+    );
+  }
   const priorExecutions = await prisma.conversationToolExecution.findMany({
     where: { conversationId: conversation.id, status: 'SUCCEEDED' },
     select: { tool: true },
@@ -240,41 +275,6 @@ export async function executeDatabaseTool(
       policy.decision === 'ESCALATE' ? 409 : 403
     );
   }
-  const existing = await prisma.conversationToolExecution.findUnique({
-    where: {
-      conversationId_operationFingerprint: {
-        conversationId: conversation.id,
-        operationFingerprint,
-      },
-    },
-  });
-  if (existing) {
-    const recordedFingerprint =
-      existing.safeInput &&
-      typeof existing.safeInput === 'object' &&
-      !Array.isArray(existing.safeInput)
-        ? (existing.safeInput as { inputFingerprint?: unknown }).inputFingerprint
-        : undefined;
-    if (recordedFingerprint && recordedFingerprint !== inputFingerprint) {
-      throw new ToolExecutionError(
-        'CONFLICT',
-        'This idempotency key was already used with a different payload.',
-        409
-      );
-    }
-    if (
-      existing.status === 'SUCCEEDED' &&
-      existing.safeResult &&
-      !Array.isArray(existing.safeResult)
-    )
-      return existing.safeResult as Prisma.JsonObject;
-    throw new ToolExecutionError(
-      'CONFLICT',
-      'This tool execution is already in progress or failed.',
-      409
-    );
-  }
-
   try {
     await prisma.conversationToolExecution.create({
       data: {
