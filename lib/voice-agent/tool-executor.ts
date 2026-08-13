@@ -195,7 +195,9 @@ export async function executeDatabaseTool(
   });
   if (existing) {
     const recordedFingerprint =
-      existing.safeInput && typeof existing.safeInput === 'object' && !Array.isArray(existing.safeInput)
+      existing.safeInput &&
+      typeof existing.safeInput === 'object' &&
+      !Array.isArray(existing.safeInput)
         ? (existing.safeInput as { inputFingerprint?: unknown }).inputFingerprint
         : undefined;
     if (recordedFingerprint && recordedFingerprint !== inputFingerprint) {
