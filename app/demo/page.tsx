@@ -92,7 +92,9 @@ export default function DemoPage() {
         `Simulation complete. Conversation ${payload.data.conversationId} is now in the CRM.`
       );
     } catch (error) {
-      setSimulationState(error instanceof Error ? error.message : 'Simulation could not be completed.');
+      setSimulationState(
+        error instanceof Error ? error.message : 'Simulation could not be completed.'
+      );
     }
   };
 
