@@ -15,7 +15,9 @@ const ElevenLabsVoiceController = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="mx-auto max-w-4xl border border-white/[0.08] bg-[#0D0F12] p-8 text-center text-xs text-[#A1A8B3]">
+      <div
+        className="mx-auto max-w-4xl border border-white/[0.08] bg-[#0D0F12] p-8 text-center text-xs text-[#A1A8B3]"
+      >
         Preparing the live conversation...
       </div>
     ),
@@ -140,7 +142,9 @@ export default function DemoPage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <div className="mx-auto max-w-5xl space-y-8">
           <header className="space-y-3 text-center">
-            <span className="inline-flex border border-[#78AFFF]/25 bg-[#78AFFF]/[0.08] px-2.5 py-1 text-[11px] font-medium text-[#78AFFF]">
+            <span
+              className="inline-flex border border-[#78AFFF]/25 bg-[#78AFFF]/[0.08] px-2.5 py-1 text-[11px] font-medium text-[#78AFFF]"
+            >
               Fictional demonstration workspace
             </span>
             <h1 className="text-3xl font-medium tracking-[-0.04em] sm:text-4xl">
@@ -154,13 +158,17 @@ export default function DemoPage() {
           </header>
 
           {selectionNotice && (
-            <div className="flex items-center gap-3 border border-[#D8AE69]/25 bg-[#D8AE69]/[0.08] p-4 text-xs text-[#D8AE69]">
+            <div
+              className="flex items-center gap-3 border border-[#D8AE69]/25 bg-[#D8AE69]/[0.08] p-4 text-xs text-[#D8AE69]"
+            >
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>{selectionNotice}</span>
             </div>
           )}
 
-          <section className="grid gap-4 border border-[#78AFFF]/20 bg-[#0D0F12] p-5 md:grid-cols-[1fr_auto] md:items-center">
+          <section
+            className="grid gap-4 border border-[#78AFFF]/20 bg-[#0D0F12] p-5 md:grid-cols-[1fr_auto] md:items-center"
+          >
             <div className="flex items-start gap-3">
               <Database className="mt-0.5 h-4 w-4 shrink-0 text-[#75D6C9]" />
               <div>
