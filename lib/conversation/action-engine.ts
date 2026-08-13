@@ -64,7 +64,10 @@ export async function executeBusinessAction(
       message: 'A trusted workspace context is required for business actions.',
       recordIds: {},
       details: {},
-      error: { code: 'WORKSPACE_CONTEXT_REQUIRED', message: 'The action was not authorized for a workspace.' },
+      error: {
+        code: 'WORKSPACE_CONTEXT_REQUIRED',
+        message: 'The action was not authorized for a workspace.',
+      },
     };
   }
 
@@ -119,7 +122,11 @@ export async function executeBusinessAction(
 
     case 'CHECK_AVAILABILITY': {
       try {
-        const slots = await getAvailableSlots(profile, workspaceId, req.extractedFields?.preferredDate);
+        const slots = await getAvailableSlots(
+          profile,
+          workspaceId,
+          req.extractedFields?.preferredDate
+        );
         return {
           success: true,
           persisted: false,
