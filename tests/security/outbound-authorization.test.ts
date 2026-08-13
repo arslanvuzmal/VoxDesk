@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   isEnabled: vi.fn(),
   contactFindFirst: vi.fn(),
   campaignFindFirst: vi.fn(),
+  businessProfileFindUnique: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/require-session', () => ({
@@ -18,6 +19,7 @@ vi.mock('@/lib/database', () => ({
   prisma: {
     contact: { findFirst: mocks.contactFindFirst },
     campaign: { findFirst: mocks.campaignFindFirst },
+    businessProfile: { findUnique: mocks.businessProfileFindUnique },
   },
 }));
 
@@ -40,6 +42,7 @@ describe('outbound authorization', () => {
       role: 'OPERATOR',
     });
     mocks.contactFindFirst.mockResolvedValue({ id: 'contact-a', phoneEncrypted: 'ciphertext' });
+    mocks.businessProfileFindUnique.mockResolvedValue(null);
   });
 
   it('requires the outbound execution permission', async () => {
@@ -73,7 +76,7 @@ describe('outbound authorization', () => {
     );
     expect(response.status).toBe(503);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: 'CALLER_ID_REQUIRES_CONFIGURATION' },
+      error: { code: 'NOT_CONFIGURED' },
     });
   });
 });
