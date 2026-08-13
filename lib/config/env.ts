@@ -3,8 +3,8 @@ import { z } from 'zod';
 /**
  * Portfolio-demo runtime configuration.
  *
- * Only DATABASE_URL is required for the application itself. Provider credentials
- * are optional until the corresponding capability is explicitly enabled.
+ * Database and security configuration are required for the server runtime. Provider
+ * credentials remain optional until their capability is explicitly enabled.
  */
 const envSchema = z.object({
   APP_URL: z.string().url().optional().default('http://localhost:3000'),
@@ -56,13 +56,13 @@ const envSchema = z.object({
   // Deprecated paths may read these while they are removed. They are never
   // deployment requirements and no provider action is allowed without its own
   // explicit provider credentials.
-  AUTH_SECRET: z.string().default('portfolio-demo-auth-disabled'),
-  ENCRYPTION_KEY: z.string().default('portfolio-demo-data-not-encrypted'),
-  INTERNAL_API_SECRET: z.string().default('portfolio-demo-internal-signing-disabled'),
-  DEMO_SESSION_SECRET: z.string().default('portfolio-demo-session-disabled'),
-  IP_HASH_SECRET: z.string().default('portfolio-demo-rate-limit'),
-  PHONE_HASH_SECRET: z.string().default('portfolio-demo-phone'),
-  DEMO_DATA_ENCRYPTION_KEY: z.string().default('portfolio-demo-data-not-encrypted'),
+  AUTH_SECRET: z.string().min(32, 'AUTH_SECRET is required'),
+  ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/, 'ENCRYPTION_KEY must be 64 hexadecimal characters'),
+  INTERNAL_API_SECRET: z.string().min(32, 'INTERNAL_API_SECRET is required'),
+  DEMO_SESSION_SECRET: z.string().min(32, 'DEMO_SESSION_SECRET is required'),
+  IP_HASH_SECRET: z.string().min(32, 'IP_HASH_SECRET is required'),
+  PHONE_HASH_SECRET: z.string().min(32, 'PHONE_HASH_SECRET is required'),
+  DEMO_DATA_ENCRYPTION_KEY: z.string().min(32).optional(),
   UPSTASH_REDIS_REST_URL: z.string().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
