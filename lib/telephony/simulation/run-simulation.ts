@@ -391,22 +391,14 @@ export async function runTelephonySimulation(input: {
     }
     if (input.scenario === 'human-escalation') {
       apply('HUMAN_TRANSFER_PENDING', 'CALL_TRANSFERRED');
-      await prisma.handoff.create({
-        data: {
-          workspaceId: context.workspaceId,
-          callId: created.call.id,
-          agentId: context.agentId,
-          reason: 'Simulation: customer requested human assistance',
-          destination: 'Simulation human queue',
-          result: 'SIMULATED_HANDOFF_PREPARED',
-          briefText: 'No external transfer was attempted.',
-        },
-      });
       toolResults.push({
         tool: 'request_human_handoff',
-        result: { status: 'SIMULATED_HANDOFF_PREPARED' },
+        result: await executeTool('request_human_handoff', toolContext, {
+          reason: 'Simulation: customer requested human assistance',
+          mode: 'TASK',
+          brief: 'No external transfer was attempted; a simulated human-operations task was requested.',
+        }),
       });
-      apply('HUMAN_CONNECTED', 'CALL_TRANSFERRED');
     }
     apply('ENDING', 'CALL_HANGUP');
     apply('COMPLETED', 'CALL_HANGUP');
