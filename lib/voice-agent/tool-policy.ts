@@ -9,8 +9,8 @@ export interface ToolPolicyResult {
   reason: string;
 }
 
-const SENSITIVE_KEY = /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn/;
-const SENSITIVE_KEY_EXTENDED = /social.?security|medical.?record|health.?diagnosis/i;
+const SENSITIVE_KEY =
+  /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
 const CONSEQUENTIAL_TOOLS = new Set([
   'create_or_update_contact',
   'book_appointment',
@@ -32,7 +32,7 @@ function containsSensitiveKey(value: unknown, path = ''): string[] {
   }
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
-    return SENSITIVE_KEY.test(key) || SENSITIVE_KEY_EXTENDED.test(key)
+    return SENSITIVE_KEY.test(key)
       ? [currentPath]
       : containsSensitiveKey(child, currentPath);
   });
@@ -80,7 +80,10 @@ export function evaluateToolPolicy(input: {
   }
 
   const externalPaths = containsExternalDestination(input.parameters);
-  if (externalPaths.length > 0 && ['schedule_callback', 'create_follow_up'].includes(input.tool)) {
+  if (
+    externalPaths.length > 0 &&
+    ['schedule_callback', 'create_follow_up'].includes(input.tool)
+  ) {
     return {
       decision: 'ESCALATE',
       riskScore: 70,
