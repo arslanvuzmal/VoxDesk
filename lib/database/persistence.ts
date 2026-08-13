@@ -38,11 +38,6 @@ export async function persistFinalCallResult(
       (result.accumulatedFields.phone as string) ||
       '';
 
-    const rawEmail =
-      (result.accumulatedFields.workEmail as string) ||
-      (result.accumulatedFields.email as string) ||
-      '';
-
     const maskedPhone = formatMaskedPhoneNumber(rawPhone);
     const serviceInterest =
       (result.accumulatedFields.serviceInterest as string) ||
