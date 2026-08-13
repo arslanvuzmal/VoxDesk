@@ -24,7 +24,8 @@ export type ActionDecision =
       pendingConfirmation?: PendingConfirmation;
     }
   | { execute: false; reason: string }
-  | { execute: false; pendingConfirmation: PendingConfirmation };
+  | { execute: false; pendingConfirmation: PendingConfirmation }
+  | { execute: false; reason: string; escalationRequired: true };
 
 export interface ActionPolicyContext {
   suggestedAction: BusinessActionType;
@@ -133,6 +134,7 @@ export function evaluateSuggestedAction(ctx: ActionPolicyContext): ActionDecisio
       return {
         execute: false,
         reason: 'Sensitive fields require human review before lead creation.',
+        escalationRequired: true,
       };
     }
 
