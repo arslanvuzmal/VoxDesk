@@ -396,7 +396,8 @@ export async function runTelephonySimulation(input: {
         result: await executeTool('request_human_handoff', toolContext, {
           reason: 'Simulation: customer requested human assistance',
           mode: 'TASK',
-          brief: 'No external transfer was attempted; a simulated human-operations task was requested.',
+          brief:
+            'No external transfer was attempted; a simulated human-operations task was requested.',
         }),
       });
     }
