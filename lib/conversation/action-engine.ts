@@ -9,7 +9,7 @@ export { type BusinessActionType };
 
 export interface BusinessActionRequest {
   actionType: BusinessActionType;
-  workspaceId?: string;
+  workspaceId: string;
   presetKey?: string;
   callId?: string;
   sessionId: string;
@@ -54,14 +54,26 @@ export async function executeBusinessAction(
   req: BusinessActionRequest
 ): Promise<BusinessActionResult> {
   const profile = getOrganizationProfile(req.presetKey);
-  const workspaceId = req.workspaceId || 'ws_demo_default';
+  const workspaceId = req.workspaceId.trim();
+  if (!workspaceId) {
+    return {
+      success: false,
+      persisted: false,
+      actionType: req.actionType,
+      status: 'FAILED',
+      message: 'A trusted workspace context is required for business actions.',
+      recordIds: {},
+      details: {},
+      error: { code: 'WORKSPACE_CONTEXT_REQUIRED', message: 'The action was not authorized for a workspace.' },
+    };
+  }
 
   const callerName =
     req.callerName ||
     req.extractedFields?.fullName ||
     req.extractedFields?.customerName ||
     req.extractedFields?.patientName ||
-    'Caller';
+    'Not provided';
 
   const callerPhone =
     req.callerPhone || req.extractedFields?.contactPhone || req.extractedFields?.phone || '';
@@ -75,7 +87,7 @@ export async function executeBusinessAction(
     req.extractedFields?.issueCategory ||
     req.extractedFields?.primarySymptom ||
     profile.services[0]?.name ||
-    'General Inquiry';
+    'Not provided';
 
   switch (req.actionType) {
     case 'NONE': {
@@ -107,7 +119,7 @@ export async function executeBusinessAction(
 
     case 'CHECK_AVAILABILITY': {
       try {
-        const slots = await getAvailableSlots(profile, req.extractedFields?.preferredDate);
+        const slots = await getAvailableSlots(profile, req.extractedFields?.preferredDate, workspaceId);
         return {
           success: true,
           persisted: false,
@@ -234,7 +246,7 @@ export async function executeBusinessAction(
             name: callerName,
             phoneEncrypted: callerPhone ? encryptSensitiveValue(callerPhone) : 'enc:v1:none',
             emailEncrypted: callerEmail ? encryptSensitiveValue(callerEmail) : 'enc:v1:none',
-            company: req.company || req.extractedFields?.companyName || 'Prospect',
+            company: req.company || req.extractedFields?.companyName || 'Not provided',
             serviceInterest: service,
             score: qual.score,
             category: qual.category,
