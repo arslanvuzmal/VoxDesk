@@ -1,6 +1,6 @@
 import { BusinessActionType } from './schemas/voice-agent-output';
 import { OrganizationProfile } from '@/lib/organization/types';
-import { generateRealAvailableSlots, AppointmentSlot } from './availability';
+import { generateRealAvailableSlots } from './availability';
 
 export interface PendingConfirmation {
   id: string;
