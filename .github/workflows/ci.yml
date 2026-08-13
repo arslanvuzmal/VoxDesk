@@ -41,7 +41,21 @@ jobs:
       - run: npm run docs:check
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run audit:routes
+      - run: npm run build
+      - name: Start local server for route audit
+        run: |
+          npm run start -- -p 3000 > /tmp/voxdesk-next.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              cat /tmp/voxdesk-next.log
+              exit 1
+            fi
+            sleep 2
+          done
+      - run: AUDIT_BASE_URL=http://127.0.0.1:3000 npm run audit:routes
 
   tests:
     name: Unit, integration, and security tests
