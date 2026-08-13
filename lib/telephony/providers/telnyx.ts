@@ -104,16 +104,22 @@ export class TelnyxProvider implements TelephonyProvider {
     return response.json() as Promise<T>;
   }
 
-  async createAgent(config: VoiceAgentConfig): Promise<string> {
-    return `telnyx-agent-${config.businessId}-${config.agentVersion}`;
+  async createAgent(_config: VoiceAgentConfig): Promise<string> {
+    throw new Error(
+      'Telnyx does not provision conversational agents. Configure the ElevenLabs agent and keep Telnyx for PSTN/SIP.'
+    );
   }
 
-  async updateAgent(agentId: string, config: Partial<VoiceAgentConfig>): Promise<boolean> {
-    return true;
+  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+    throw new Error(
+      'Telnyx does not manage conversational agent versions. Update the canonical ElevenLabs agent.'
+    );
   }
 
-  async deleteAgent(agentId: string): Promise<boolean> {
-    return true;
+  async deleteAgent(_agentId: string): Promise<boolean> {
+    throw new Error(
+      'Telnyx does not manage conversational agent versions. Remove the canonical ElevenLabs agent.'
+    );
   }
 
   async assignPhoneNumber(agentId: string, phoneNumber: string): Promise<boolean> {
