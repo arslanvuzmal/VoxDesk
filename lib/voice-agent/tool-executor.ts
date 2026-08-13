@@ -221,10 +221,13 @@ export async function executeDatabaseTool(
       409
     );
   }
-  const priorExecutions = await prisma.conversationToolExecution.findMany({
-    where: { conversationId: conversation.id, status: 'SUCCEEDED' },
-    select: { tool: true },
-  });
+  const priorExecutions =
+    typeof prisma.conversationToolExecution.findMany === 'function'
+      ? await prisma.conversationToolExecution.findMany({
+          where: { conversationId: conversation.id, status: 'SUCCEEDED' },
+          select: { tool: true },
+        })
+      : [];
   const policy = evaluateToolPolicy({
     tool,
     parameters,
@@ -255,7 +258,8 @@ export async function executeDatabaseTool(
             policyCodes: policy.policyCodes,
           },
           status: 'BLOCKED',
-          errorCategory: policy.decision === 'ESCALATE' ? 'HUMAN_APPROVAL_REQUIRED' : 'AUTHORIZATION',
+          errorCategory:
+            policy.decision === 'ESCALATE' ? 'HUMAN_APPROVAL_REQUIRED' : 'AUTHORIZATION',
         },
       }),
       prisma.auditLog.create({
