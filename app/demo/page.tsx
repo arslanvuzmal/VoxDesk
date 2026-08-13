@@ -189,7 +189,10 @@ export default function DemoPage() {
             </div>
           </section>
           {simulationState && (
-            <p className="border border-[#75D6C9]/30 bg-[#75D6C9]/[0.08] p-3 text-xs text-[#B8F3E8]" role="status">
+            <p
+              className="border border-[#75D6C9]/30 bg-[#75D6C9]/[0.08] p-3 text-xs text-[#B8F3E8]"
+              role="status"
+            >
               {simulationState}
             </p>
           )}
@@ -217,9 +220,11 @@ export default function DemoPage() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{preset.name}</span>
-                      <Briefcase className={`h-4 w-4 ${
-                        selected ? 'text-[#78AFFF]' : 'text-[#737C88]'
-                      }`} />
+                      <Briefcase
+                        className={`h-4 w-4 ${
+                          selected ? 'text-[#78AFFF]' : 'text-[#737C88]'
+                        }`}
+                      />
                     </div>
                     <p className="line-clamp-2 text-xs leading-5 text-[#A1A8B3]">
                       {preset.tagline}
