@@ -57,7 +57,9 @@ const envSchema = z.object({
   // deployment requirements and no provider action is allowed without its own
   // explicit provider credentials.
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET is required'),
-  ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/, 'ENCRYPTION_KEY must be 64 hexadecimal characters'),
+  ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[a-fA-F0-9]{64}$/, 'ENCRYPTION_KEY must be 64 hexadecimal characters'),
   INTERNAL_API_SECRET: z.string().min(32, 'INTERNAL_API_SECRET is required'),
   DEMO_SESSION_SECRET: z.string().min(32, 'DEMO_SESSION_SECRET is required'),
   IP_HASH_SECRET: z.string().min(32, 'IP_HASH_SECRET is required'),
