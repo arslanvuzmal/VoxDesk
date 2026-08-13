@@ -390,7 +390,7 @@ export class OutboundTelephonyHandler {
         return { valid: false, reason: 'Campaign not found', blockedReason: 'CAMPAIGN_LIMIT' };
       }
 
-      if (campaign.state !== 'APPROVED' && campaign.state !== 'RUNNING') {
+      if (!['APPROVED', 'SCHEDULED', 'RUNNING'].includes(campaign.state)) {
         return {
           valid: false,
           reason: `Campaign not in approved/running state: ${campaign.state}`,
