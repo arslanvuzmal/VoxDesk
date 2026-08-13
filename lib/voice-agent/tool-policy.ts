@@ -58,12 +58,14 @@ function containsSensitiveKey(value: unknown, path = ''): string[] {
       containsSensitiveKey(item, `${path}[${index}]`)
     );
   }
-  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
+  return Object.entries(value as Record<string, unknown>).flatMap(
+    ([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
-    return SENSITIVE_KEY.test(key)
-      ? [currentPath]
-      : containsSensitiveKey(child, currentPath);
-  });
+      return SENSITIVE_KEY.test(key)
+        ? [currentPath]
+        : containsSensitiveKey(child, currentPath);
+    }
+  );
 }
 
 function containsExternalDestination(value: unknown, path = ''): string[] {
@@ -75,10 +77,11 @@ function containsExternalDestination(value: unknown, path = ''): string[] {
   }
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
-    return EXTERNAL_DESTINATION_KEY.test(key)
-      ? [currentPath]
-      : containsExternalDestination(child, currentPath);
-  });
+      return EXTERNAL_DESTINATION_KEY.test(key)
+        ? [currentPath]
+        : containsExternalDestination(child, currentPath);
+    }
+  );
 }
 
 export function evaluateToolPolicy(input: {
