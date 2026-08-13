@@ -23,6 +23,7 @@ describe('business action policy', () => {
     );
 
     expect(decision.execute).toBe(false);
+    expect('escalationRequired' in decision && decision.escalationRequired).toBe(true);
     expect('reason' in decision ? decision.reason : '').toContain('Sensitive fields');
   });
 
