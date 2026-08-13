@@ -68,10 +68,16 @@ export default function DemoPage() {
       const sessionResponse = await fetch('/api/demo/session/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario: selectedScenario, presetKey: selectedPresetKey, language: selectedLanguage }),
+        body: JSON.stringify({
+          scenario: selectedScenario,
+          presetKey: selectedPresetKey,
+          language: selectedLanguage,
+        }),
       });
       const sessionPayload = await sessionResponse.json().catch(() => null);
-      if (!sessionResponse.ok) throw new Error(sessionPayload?.error || 'Demo session could not be started.');
+      if (!sessionResponse.ok) {
+        throw new Error(sessionPayload?.error || 'Demo session could not be started.');
+      }
       setSimulationState('Running the persisted simulation...');
       const response = await fetch('/api/demo/simulation', {
         method: 'POST',
@@ -79,8 +85,12 @@ export default function DemoPage() {
         body: JSON.stringify({ scenario: selectedScenario }),
       });
       const payload = await response.json().catch(() => null);
-      if (!response.ok) throw new Error(payload?.error?.message || 'Simulation could not be completed.');
-      setSimulationState(`Simulation complete. Conversation ${payload.data.conversationId} is now in the CRM.`);
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || 'Simulation could not be completed.');
+      }
+      setSimulationState(
+        `Simulation complete. Conversation ${payload.data.conversationId} is now in the CRM.`
+      );
     } catch (error) {
       setSimulationState(error instanceof Error ? error.message : 'Simulation could not be completed.');
     }
