@@ -266,7 +266,9 @@ export function assertEnvironment(requiredOnly = false): void {
 
     if (result.invalid.length > 0) {
       messages.push(
-        `Invalid environment variables: ${result.invalid.map(i => `${i.name} (${i.reason})`).join(', ')}`
+        `Invalid environment variables: ${result.invalid
+          .map(i => `${i.name} (${i.reason})`)
+          .join(', ')}`
       );
     }
 
