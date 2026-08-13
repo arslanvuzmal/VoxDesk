@@ -186,9 +186,7 @@ export async function syncConversationProjection(callId: string): Promise<Conver
     if (call.providerConversationId)
       correlations.push({
         provider: isSimulation ? 'SIMULATION' : 'ELEVENLABS',
-        identifierType: isSimulation
-          ? 'SIMULATION_CONVERSATION_ID'
-          : 'ELEVENLABS_CONVERSATION_ID',
+        identifierType: isSimulation ? 'SIMULATION_CONVERSATION_ID' : 'ELEVENLABS_CONVERSATION_ID',
         identifierValue: call.providerConversationId,
       });
     if (correlations.length > 0) {
