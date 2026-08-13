@@ -54,7 +54,9 @@ const EXTERNAL_DESTINATION_KEY = new RegExp(
 function containsSensitiveKey(value: unknown, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
   if (Array.isArray(value)) {
-    return value.flatMap((item, index) => containsSensitiveKey(item, `${path}[${index}]`));
+    return value.flatMap((item, index) =>
+      containsSensitiveKey(item, `${path}[${index}]`)
+    );
   }
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
@@ -67,7 +69,9 @@ function containsSensitiveKey(value: unknown, path = ''): string[] {
 function containsExternalDestination(value: unknown, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
   if (Array.isArray(value)) {
-    return value.flatMap((item, index) => containsExternalDestination(item, `${path}[${index}]`));
+    return value.flatMap((item, index) =>
+      containsExternalDestination(item, `${path}[${index}]`)
+    );
   }
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
@@ -88,7 +92,8 @@ export function evaluateToolPolicy(input: {
       decision: 'ESCALATE',
       riskScore: 90,
       policyCodes: ['SENSITIVE_FIELD_REQUIRES_HUMAN'],
-      reason: 'Sensitive fields require human approval before a business action can run.',
+      reason:
+        'Sensitive fields require human approval before a business action can run.',
     };
   }
 
@@ -122,7 +127,8 @@ export function evaluateToolPolicy(input: {
     decision: 'ALLOW',
     riskScore: 10,
     policyCodes: ['TOOL_ALLOWLISTED'],
-    reason: 'Tool is allowlisted and the request passed payload and session policy checks.',
+    reason:
+      'Tool is allowlisted and the request passed payload and session policy checks.',
   };
 }
 
