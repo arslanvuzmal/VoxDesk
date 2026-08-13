@@ -216,7 +216,9 @@ async function reconcileStandaloneConversation(
         ? new Date(conversation.startedAt.getTime() + nextTurn.time_in_call_secs * 1000)
         : new Date(event.event_timestamp * 1000);
       await tx.conversationMessage.upsert({
-        where: { conversationId_sequence: { conversationId: conversation.id, sequence: index + 1 } },
+        where: {
+          conversationId_sequence: { conversationId: conversation.id, sequence: index + 1 },
+        },
         create: {
           conversationId: conversation.id,
           speaker:
