@@ -67,4 +67,42 @@ describe('Telnyx outbound caller ID', () => {
     const request = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(request).toMatchObject({ from: '+15557654321', to: '+15551234567', record: false });
   });
+
+  it('does not use the outbound profile ID as a caller ID', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        data: {
+          call_control_id: 'control-2',
+          call_session_id: 'session-2',
+          call_leg_id: 'leg-2',
+          connection_id: 'connection-1',
+          state: 'initiated',
+        },
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const provider = new TelnyxProvider({
+      apiKey: 'test-key',
+      connectionId: 'connection-1',
+      webhookUrl: 'https://example.test/telnyx',
+      failoverUrl: 'https://example.test/telnyx/failover',
+    });
+
+    await provider.startCall({
+      workspaceId: 'workspace-1',
+      businessId: 'business-1',
+      agentId: 'agent-1',
+      agentVersionId: 'version-1',
+      callerNumber: '+15551234567',
+      direction: 'OUTBOUND',
+      channel: 'PHONE',
+      language: 'en-US',
+      trainingPackVersion: 2,
+    });
+
+    const request = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(request.from).toBe('+15555550123');
+    expect(request.from).not.toBe('profile-1');
+  });
 });
