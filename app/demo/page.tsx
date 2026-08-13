@@ -75,15 +75,27 @@ export default function DemoPage() {
         }),
       });
       const sessionPayload = await sessionResponse.json().catch(() => null);
-      if (!sessionResponse.ok) {
+      const scenarioMap = {
+        BOOKING: 'appointment-booked',
+        QUALIFICATION: 'qualified-lead',
+        ESCALATION: 'human-escalation',
+        ROUTINE: 'support-resolution',
+      } as const;
+      const sessionUnavailable = sessionResponse.status === 503;
+      if (!sessionResponse.ok && !sessionUnavailable) {
         throw new Error(sessionPayload?.error || 'Demo session could not be started.');
       }
       setSimulationState('Running the persisted simulation...');
-      const response = await fetch('/api/demo/simulation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ scenario: selectedScenario }),
-      });
+      const response = await fetch(
+        sessionUnavailable ? '/api/telephony/simulations' : '/api/demo/simulation',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenario: sessionUnavailable ? scenarioMap[selectedScenario] : selectedScenario,
+          }),
+        }
+      );
       const payload = await response.json().catch(() => null);
       if (!response.ok) {
         throw new Error(payload?.error?.message || 'Simulation could not be completed.');
