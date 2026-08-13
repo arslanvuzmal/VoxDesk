@@ -135,7 +135,14 @@ export class TelnyxProvider implements TelephonyProvider {
 
   async startCall(options: CallStartOptions): Promise<TelephonyCallRecord> {
     assertLiveTelephonyConfiguration();
-    const fromNumber = options.callerIdNumber || this.getCallerId(options.direction);
+    const configuredCallerId = this.getCallerId(options.direction);
+    if (!configuredCallerId) {
+      throw new Error('TELNYX_PRIMARY_PHONE_NUMBER is not configured.');
+    }
+    if (options.callerIdNumber && options.callerIdNumber !== configuredCallerId) {
+      throw new Error('The requested caller ID is not an approved Telnyx number.');
+    }
+    const fromNumber = configuredCallerId;
     const toNumber = options.callerNumber;
 
     const response = await this.request<{ data: TelnyxCall }>('POST', '/calls', {
