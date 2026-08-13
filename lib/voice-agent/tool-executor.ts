@@ -11,6 +11,7 @@ import {
   normalizePhoneNumber,
   phoneLast4,
 } from '@/lib/security/identifiers';
+import { evaluateToolPolicy, policyAuditFingerprint } from '@/lib/voice-agent/tool-policy';
 
 const ContactSchema = z
   .object({
