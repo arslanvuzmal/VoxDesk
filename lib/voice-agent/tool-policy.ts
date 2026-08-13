@@ -38,8 +38,10 @@ const CONSEQUENTIAL_TOOLS = new Set([
   'record_opt_out',
 ]);
 
-const EXTERNAL_DESTINATION_KEY =
-  /external|destination|recipient|toEmail|toPhone|webhook|url/i;
+const EXTERNAL_DESTINATION_KEY = new RegExp(
+  ['external', 'destination', 'recipient', 'toEmail', 'toPhone', 'webhook', 'url'].join('|'),
+  'i'
+);
 
 function containsSensitiveKey(value: unknown, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
