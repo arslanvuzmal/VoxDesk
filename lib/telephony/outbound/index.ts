@@ -6,8 +6,8 @@ import {
 } from '@/lib/telephony/call-state-machine';
 import {
   resolveElevenLabsAgent,
+  isVoxDeskPreset,
   SupportedLanguage,
-  VoxDeskPreset,
 } from '@/lib/elevenlabs/agent-registry.server';
 import { prisma } from '@/lib/database';
 import { acquireCallLeases, releaseCallLeases } from '@/lib/telephony/concurrency';
@@ -146,8 +146,17 @@ export class OutboundTelephonyHandler {
 
       await this.persistCallContext(machine.getContext());
 
+      if (!isVoxDeskPreset(request.agentId)) {
+        await releaseCallLeases('outbound', leases.leases);
+        return {
+          success: false,
+          error: 'Outbound agent is not mapped to an approved ElevenLabs preset.',
+          blockedReason: 'CAMPAIGN_LIMIT',
+        };
+      }
+
       const elevenLabsAgent = resolveElevenLabsAgent(
-        request.agentId as VoxDeskPreset,
+        request.agentId,
         request.language as SupportedLanguage
       );
 
