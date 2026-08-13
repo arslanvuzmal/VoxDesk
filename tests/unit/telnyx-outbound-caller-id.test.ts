@@ -51,21 +51,21 @@ describe('Telnyx outbound caller ID', () => {
       failoverUrl: 'https://example.test/telnyx/failover',
     });
 
-    await provider.startCall({
-      workspaceId: 'workspace-1',
-      businessId: 'business-1',
-      agentId: 'agent-1',
-      agentVersionId: 'version-1',
-      callerNumber: '+15551234567',
-      callerIdNumber: '+15557654321',
-      direction: 'OUTBOUND',
-      channel: 'PHONE',
-      language: 'en-US',
-      trainingPackVersion: 2,
-    });
-
-    const request = JSON.parse(fetchMock.mock.calls[0][1].body as string);
-    expect(request).toMatchObject({ from: '+15557654321', to: '+15551234567', record: false });
+    await expect(
+      provider.startCall({
+        workspaceId: 'workspace-1',
+        businessId: 'business-1',
+        agentId: 'agent-1',
+        agentVersionId: 'version-1',
+        callerNumber: '+15551234567',
+        callerIdNumber: '+15557654321',
+        direction: 'OUTBOUND',
+        channel: 'PHONE',
+        language: 'en-US',
+        trainingPackVersion: 2,
+      })
+    ).rejects.toThrow('approved Telnyx number');
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('does not use the outbound profile ID as a caller ID', async () => {
