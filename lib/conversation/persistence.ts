@@ -20,7 +20,11 @@ export function mapCallChannel(channel: string): ConversationChannel {
   return 'PHONE';
 }
 
-export function mapCallDirection(direction: CallDirection): ConversationDirection {
+export function mapCallDirection(
+  direction: CallDirection,
+  channel?: string
+): ConversationDirection {
+  if (channel === 'WEB' || channel === 'WEB_VOICE') return 'INTERACTIVE';
   return direction === 'OUTBOUND' ? 'OUTBOUND' : 'INBOUND';
 }
 
@@ -82,7 +86,7 @@ export async function syncConversationProjection(callId: string): Promise<Conver
         businessId: business.id,
         contactId: call.contactId,
         channel: mapCallChannel(call.channel),
-        direction: mapCallDirection(call.direction),
+        direction: mapCallDirection(call.direction, call.channel),
         status: mapCallStatus(call.status),
         agentId: call.agentId,
         agentVersionId: agentVersion?.id,
