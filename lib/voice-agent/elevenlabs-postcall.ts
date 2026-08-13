@@ -166,6 +166,106 @@ async function resolveCall(event: ElevenLabsPostCall) {
   return null;
 }
 
+async function resolveConversation(event: ElevenLabsPostCall) {
+  const conversationId = event.data.conversation_id;
+  const direct = await prisma.conversation.findFirst({
+    where: { providerConversationId: conversationId },
+    select: { id: true, workspaceId: true, startedAt: true },
+  });
+  if (direct) return direct;
+
+  const initiation = event.data.conversation_initiation_client_data;
+  const dynamicConversationId = nestedString(initiation, [
+    'dynamic_variables',
+    'voxdesk_conversation_id',
+  ]);
+  if (dynamicConversationId) {
+    return prisma.conversation.findFirst({
+      where: { id: dynamicConversationId },
+      select: { id: true, workspaceId: true, startedAt: true },
+    });
+  }
+
+  const correlation = await prisma.conversationProviderCorrelation.findUnique({
+    where: {
+      provider_identifierType_identifierValue: {
+        provider: 'ELEVENLABS',
+        identifierType: 'ELEVENLABS_CONVERSATION_ID',
+        identifierValue: conversationId,
+      },
+    },
+    select: { conversation: { select: { id: true, workspaceId: true, startedAt: true } } },
+  });
+  return correlation?.conversation || null;
+}
+
+async function reconcileStandaloneConversation(
+  event: ElevenLabsPostCall,
+  providerEventId: string,
+  conversation: { id: string; workspaceId: string; startedAt: Date }
+): Promise<void> {
+  const failed = event.type === 'call_initiation_failure';
+  const durationSeconds = getDurationSeconds(event);
+  const summary = getProviderSummary(event);
+
+  await prisma.$transaction(async tx => {
+    for (const [index, turn] of event.data.transcript.entries()) {
+      const startedAt = new Date(conversation.startedAt.getTime() + turn.time_in_call_secs * 1000);
+      const nextTurn = event.data.transcript[index + 1];
+      const endedAt = nextTurn
+        ? new Date(conversation.startedAt.getTime() + nextTurn.time_in_call_secs * 1000)
+        : new Date(event.event_timestamp * 1000);
+      await tx.conversationMessage.upsert({
+        where: { conversationId_sequence: { conversationId: conversation.id, sequence: index + 1 } },
+        create: {
+          conversationId: conversation.id,
+          speaker:
+            turn.role === 'agent'
+              ? 'AGENT'
+              : turn.role === 'human'
+                ? 'HUMAN'
+                : turn.role === 'system'
+                  ? 'SYSTEM'
+                  : 'CUSTOMER',
+          type: 'TRANSCRIPT',
+          text: turn.message,
+          providerEventId,
+          sequence: index + 1,
+          startedAt,
+          endedAt,
+          redacted: false,
+        },
+        update: { text: turn.message, providerEventId, startedAt, endedAt },
+      });
+    }
+
+    await tx.conversation.update({
+      where: { id: conversation.id },
+      data: {
+        status: failed ? 'FAILED' : 'COMPLETED',
+        provider: 'ELEVENLABS',
+        providerConversationId: event.data.conversation_id,
+        summary,
+        endedAt: new Date(event.event_timestamp * 1000),
+        durationSeconds: durationSeconds ?? undefined,
+        completenessStatus: 'NEEDS_REVIEW',
+        requiresReview: true,
+      },
+    });
+    await tx.conversationProviderCorrelation.createMany({
+      data: [
+        {
+          conversationId: conversation.id,
+          provider: 'ELEVENLABS',
+          identifierType: 'ELEVENLABS_CONVERSATION_ID',
+          identifierValue: event.data.conversation_id,
+        },
+      ],
+      skipDuplicates: true,
+    });
+  });
+}
+
 function getDurationSeconds(event: ElevenLabsPostCall): number | null {
   const metadataDuration = event.data.metadata.call_duration_secs;
   if (typeof metadataDuration === 'number' && metadataDuration >= 0) {
@@ -193,7 +293,12 @@ export async function reconcileElevenLabsPostCall(
   providerEventId: string
 ): Promise<{ workspaceId?: string; callId?: string; resolved: boolean }> {
   const call = await resolveCall(event);
-  if (!call) return { resolved: false };
+  if (!call) {
+    const conversation = await resolveConversation(event);
+    if (!conversation) return { resolved: false };
+    await reconcileStandaloneConversation(event, providerEventId, conversation);
+    return { workspaceId: conversation.workspaceId, resolved: true };
+  }
 
   const durationSeconds = getDurationSeconds(event);
   const summary = getProviderSummary(event);
