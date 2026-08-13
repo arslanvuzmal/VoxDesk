@@ -81,7 +81,12 @@ export async function POST(req: NextRequest) {
   ]);
   if (!agentVersion || !trainingPack) {
     return NextResponse.json(
-      { error: { code: 'NOT_CONFIGURED', message: 'A published agent version and training pack are required.' } },
+      {
+        error: {
+          code: 'NOT_CONFIGURED',
+          message: 'A published agent version and training pack are required.',
+        },
+      },
       { status: 503 }
     );
   }
@@ -146,7 +151,10 @@ export async function POST(req: NextRequest) {
       { status: 409 }
     );
   }
-  return NextResponse.json({ data: { callId: result.callId, status: 'INITIATING' } }, { status: 202 });
+  return NextResponse.json(
+    { data: { callId: result.callId, status: 'INITIATING' } },
+    { status: 202 }
+  );
 }
 
 export async function GET(req: NextRequest) {
