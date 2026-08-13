@@ -76,6 +76,13 @@ export function evaluateSuggestedAction(ctx: ActionPolicyContext): ActionDecisio
 
   // Reserve appointment policy: Requires explicit caller confirmation against real offered slot
   if (suggestedAction === 'RESERVE_APPOINTMENT') {
+    if (pendingConfirmation && pendingConfirmation.expiresAt <= Date.now()) {
+      return {
+        execute: false,
+        reason: 'The offered appointment slot expired; availability must be checked again.',
+      };
+    }
+
     const isExplicitConfirmation =
       /yes|yeah|sure|confirm|book that|that works|perfect|book it|go ahead/i.test(userMessage);
 
@@ -119,6 +126,16 @@ export function evaluateSuggestedAction(ctx: ActionPolicyContext): ActionDecisio
 
   // Lead creation policy: Requires minimum contact name/phone or explicit qualification scenario
   if (suggestedAction === 'CREATE_LEAD' || suggestedAction === 'SCORE_LEAD') {
+    const sensitiveFieldPresent = Object.keys(accumulatedFields).some(key =>
+      /payment|card|bank|password|ssn|social.?security|medical.?record/i.test(key)
+    );
+    if (sensitiveFieldPresent) {
+      return {
+        execute: false,
+        reason: 'Sensitive fields require human review before lead creation.',
+      };
+    }
+
     const hasNameOrContact =
       accumulatedFields.fullName ||
       accumulatedFields.customerName ||
