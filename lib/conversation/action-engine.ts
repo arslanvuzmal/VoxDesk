@@ -9,7 +9,7 @@ export { type BusinessActionType };
 
 export interface BusinessActionRequest {
   actionType: BusinessActionType;
-  workspaceId: string;
+  workspaceId?: string;
   presetKey?: string;
   callId?: string;
   sessionId: string;
@@ -54,7 +54,7 @@ export async function executeBusinessAction(
   req: BusinessActionRequest
 ): Promise<BusinessActionResult> {
   const profile = getOrganizationProfile(req.presetKey);
-  const workspaceId = req.workspaceId.trim();
+  const workspaceId = req.workspaceId?.trim();
   if (!workspaceId) {
     return {
       success: false,
