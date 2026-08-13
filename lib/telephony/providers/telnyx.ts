@@ -500,10 +500,8 @@ export class TelnyxProvider implements TelephonyProvider {
     }
   }
 
-  private getCallerId(direction: CallDirection): string {
-    if (direction === 'OUTBOUND' && this.outboundProfileId) {
-      return this.outboundProfileId;
-    }
+  private getCallerId(_direction: CallDirection): string {
+    // Outbound voice profile IDs configure routing; they are not caller IDs.
     return process.env.TELNYX_PRIMARY_PHONE_NUMBER || '';
   }
 
