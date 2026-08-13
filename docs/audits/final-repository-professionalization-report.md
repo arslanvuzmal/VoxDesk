@@ -52,7 +52,7 @@ The finalization branch subsequently added a server-owned tool policy boundary. 
 
 The Telnyx adapter no longer returns fabricated agent IDs or successful agent-management responses. ElevenLabs remains the conversational-agent authority. Outbound caller-ID fallback now uses the configured primary E.164 number; an outbound voice-profile ID is never sent as a phone number. The adapter now also rejects a caller-supplied number unless it exactly matches that configured primary number.
 
-The repository's main CI, CodeQL, production build, unit/integration/security tests, and browser acceptance all passed for the earlier verified commit `8da9164a24450235b24e4927126941f5a2e0d02e`; the latest caller-ID hardening commit is `fa9767ca51018b18a599bebec349c85b6f3fecef` and is awaiting CI. Vercel was not invoked. Existing Vercel statuses are external account-quota failures and are not treated as repository verification.
+The repository's main CI, CodeQL, production build, unit/integration/security tests, and browser acceptance all passed for the earlier verified commit `8da9164a24450235b24e4927126941f5a2e0d02e`; the latest outbound execution and provider-identity hardening commits are `b60e4a8717148e0f5c4cf248501f16d92687c0fe` and `5ddd2dcd04851b0fc4d51b21385bcf1c2bd51056`; CI is pending for these commits. Vercel was not invoked. Existing Vercel statuses are external account-quota failures and are not treated as repository verification.
 
 ## Verification
 
