@@ -103,7 +103,6 @@ export async function POST(req: Request) {
           warnings.push('The isolated demo workspace or ElevenLabs agent is not configured.');
         }
       }
-      }
     } catch {
       persistenceStatus = 'FAILED';
       warnings.push('Call metadata could not be persisted. No CRM completion was claimed.');
