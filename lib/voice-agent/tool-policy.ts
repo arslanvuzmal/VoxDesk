@@ -46,9 +46,7 @@ const EXTERNAL_DESTINATION_KEY = new RegExp(
 function containsSensitiveKey(value: unknown, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
   if (Array.isArray(value)) {
-    return value.flatMap((item, index) =>
-      containsSensitiveKey(item, `${path}[${index}]`)
-    );
+    return value.flatMap((item, index) => containsSensitiveKey(item, `${path}[${index}]`));
   }
   return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
     const currentPath = path ? `${path}.${key}` : key;
