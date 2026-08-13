@@ -206,9 +206,21 @@ export class OutboundTelephonyHandler {
   }): Promise<void> {
     const call = await prisma.call.findFirst({
       where: { providerCallControlId: event.providerCallControlId },
+      include: {
+        workspace: {
+          select: { businessProfile: { select: { id: true } } },
+        },
+      },
     });
 
     if (!call) return;
+
+    const businessId = call.workspace.businessProfile?.id;
+    const agentVersionId = call.agentVersionId;
+    if (!businessId || !agentVersionId) {
+      console.error('[OUTBOUND HANDLER] Call routing metadata is incomplete.');
+      return;
+    }
 
     const callContext = createCallContextFromTelniWebhook({
       eventType: event.eventType as any,
@@ -224,9 +236,9 @@ export class OutboundTelephonyHandler {
 
     callContext.id = call.id;
     callContext.workspaceId = call.workspaceId;
-    callContext.businessId = call.workspaceId;
+    callContext.businessId = businessId;
     callContext.agentId = call.agentId;
-    callContext.agentVersionId = call.agentId;
+    callContext.agentVersionId = agentVersionId;
     callContext.callerNumber = call.callerNumberMasked;
     callContext.state = call.status as any;
     callContext.startedAt = call.startedAt;
