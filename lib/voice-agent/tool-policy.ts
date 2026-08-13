@@ -9,24 +9,7 @@ export interface ToolPolicyResult {
   reason: string;
 }
 
-const SENSITIVE_KEY = new RegExp(
-  [
-    'payment',
-    'card',
-    'cvv',
-    'bank',
-    'routing',
-    'password',
-    'passcode',
-    'secret',
-    'token',
-    'ssn',
-    'social.?security',
-    'medical.?record',
-    'health.?diagnosis',
-  ].join('|'),
-  'i'
-);
+const SENSITIVE_KEY = /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
 const CONSEQUENTIAL_TOOLS = new Set([
   'create_or_update_contact',
   'book_appointment',
@@ -37,38 +20,20 @@ const CONSEQUENTIAL_TOOLS = new Set([
   'schedule_callback',
   'record_opt_out',
 ]);
+const EXTERNAL_DESTINATION_KEY = /external|destination|recipient|toEmail|toPhone|webhook|url/i;
 
-const EXTERNAL_DESTINATION_KEY = new RegExp(
-  ['external', 'destination', 'recipient', 'toEmail', 'toPhone', 'webhook', 'url'].join('|'),
-  'i'
-);
-
-function containsSensitiveKey(value: unknown, path = ''): string[] {
+function collectKeys(value: unknown, matcher: RegExp, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
-  if (Array.isArray(value)) {
-    return value.flatMap((item, index) => containsSensitiveKey(item, `${path}[${index}]`));
-  }
-  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
+  const entries = Array.isArray(value)
+    ? value.map((child, index) => [String(index), child] as const)
+    : Object.entries(value);
+  const matches: string[] = [];
+  for (const [key, child] of entries) {
     const currentPath = path ? `${path}.${key}` : key;
-    return SENSITIVE_KEY.test(key)
-      ? [currentPath]
-      : containsSensitiveKey(child, currentPath);
-  });
-}
-
-function containsExternalDestination(value: unknown, path = ''): string[] {
-  if (!value || typeof value !== 'object') return [];
-  if (Array.isArray(value)) {
-    return value.flatMap((item, index) =>
-      containsExternalDestination(item, `${path}[${index}]`)
-    );
+    if (matcher.test(key)) matches.push(currentPath);
+    else matches.push(...collectKeys(child, matcher, currentPath));
   }
-  return Object.entries(value as Record<string, unknown>).flatMap(([key, child]) => {
-    const currentPath = path ? `${path}.${key}` : key;
-    return EXTERNAL_DESTINATION_KEY.test(key)
-      ? [currentPath]
-      : containsExternalDestination(child, currentPath);
-  });
+  return matches;
 }
 
 export function evaluateToolPolicy(input: {
@@ -76,14 +41,12 @@ export function evaluateToolPolicy(input: {
   parameters: Record<string, unknown>;
   priorSuccessfulTools: string[];
 }): ToolPolicyResult {
-  const sensitivePaths = containsSensitiveKey(input.parameters);
-  if (sensitivePaths.length > 0) {
+  if (collectKeys(input.parameters, SENSITIVE_KEY).length > 0) {
     return {
       decision: 'ESCALATE',
       riskScore: 90,
       policyCodes: ['SENSITIVE_FIELD_REQUIRES_HUMAN'],
-      reason:
-        'Sensitive fields require human approval before a business action can run.',
+      reason: 'Sensitive fields require human approval before a business action can run.',
     };
   }
 
@@ -100,9 +63,8 @@ export function evaluateToolPolicy(input: {
     };
   }
 
-  const externalPaths = containsExternalDestination(input.parameters);
   if (
-    externalPaths.length > 0 &&
+    collectKeys(input.parameters, EXTERNAL_DESTINATION_KEY).length > 0 &&
     ['schedule_callback', 'create_follow_up'].includes(input.tool)
   ) {
     return {
@@ -117,21 +79,13 @@ export function evaluateToolPolicy(input: {
     decision: 'ALLOW',
     riskScore: 10,
     policyCodes: ['TOOL_ALLOWLISTED'],
-    reason:
-      'Tool is allowlisted and the request passed payload and session policy checks.',
+    reason: 'Tool is allowlisted and the request passed payload and session policy checks.',
   };
 }
 
 export function policyAuditFingerprint(result: ToolPolicyResult): string {
   return crypto
     .createHash('sha256')
-    .update(
-      JSON.stringify([
-        result.decision,
-        result.riskScore,
-        result.policyCodes,
-        result.reason,
-      ])
-    )
+    .update(JSON.stringify([result.decision, result.riskScore, result.policyCodes, result.reason]))
     .digest('hex');
 }
