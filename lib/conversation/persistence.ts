@@ -158,29 +158,30 @@ export async function syncConversationProjection(callId: string): Promise<Conver
       identifierType: string;
       identifierValue: string;
     }> = [];
+    const telephonyProvider = call.provider === 'SIMULATION' ? 'SIMULATION' : 'TELNYX';
     if (call.providerCallControlId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_CONTROL_ID',
+        provider: telephonyProvider,
+        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_CONTROL_ID' : 'TELNYX_CALL_CONTROL_ID',
         identifierValue: call.providerCallControlId,
       });
     if (call.providerCallSessionId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_SESSION_ID',
+        provider: telephonyProvider,
+        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_SESSION_ID' : 'TELNYX_CALL_SESSION_ID',
         identifierValue: call.providerCallSessionId,
       });
     if (call.providerCallLegId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_LEG_ID',
+        provider: telephonyProvider,
+        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_LEG_ID' : 'TELNYX_CALL_LEG_ID',
         identifierValue: call.providerCallLegId,
       });
     if (call.providerConversationId)
       correlations.push({
-        provider: 'ELEVENLABS',
-        identifierType: 'ELEVENLABS_CONVERSATION_ID',
+        provider: call.provider === 'SIMULATION' ? 'SIMULATION_CONVERSATION_ID' : 'ELEVENLABS_CONVERSATION_ID',
         identifierValue: call.providerConversationId,
+        provider: call.provider === 'SIMULATION' ? 'SIMULATION' : 'ELEVENLABS',
       });
     if (correlations.length > 0) {
       await tx.conversationProviderCorrelation.createMany({
