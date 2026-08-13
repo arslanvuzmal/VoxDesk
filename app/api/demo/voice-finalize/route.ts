@@ -98,7 +98,15 @@ export async function POST(req: Request) {
             }));
           callId = call.id;
           persistenceStatus = 'PERSISTED';
-          await syncConversationProjection(call.id);
+          const projected = await syncConversationProjection(call.id);
+          if (!projected.synced) {
+            persistenceStatus = 'FAILED';
+            warnings.push(
+              projected.reason === 'BUSINESS_NOT_CONFIGURED'
+                ? 'The business profile is not configured; no canonical conversation was created.'
+                : 'The canonical conversation could not be created.'
+            );
+          }
         } else {
           warnings.push('The isolated demo workspace or ElevenLabs agent is not configured.');
         }
