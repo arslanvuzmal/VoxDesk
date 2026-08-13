@@ -1,6 +1,5 @@
 import { prisma } from './index';
 import { FinalCallResult } from '@/lib/conversation/types/final-call-result';
-import { encryptSensitiveValue } from '@/lib/security/encryption';
 
 export function formatMaskedPhoneNumber(phone: string): string {
   if (!phone) return 'Not provided';
@@ -45,9 +44,6 @@ export async function persistFinalCallResult(
       '';
 
     const maskedPhone = formatMaskedPhoneNumber(rawPhone);
-    const encryptedPhone = encryptSensitiveValue(rawPhone);
-    const encryptedEmail = encryptSensitiveValue(rawEmail);
-
     const serviceInterest =
       (result.accumulatedFields.serviceInterest as string) ||
       (result.accumulatedFields.legalCategory as string) ||
@@ -120,55 +116,9 @@ export async function persistFinalCallResult(
         },
       });
 
-      let leadId: string | undefined;
-      // 5. Create Lead Record if lead qualification exists
-      if (result.qualification) {
-        const lead = await tx.lead.create({
-          data: {
-            workspaceId,
-            callId: call.id,
-            name: callerName,
-            phoneEncrypted: encryptedPhone,
-            emailEncrypted: encryptedEmail,
-            serviceInterest,
-            score: result.qualification.score,
-            category: result.qualification.category as any,
-            status: 'NEW',
-          },
-        });
-        leadId = lead.id;
-      }
-
-      let appointmentId: string | undefined;
-      // 6. Create Appointment Record if appointment action succeeded
-      const apptAction = result.businessActions?.find(
-        (a: any) => a.actionType === 'RESERVE_APPOINTMENT'
-      ) as any;
-
-      if (apptAction) {
-        const startTime = apptAction.payload?.startTime
-          ? new Date(apptAction.payload.startTime)
-          : new Date(Date.now() + 86400000);
-        const endTime = apptAction.payload?.endTime
-          ? new Date(apptAction.payload.endTime)
-          : new Date(startTime.getTime() + 45 * 60000);
-
-        const appt = await tx.appointment.create({
-          data: {
-            workspaceId,
-            callId: call.id,
-            callerName,
-            callerContactEncrypted: encryptedPhone,
-            service: serviceInterest,
-            startTime,
-            endTime,
-            timezone: workspace.timezone || 'UTC',
-            status: 'CONFIRMED',
-          },
-        });
-        appointmentId = appt.id;
-      }
-
+      // CRM actions are intentionally not reconstructed from provider output here.
+      // Contacts, opportunities, appointments, tasks and follow-ups must be created
+      // exactly once through the authorized conversation tool gateway.
       // 7. Create CRM Activity Log
       const activity = await tx.cRMActivity.create({
         data: {
@@ -199,8 +149,6 @@ export async function persistFinalCallResult(
 
       return {
         callId: call.id,
-        leadId,
-        appointmentId,
         crmActivityId: activity.id,
         auditLogId: audit.id,
       };
