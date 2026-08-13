@@ -295,36 +295,24 @@ export async function executeBusinessAction(
     }
 
     case 'UPDATE_LEAD':
-    case 'PREPARE_FOLLOW_UP': {
+    case 'PREPARE_FOLLOW_UP':
+    case 'PREPARE_HANDOFF':
+    case 'REQUEST_HUMAN_REVIEW': {
       return {
-        success: true,
+        success: false,
         persisted: false,
         actionType: req.actionType,
-        status: 'COMPLETED',
-        message: `Prepared lead follow-up task for ${profile.name}`,
+        status: 'FAILED',
+        message: 'This action must be requested through the authorized tool gateway.',
         recordIds: {},
         details: {
           callerName,
           service,
-          followUpPriority: 'HIGH',
+          reason: req.extractedFields?.reason || 'Provider action requires authorization',
         },
-      };
-    }
-
-    case 'PREPARE_HANDOFF':
-    case 'REQUEST_HUMAN_REVIEW': {
-      return {
-        success: true,
-        persisted: false,
-        actionType: req.actionType,
-        status: 'COMPLETED',
-        message: `Emergency / Human escalation prepared for ${profile.escalationDestination.department}`,
-        recordIds: {},
-        details: {
-          department: profile.escalationDestination.department,
-          phone: profile.escalationDestination.phone,
-          reason: req.extractedFields?.reason || 'Immediate caller escalation request',
-          urgency: 'CRITICAL',
+        error: {
+          code: 'AUTHORIZED_TOOL_REQUIRED',
+          message: 'No CRM, follow-up, or handoff record was created by this legacy action path.',
         },
       };
     }
