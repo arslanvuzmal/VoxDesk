@@ -46,6 +46,14 @@ The customer-service-department roadmap deliberately marks first-class cases, qu
 - Private vulnerability reporting and GitHub code scanning default setup were enabled.
 - Main-branch rulesets remain a deliberate owner action; exact solo-maintainer settings are documented in [GitHub repository settings](../operations/github-repository-settings.md).
 
+## Targeted hardening after the initial report
+
+The finalization branch subsequently added a server-owned tool policy boundary. Tool requests are evaluated as `ALLOW`, `DENY`, or `ESCALATE` after signed context and persisted-conversation checks. Payload keys are inspected for sensitive data and external communication destinations; decisions record risk, policy codes, reason, and a one-way fingerprint in the audit trail. Consequential tool idempotency uses a stable tool-plus-payload fingerprint, so semantic retries return the persisted successful result instead of duplicating a side effect.
+
+The Telnyx adapter no longer returns fabricated agent IDs or successful agent-management responses. ElevenLabs remains the conversational-agent authority. Outbound caller-ID fallback now uses the configured primary E.164 number; an outbound voice-profile ID is never sent as a phone number.
+
+The repository's main CI, CodeQL, production build, unit/integration/security tests, and browser acceptance all passed for commit `8da9164a24450235b24e4927126941f5a2e0d02e`. Vercel was not invoked. Existing Vercel statuses are external account-quota failures and are not treated as repository verification.
+
 ## Verification
 
 The following passed locally with non-secret CI-style validation values:
