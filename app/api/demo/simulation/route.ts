@@ -24,7 +24,12 @@ export async function POST(request: NextRequest) {
   const session = token ? await getDemoSessionFromCookieToken(token) : null;
   if (!session) {
     return NextResponse.json(
-      { error: { code: 'DEMO_SESSION_REQUIRED', message: 'Start a demo session before running a simulation.' } },
+      {
+        error: {
+          code: 'DEMO_SESSION_REQUIRED',
+          message: 'Start a demo session before running a simulation.',
+        },
+      },
       { status: 401, headers: { 'Cache-Control': 'no-store, private' } }
     );
   }
@@ -44,7 +49,12 @@ export async function POST(request: NextRequest) {
     });
     if (!workspace) {
       return NextResponse.json(
-        { error: { code: 'DEMO_NOT_CONFIGURED', message: 'The demonstration workspace is not configured.' } },
+        {
+          error: {
+            code: 'DEMO_NOT_CONFIGURED',
+            message: 'The demonstration workspace is not configured.',
+          },
+        },
         { status: 409 }
       );
     }
@@ -52,7 +62,9 @@ export async function POST(request: NextRequest) {
     const scenario = scenarioMap[parsed.data.scenario];
     if (!(SIMULATION_SCENARIOS as readonly string[]).includes(scenario)) {
       return NextResponse.json(
-        { error: { code: 'VALIDATION', message: 'The selected simulation is not available.' } },
+        {
+          error: { code: 'VALIDATION', message: 'The selected simulation is not available.' },
+        },
         { status: 400 }
       );
     }
@@ -75,7 +87,12 @@ export async function POST(request: NextRequest) {
       );
     }
     return NextResponse.json(
-      { error: { code: 'DEMO_SIMULATION_FAILED', message: 'The demonstration could not be completed.' } },
+      {
+        error: {
+          code: 'DEMO_SIMULATION_FAILED',
+          message: 'The demonstration could not be completed.',
+        },
+      },
       { status: 500 }
     );
   }
