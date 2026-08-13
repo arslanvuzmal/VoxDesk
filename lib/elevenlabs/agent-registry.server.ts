@@ -5,6 +5,10 @@ export type SupportedLanguage = 'en-US' | 'ur-PK' | 'es-ES';
 export type VoxDeskPreset =
   'LEGAL' | 'HEALTHCARE' | 'REAL_ESTATE' | 'HOME_SERVICES' | 'B2B_SERVICES';
 
+export function isVoxDeskPreset(value: string): value is VoxDeskPreset {
+  return ['LEGAL', 'HEALTHCARE', 'REAL_ESTATE', 'HOME_SERVICES', 'B2B_SERVICES'].includes(value);
+}
+
 export interface AgentRegistration {
   presetKey: VoxDeskPreset;
   language: SupportedLanguage;
