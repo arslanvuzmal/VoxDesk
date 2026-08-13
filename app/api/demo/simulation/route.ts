@@ -37,7 +37,9 @@ export async function POST(request: NextRequest) {
   const parsed = RequestSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json(
-      { error: { code: 'VALIDATION', message: 'A supported simulation scenario is required.' } },
+      {
+        error: { code: 'VALIDATION', message: 'A supported simulation scenario is required.' },
+      },
       { status: 400 }
     );
   }
