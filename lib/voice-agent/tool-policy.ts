@@ -9,7 +9,8 @@ export interface ToolPolicyResult {
   reason: string;
 }
 
-const SENSITIVE_KEY = /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
+const SENSITIVE_KEY =
+  /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
 const CONSEQUENTIAL_TOOLS = new Set([
   'create_or_update_contact',
   'book_appointment',
@@ -21,7 +22,8 @@ const CONSEQUENTIAL_TOOLS = new Set([
   'record_opt_out',
 ]);
 
-const EXTERNAL_DESTINATION_KEY = /external|destination|recipient|toEmail|toPhone|webhook|url/i;
+const EXTERNAL_DESTINATION_KEY =
+  /external|destination|recipient|toEmail|toPhone|webhook|url/i;
 
 function containsSensitiveKey(value: unknown, path = ''): string[] {
   if (!value || typeof value !== 'object') return [];
@@ -98,6 +100,8 @@ export function evaluateToolPolicy(input: {
 export function policyAuditFingerprint(result: ToolPolicyResult): string {
   return crypto
     .createHash('sha256')
-    .update(JSON.stringify([result.decision, result.riskScore, result.policyCodes, result.reason]))
+    .update(
+      JSON.stringify([result.decision, result.riskScore, result.policyCodes, result.reason])
+    )
     .digest('hex');
 }
