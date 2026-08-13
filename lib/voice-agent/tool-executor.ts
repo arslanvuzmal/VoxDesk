@@ -183,8 +183,63 @@ export async function executeDatabaseTool(
   context: ConversationContext
 ): Promise<Prisma.JsonObject> {
   const conversation = await assertPersistedConversationContext(context);
-  const operationFingerprint = `${tool}:${toolExecutionId}`;
+  const operationFingerprint = `${tool}:${payloadFingerprint(parameters)}`;
   const inputFingerprint = payloadFingerprint(parameters);
+  const priorExecutions = await prisma.conversationToolExecution.findMany({
+    where: { conversationId: conversation.id, status: 'SUCCEEDED' },
+    select: { tool: true },
+  });
+  const policy = evaluateToolPolicy({
+    tool,
+    parameters,
+    priorSuccessfulTools: priorExecutions.map(execution => execution.tool),
+  });
+  const policyMetadata = {
+    decision: policy.decision,
+    riskScore: policy.riskScore,
+    policyCodes: policy.policyCodes,
+    policyReason: policy.reason,
+    policyFingerprint: policyAuditFingerprint(policy),
+    inputFingerprint,
+  };
+  if (policy.decision !== 'ALLOW') {
+    await prisma.$transaction([
+      prisma.conversationToolExecution.create({
+        data: {
+          conversationId: conversation.id,
+          tool,
+          operationFingerprint,
+          safeInput: {
+            parameterKeys: Object.keys(parameters).sort(),
+            ...policyMetadata,
+          },
+          safeResult: {
+            decision: policy.decision,
+            reason: policy.reason,
+            policyCodes: policy.policyCodes,
+          },
+          status: 'BLOCKED',
+          errorCategory: policy.decision === 'ESCALATE' ? 'HUMAN_APPROVAL_REQUIRED' : 'AUTHORIZATION',
+        },
+      }),
+      prisma.auditLog.create({
+        data: {
+          workspaceId: context.workspaceId,
+          action: `TOOL_POLICY_${policy.decision}`,
+          entityType: 'CONVERSATION_TOOL_EXECUTION',
+          entityId: conversation.id,
+          metadata: policyMetadata,
+        },
+      }),
+    ]);
+    throw new ToolExecutionError(
+      'AUTHORIZATION',
+      policy.decision === 'ESCALATE'
+        ? 'Human approval is required before this business action can run.'
+        : 'This business action was denied by conversation policy.',
+      policy.decision === 'ESCALATE' ? 409 : 403
+    );
+  }
   const existing = await prisma.conversationToolExecution.findUnique({
     where: {
       conversationId_operationFingerprint: {
@@ -229,6 +284,9 @@ export async function executeDatabaseTool(
         safeInput: {
           parameterKeys: Object.keys(parameters).sort(),
           inputFingerprint,
+          policyDecision: policy.decision,
+          policyCodes: policy.policyCodes,
+          riskScore: policy.riskScore,
         },
         status: 'AUTHORIZED',
       },
