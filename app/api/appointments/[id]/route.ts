@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const workspace = await requireWorkspaceAccess(req, undefined, 'calls:view');
     if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    let appointment;
+    let appointment: Awaited<ReturnType<typeof prisma.appointment.findFirst>>;
     try {
       appointment = await prisma.appointment.findFirst({
         where: { id, workspaceId: workspace.workspaceId },
