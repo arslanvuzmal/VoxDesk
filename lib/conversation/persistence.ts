@@ -158,30 +158,34 @@ export async function syncConversationProjection(callId: string): Promise<Conver
       identifierType: string;
       identifierValue: string;
     }> = [];
-    const telephonyProvider = call.provider === 'SIMULATION' ? 'SIMULATION' : 'TELNYX';
+    const isSimulation = call.provider === 'SIMULATION';
+    const telephonyProvider = isSimulation ? 'SIMULATION' : 'TELNYX';
+    const telephonyPrefix = isSimulation ? 'SIMULATION' : 'TELNYX';
     if (call.providerCallControlId)
       correlations.push({
         provider: telephonyProvider,
-        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_CONTROL_ID' : 'TELNYX_CALL_CONTROL_ID',
+        identifierType: `${telephonyPrefix}_CALL_CONTROL_ID`,
         identifierValue: call.providerCallControlId,
       });
     if (call.providerCallSessionId)
       correlations.push({
         provider: telephonyProvider,
-        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_SESSION_ID' : 'TELNYX_CALL_SESSION_ID',
+        identifierType: `${telephonyPrefix}_CALL_SESSION_ID`,
         identifierValue: call.providerCallSessionId,
       });
     if (call.providerCallLegId)
       correlations.push({
         provider: telephonyProvider,
-        identifierType: call.provider === 'SIMULATION' ? 'SIMULATION_CALL_LEG_ID' : 'TELNYX_CALL_LEG_ID',
+        identifierType: `${telephonyPrefix}_CALL_LEG_ID`,
         identifierValue: call.providerCallLegId,
       });
     if (call.providerConversationId)
       correlations.push({
-        provider: call.provider === 'SIMULATION' ? 'SIMULATION_CONVERSATION_ID' : 'ELEVENLABS_CONVERSATION_ID',
+        provider: isSimulation ? 'SIMULATION' : 'ELEVENLABS',
+        identifierType: isSimulation
+          ? 'SIMULATION_CONVERSATION_ID'
+          : 'ELEVENLABS_CONVERSATION_ID',
         identifierValue: call.providerConversationId,
-        provider: call.provider === 'SIMULATION' ? 'SIMULATION' : 'ELEVENLABS',
       });
     if (correlations.length > 0) {
       await tx.conversationProviderCorrelation.createMany({
