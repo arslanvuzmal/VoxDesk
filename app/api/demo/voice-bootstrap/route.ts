@@ -14,7 +14,7 @@ const DemoBootstrapSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const existingToken = req.headers.get('cookie')?.match(/(?:^|;\\s*)voxdesk_demo_session=([^;]+)/)?.[1];
+  const existingToken = req.headers.get('cookie')?.match(/(?:^|;\s*)voxdesk_demo_session=([^;]+)/)?.[1];
   const existingSession = existingToken ? await getDemoSessionFromCookieToken(existingToken) : null;
   if (!existingSession) {
     return NextResponse.json(
