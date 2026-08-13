@@ -39,7 +39,15 @@ const CONSEQUENTIAL_TOOLS = new Set([
 ]);
 
 const EXTERNAL_DESTINATION_KEY = new RegExp(
-  ['external', 'destination', 'recipient', 'toEmail', 'toPhone', 'webhook', 'url'].join('|'),
+  [
+    'external',
+    'destination',
+    'recipient',
+    'toEmail',
+    'toPhone',
+    'webhook',
+    'url',
+  ].join('|'),
   'i'
 );
 
@@ -122,7 +130,12 @@ export function policyAuditFingerprint(result: ToolPolicyResult): string {
   return crypto
     .createHash('sha256')
     .update(
-      JSON.stringify([result.decision, result.riskScore, result.policyCodes, result.reason])
+      JSON.stringify([
+        result.decision,
+        result.riskScore,
+        result.policyCodes,
+        result.reason,
+      ])
     )
     .digest('hex');
 }
