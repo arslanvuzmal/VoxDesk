@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/database';
@@ -96,6 +97,20 @@ const UpdateOpportunitySchema = z
     'At least one opportunity field must be updated.'
   );
 
+function stableSerialize(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map(key => `${JSON.stringify(key)}:${stableSerialize(record[key])}`)
+    .join(',')}}`;
+}
+
+function payloadFingerprint(parameters: Record<string, unknown>): string {
+  return crypto.createHash('sha256').update(stableSerialize(parameters)).digest('hex');
+}
+
 export class ToolExecutionError extends Error {
   constructor(
     public readonly code: 'VALIDATION' | 'AUTHORIZATION' | 'CONFLICT' | 'NOT_FOUND',
@@ -169,6 +184,7 @@ export async function executeDatabaseTool(
 ): Promise<Prisma.JsonObject> {
   const conversation = await assertPersistedConversationContext(context);
   const operationFingerprint = `${tool}:${toolExecutionId}`;
+  const inputFingerprint = payloadFingerprint(parameters);
   const existing = await prisma.conversationToolExecution.findUnique({
     where: {
       conversationId_operationFingerprint: {
@@ -178,6 +194,17 @@ export async function executeDatabaseTool(
     },
   });
   if (existing) {
+    const recordedFingerprint =
+      existing.safeInput && typeof existing.safeInput === 'object' && !Array.isArray(existing.safeInput)
+        ? (existing.safeInput as { inputFingerprint?: unknown }).inputFingerprint
+        : undefined;
+    if (recordedFingerprint && recordedFingerprint !== inputFingerprint) {
+      throw new ToolExecutionError(
+        'CONFLICT',
+        'This idempotency key was already used with a different payload.',
+        409
+      );
+    }
     if (
       existing.status === 'SUCCEEDED' &&
       existing.safeResult &&
@@ -197,7 +224,10 @@ export async function executeDatabaseTool(
         conversationId: conversation.id,
         tool,
         operationFingerprint,
-        safeInput: { parameterKeys: Object.keys(parameters).sort() },
+        safeInput: {
+          parameterKeys: Object.keys(parameters).sort(),
+          inputFingerprint,
+        },
         status: 'AUTHORIZED',
       },
     });
