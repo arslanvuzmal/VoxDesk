@@ -9,7 +9,10 @@ export interface ToolPolicyResult {
   reason: string;
 }
 
-const SENSITIVE_KEY = /payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis/i;
+const SENSITIVE_KEY = new RegExp(
+  'payment|card|cvv|bank|routing|password|passcode|secret|token|ssn|social.?security|medical.?record|health.?diagnosis',
+  'i'
+);
 const CONSEQUENTIAL_TOOLS = new Set([
   'create_or_update_contact',
   'book_appointment',
