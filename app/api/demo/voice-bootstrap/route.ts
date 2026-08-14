@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { DEFAULT_DEMO_CONFIGURATION } from '@/lib/demo/configuration';
 import { getDemoSessionFromCookieToken } from '@/lib/demo/session';
 import { requestElevenLabsSignedUrl } from '@/lib/elevenlabs/conversation-access';
+import { ensureDemoVoiceConfiguration } from '@/lib/demo/workspace';
 
 const DemoBootstrapSchema = z.object({
   presetKey: z.literal('LEGAL'),
@@ -84,6 +85,21 @@ export async function POST(req: Request) {
       {
         error: 'ELEVENLABS_AGENT_NOT_CONFIGURED',
         message: 'ElevenLabs Agent ID is not configured for this deployment.',
+      },
+      { status: 503, headers: noStoreHeaders() }
+    );
+  }
+
+  try {
+    await ensureDemoVoiceConfiguration(agentId);
+  } catch (error) {
+    console.error('[voice-bootstrap] Demo business configuration failed', {
+      error: error instanceof Error ? error.name : 'UnknownError',
+    });
+    return NextResponse.json(
+      {
+        error: 'DEMO_CONFIGURATION_UNAVAILABLE',
+        message: 'The demo CRM configuration could not be prepared.',
       },
       { status: 503, headers: noStoreHeaders() }
     );
