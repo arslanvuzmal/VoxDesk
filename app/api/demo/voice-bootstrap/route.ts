@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { signDemoSessionToken } from '@/lib/security/session-token';
-import crypto from 'crypto';
 import { z } from 'zod';
 import { DEFAULT_DEMO_CONFIGURATION } from '@/lib/demo/configuration';
 import { getDemoSessionFromCookieToken } from '@/lib/demo/session';
@@ -52,6 +51,19 @@ export async function POST(req: Request) {
     );
   }
   const { presetKey, language, scenario } = parsed.data;
+  if (
+    existingSession.presetKey !== presetKey ||
+    existingSession.language !== language ||
+    existingSession.scenario !== scenario
+  ) {
+    return NextResponse.json(
+      {
+        error: 'DEMO_SESSION_CONTEXT_MISMATCH',
+        message: 'The requested voice configuration does not match the authorized demo session.',
+      },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
 
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) {
@@ -95,7 +107,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const sessionId = `demo_session_${crypto.randomBytes(12).toString('hex')}`;
+  const sessionId = existingSession.sessionId;
   const now = Date.now();
   const expiresAt = now + 180 * 1000 + 30 * 1000;
 
@@ -126,7 +138,7 @@ export async function POST(req: Request) {
     }
   );
 
-  response.cookies.set('voxdesk_demo_session', sessionToken, {
+  response.cookies.set('voxdesk_voice_session', sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
