@@ -5,7 +5,7 @@ import { prisma } from '@/lib/database';
 
 export interface InfrastructureStatus {
   sessionStore: {
-    provider: 'redis' | 'memory' | 'unavailable';
+    provider: 'redis' | 'database' | 'memory' | 'unavailable';
     ready: boolean;
   };
   database: {
