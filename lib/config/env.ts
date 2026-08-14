@@ -34,6 +34,7 @@ const envSchema = z.object({
   OUTBOUND_CAMPAIGNS_ENABLED: z.string().default('false'),
 
   // Compatibility settings for routes still being reduced to the portfolio path.
+  DEMO_WORKSPACE_SLUG: z.string().min(1).default('northstar-legal'),
   DEMO_ENABLED: z.string().default('true'),
   DEMO_MODE: z.string().default('true'),
   NEXT_PUBLIC_DEMO_ENABLED: z.string().default('true'),
