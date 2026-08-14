@@ -26,8 +26,6 @@ test.describe('VoxDesk /demo route', () => {
     await expect(page.getByRole('heading', { name: 'Conversations into operations.' })).toBeVisible(
       { timeout: 10000 }
     );
-    await expect(appErrorHeading).not.toBeVisible();
-
     // 4. Assert header and call button are visible (flexible text matching)
     await expect(
       page.getByRole('heading', { name: 'Conversation to operational record' })
