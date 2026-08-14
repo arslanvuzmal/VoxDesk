@@ -1779,3 +1779,39 @@ model AuditLog {
   @@index([workspaceId, createdAt])
   @@map("audit_logs")
 }
+
+model DemoSessionRecord {
+  id              String               @id
+  scenario        String
+  presetKey       String
+  language        String
+  state           String               @default("READY")
+  data            Json
+  ipHash          String
+  userAgentHash   String
+  expiresAt       DateTime
+  completed       Boolean              @default(false)
+  lockExpiresAt   DateTime?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  storedResponses DemoStoredResponse[]
+
+  @@index([completed, expiresAt])
+  @@index([ipHash, createdAt])
+  @@map("demo_sessions")
+}
+
+model DemoStoredResponse {
+  id             String            @id
+  sessionId      String
+  text           String
+  characterCount Int
+  consumed       Boolean           @default(false)
+  expiresAt      DateTime
+  createdAt      DateTime          @default(now())
+  session        DemoSessionRecord @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([consumed, expiresAt])
+  @@map("demo_stored_responses")
+}

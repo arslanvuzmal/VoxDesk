@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/database';
-import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { getProviderReadiness } from '@/lib/features/flags';
 import { getTelephonyCapabilityMatrix } from '@/lib/telephony/capability-matrix';
 import { getTelephonyProvider } from '@/lib/telephony/providers/factory';
@@ -11,19 +10,6 @@ export async function GET() {
   const agentId =
     process.env.ELEVENLABS_AGENT_ID?.trim() || process.env.ELEVENLABS_AGENT_ID_LEGAL_EN?.trim();
   const agentConfigured = Boolean(agentId);
-
-  let agentVerified = false;
-  if (apiKeyConfigured && agentId && apiKey) {
-    try {
-      const client = new ElevenLabsClient({ apiKey });
-      const agent = await client.conversationalAi.agents.get(agentId);
-      if (agent && agent.agentId) {
-        agentVerified = true;
-      }
-    } catch {
-      agentVerified = false;
-    }
-  }
 
   const telephonyMatrix = getTelephonyCapabilityMatrix();
   let telephonyHealth;
@@ -77,17 +63,15 @@ export async function GET() {
   const readinessIssues: string[] = [];
   if (!apiKeyConfigured) readinessIssues.push('ELEVENLABS_API_KEY is not configured.');
   if (!agentConfigured) readinessIssues.push('ELEVENLABS_AGENT_ID is not configured.');
-  if (apiKeyConfigured && agentConfigured && !agentVerified) {
-    readinessIssues.push('The configured ElevenLabs agent could not be verified.');
-  }
   if (!databaseConfigured) readinessIssues.push('DATABASE_URL is not configured.');
   if (databaseConfigured && !databaseReachable) {
     readinessIssues.push('The CRM database could not be reached.');
   }
 
-  // A demo conversation is only live when both the voice provider and the
-  // canonical CRM persistence path are available. Otherwise the interface
-  // must not imply a conversation was captured when it cannot be stored.
+  // Provider authorization is checked by requesting the signed credential that
+  // the ElevenLabs browser SDK actually consumes. Doing that here would mint an
+  // unused credential on every public health request, so it happens once at the
+  // authenticated voice-bootstrap boundary.
   const readyForVoice = readinessIssues.length === 0;
   const readyForTelephony = telephonyMatrix.readiness === 'LIVE_READY';
 
@@ -100,7 +84,8 @@ export async function GET() {
       elevenLabs: {
         apiConfigured: apiKeyConfigured,
         agentConfigured,
-        agentVerified,
+        agentVerified: null,
+        verificationStatus: readyForVoice ? 'CHECKED_ON_SESSION_START' : 'NOT_CONFIGURED',
       },
       telephony: {
         mode: telephonyMatrix.mode.toUpperCase(),

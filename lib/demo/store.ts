@@ -1,6 +1,7 @@
 import 'server-only';
 import { Redis } from '@upstash/redis';
 import { env } from '@/lib/config/env';
+import { DatabaseDemoSessionStore } from '@/lib/demo/database-store';
 
 export interface StoredResponse {
   responseId: string;
@@ -655,14 +656,15 @@ export class RedisDemoSessionStore implements IDemoSessionStore {
 }
 
 export function getDemoSessionStoreStatus(): {
-  provider: 'redis' | 'memory' | 'unavailable';
+  provider: 'redis' | 'database' | 'memory' | 'unavailable';
   ready: boolean;
 } {
   const hasRedis = !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 
   if (process.env.NODE_ENV === 'production') {
-    if (!hasRedis) return { provider: 'unavailable', ready: false };
-    return { provider: 'redis', ready: true };
+    if (hasRedis) return { provider: 'redis', ready: true };
+    if (env.DATABASE_URL) return { provider: 'database', ready: true };
+    return { provider: 'unavailable', ready: false };
   }
 
   if (hasRedis) return { provider: 'redis', ready: true };
@@ -673,10 +675,13 @@ function createSessionStore(): IDemoSessionStore {
   const hasRedis = !!(env.UPSTASH_REDIS_REST_URL && env.UPSTASH_REDIS_REST_TOKEN);
 
   if (process.env.NODE_ENV === 'production') {
-    if (!hasRedis) {
-      return new UnavailableProductionStore();
+    if (hasRedis) {
+      return new RedisDemoSessionStore(env.UPSTASH_REDIS_REST_URL!, env.UPSTASH_REDIS_REST_TOKEN!);
     }
-    return new RedisDemoSessionStore(env.UPSTASH_REDIS_REST_URL!, env.UPSTASH_REDIS_REST_TOKEN!);
+    if (env.DATABASE_URL) {
+      return new DatabaseDemoSessionStore();
+    }
+    return new UnavailableProductionStore();
   }
 
   if (hasRedis) {

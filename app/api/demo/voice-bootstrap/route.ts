@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { signDemoSessionToken } from '@/lib/security/session-token';
-import crypto from 'crypto';
 import { z } from 'zod';
 import { DEFAULT_DEMO_CONFIGURATION } from '@/lib/demo/configuration';
 import { getDemoSessionFromCookieToken } from '@/lib/demo/session';
+import { requestElevenLabsSignedUrl } from '@/lib/elevenlabs/conversation-access';
+import { ensureDemoVoiceConfiguration } from '@/lib/demo/workspace';
 
 const DemoBootstrapSchema = z.object({
   presetKey: z.literal('LEGAL'),
@@ -12,6 +12,10 @@ const DemoBootstrapSchema = z.object({
   scenario: z.enum(['BOOKING', 'QUALIFICATION', 'ESCALATION', 'ROUTINE']),
   channel: z.literal('WEB_VOICE'),
 });
+
+function noStoreHeaders() {
+  return { 'Cache-Control': 'no-store, private' };
+}
 
 export async function POST(req: Request) {
   const cookieHeader = req.headers.get('cookie') ?? '';
@@ -23,16 +27,17 @@ export async function POST(req: Request) {
         error: 'DEMO_SESSION_REQUIRED',
         message: 'Start an authenticated demo session before starting Web Voice.',
       },
-      { status: 401, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 401, headers: noStoreHeaders() }
     );
   }
+
   let body: unknown;
   try {
     body = await req.json();
   } catch {
     return NextResponse.json(
       { error: 'INVALID_JSON', message: 'Invalid JSON request body.' },
-      { status: 400, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -43,19 +48,32 @@ export async function POST(req: Request) {
         error: 'UNSUPPORTED_CONFIGURATION',
         message: 'This demo configuration is not available.',
       },
-      { status: 400, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
   const { presetKey, language, scenario } = parsed.data;
+  if (
+    existingSession.presetKey !== presetKey ||
+    existingSession.language !== language ||
+    existingSession.scenario !== scenario
+  ) {
+    return NextResponse.json(
+      {
+        error: 'DEMO_SESSION_CONTEXT_MISMATCH',
+        message: 'The requested voice configuration does not match the authorized demo session.',
+      },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
 
   const apiKey = (process.env.ELEVENLABS_API_KEY || process.env.ELEVENLABS)?.trim();
   if (!apiKey) {
     return NextResponse.json(
       {
         error: 'ELEVENLABS_NOT_CONFIGURED',
-        message: 'ElevenLabs API key is not configured.',
+        message: 'ElevenLabs API key is not configured for this deployment.',
       },
-      { status: 503, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 503, headers: noStoreHeaders() }
     );
   }
 
@@ -65,84 +83,49 @@ export async function POST(req: Request) {
   if (!agentId) {
     return NextResponse.json(
       {
-        error: 'ELEVENLABS_AGENT_INVALID',
-        message: 'No ElevenLabs agent ID configured for Northstar Legal.',
+        error: 'ELEVENLABS_AGENT_NOT_CONFIGURED',
+        message: 'ElevenLabs Agent ID is not configured for this deployment.',
       },
-      { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 503, headers: noStoreHeaders() }
     );
   }
 
-  // Retrieve and validate agent from ElevenLabs
-  const client = new ElevenLabsClient({ apiKey });
   try {
-    const agent = await client.conversationalAi.agents.get(agentId);
-    if (!agent || !agent.agentId) {
-      return NextResponse.json(
-        {
-          error: 'ELEVENLABS_AGENT_INVALID',
-          message: 'The configured ElevenLabs agent could not be verified.',
-        },
-        { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
-      );
-    }
-  } catch {
+    await ensureDemoVoiceConfiguration(agentId);
+  } catch (error) {
+    console.error('[voice-bootstrap] Demo business configuration failed', {
+      error: error instanceof Error ? error.name : 'UnknownError',
+    });
     return NextResponse.json(
       {
-        error: 'ELEVENLABS_AGENT_INVALID',
-        message: 'The configured ElevenLabs agent could not be verified.',
+        error: 'DEMO_CONFIGURATION_UNAVAILABLE',
+        message: 'The demo CRM configuration could not be prepared.',
       },
-      { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: 503, headers: noStoreHeaders() }
     );
   }
 
-  // Request ElevenLabs WebRTC conversation token
-  let conversationToken = '';
-  try {
-    const signedUrlRes = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/get-signed-url?agent_id=${agentId}`,
-      {
-        headers: {
-          'xi-api-key': apiKey,
-        },
-        cache: 'no-store',
-      }
-    );
-
-    if (!signedUrlRes.ok) {
-      return NextResponse.json(
-        {
-          error: 'ELEVENLABS_TOKEN_FAILED',
-          message: 'ElevenLabs did not issue a conversation token.',
-        },
-        { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
-      );
-    }
-
-    const tokenData = await signedUrlRes.json();
-    conversationToken =
-      tokenData.signed_url || tokenData.token || tokenData.conversationToken || '';
-    if (!conversationToken) {
-      return NextResponse.json(
-        {
-          error: 'ELEVENLABS_TOKEN_FAILED',
-          message: 'ElevenLabs response did not contain a conversation signed URL or token.',
-        },
-        { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
-      );
-    }
-  } catch {
+  // The signed URL is the credential consumed by the browser SDK, so obtaining
+  // it is the authoritative provider check. Agent-management reads are not used
+  // as a gate because ElevenLabs API keys can have narrower conversation scopes.
+  const access = await requestElevenLabsSignedUrl({ apiKey, agentId });
+  if (!access.ok) {
+    console.warn('[voice-bootstrap] ElevenLabs conversation authorization failed', {
+      code: access.code,
+      providerStatus: access.providerStatus,
+    });
     return NextResponse.json(
       {
-        error: 'ELEVENLABS_TOKEN_FAILED',
-        message: 'ElevenLabs could not issue a conversation token.',
+        error: access.code,
+        message: access.message,
       },
-      { status: 502, headers: { 'Cache-Control': 'no-store, private' } }
+      { status: access.providerStatus === 429 ? 429 : 502, headers: noStoreHeaders() }
     );
   }
 
-  const sessionId = `demo_session_${crypto.randomBytes(12).toString('hex')}`;
+  const sessionId = existingSession.sessionId;
   const now = Date.now();
-  const expiresAt = now + 180 * 1000 + 30 * 1000; // 180s active + 30s grace
+  const expiresAt = now + 180 * 1000 + 30 * 1000;
 
   const sessionToken = signDemoSessionToken({
     sessionId,
@@ -157,7 +140,7 @@ export async function POST(req: Request) {
     {
       success: true,
       sessionId,
-      conversationToken,
+      conversationToken: access.signedUrl,
       expiresAt: new Date(expiresAt).toISOString(),
       agent: {
         displayName: DEFAULT_DEMO_CONFIGURATION.agentDisplayName,
@@ -167,17 +150,15 @@ export async function POST(req: Request) {
     },
     {
       status: 200,
-      headers: {
-        'Cache-Control': 'no-store, private',
-      },
+      headers: noStoreHeaders(),
     }
   );
 
-  response.cookies.set('voxdesk_demo_session', sessionToken, {
+  response.cookies.set('voxdesk_voice_session', sessionToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 210, // 210 seconds
+    maxAge: 210,
     path: '/',
   });
 

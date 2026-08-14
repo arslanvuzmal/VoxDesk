@@ -16,6 +16,7 @@ import type { DemoConfiguration } from '@/lib/demo/configuration';
 
 export type CallState =
   | 'IDLE'
+  | 'AUTHORIZING_SESSION'
   | 'CHECKING_CONFIGURATION'
   | 'REQUESTING_MICROPHONE'
   | 'BOOTSTRAPPING_SESSION'
@@ -150,10 +151,31 @@ export function ElevenLabsVoiceController({
     setErrorMessage(null);
     setTranscripts([]);
     setFinalResult(null);
-    setCallState('CHECKING_CONFIGURATION');
+    setCallState('AUTHORIZING_SESSION');
 
     try {
-      // Step 1: Health check
+      // Step 1: Create or reuse the signed, rate-limited demo admission.
+      // This happens before microphone access so configuration failures do not
+      // prompt visitors for audio permission unnecessarily.
+      const sessionRes = await fetch('/api/demo/session/start', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario: configuration.scenario,
+          presetKey: configuration.presetKey,
+          language: configuration.language,
+        }),
+      });
+      if (!sessionRes.ok) {
+        const sessionError = await sessionRes.json().catch(() => ({}));
+        throw new Error(
+          sessionError.error || 'The secure voice demonstration session could not be started.'
+        );
+      }
+
+      // Step 2: Check application and provider configuration
+      setCallState('CHECKING_CONFIGURATION');
       const healthRes = await fetch('/api/health/voice', { cache: 'no-store' });
       if (!healthRes.ok) {
         throw new Error('Voice health check returned server error.');
@@ -172,7 +194,7 @@ export function ElevenLabsVoiceController({
         );
       }
 
-      // Step 2: Request Microphone Permission
+      // Step 3: Request Microphone Permission
       setCallState('REQUESTING_MICROPHONE');
       let stream: MediaStream;
       try {
@@ -207,7 +229,7 @@ export function ElevenLabsVoiceController({
         }
       }
 
-      // Step 3: Bootstrap session
+      // Step 4: Bootstrap the provider session
       setCallState('BOOTSTRAPPING_SESSION');
       const bootstrapRes = await fetch('/api/demo/voice-bootstrap', {
         method: 'POST',
@@ -228,7 +250,7 @@ export function ElevenLabsVoiceController({
       const bootstrapData = await bootstrapRes.json();
       setSessionId(bootstrapData.sessionId);
 
-      // Step 4: Connect ElevenLabs Session
+      // Step 5: Connect the ElevenLabs session
       setCallState('CONNECTING');
       if (
         bootstrapData.conversationToken?.startsWith('wss://') ||
@@ -342,6 +364,7 @@ export function ElevenLabsVoiceController({
   ].includes(callState);
 
   const isConnecting = [
+    'AUTHORIZING_SESSION',
     'CHECKING_CONFIGURATION',
     'REQUESTING_MICROPHONE',
     'BOOTSTRAPPING_SESSION',
@@ -414,6 +437,7 @@ export function ElevenLabsVoiceController({
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-slate-200">
+                {callState === 'AUTHORIZING_SESSION' && 'Authorizing secure demo session...'}
                 {callState === 'CHECKING_CONFIGURATION' &&
                   'Checking ElevenLabs provider configuration...'}
                 {callState === 'REQUESTING_MICROPHONE' && 'Requesting microphone permission...'}

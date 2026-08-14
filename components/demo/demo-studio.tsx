@@ -49,6 +49,7 @@ const scenarios: Array<{ key: DemoScenario; label: string }> = [
 
 const stateLabels: Record<CallState, string> = {
   IDLE: 'Ready',
+  AUTHORIZING_SESSION: 'Authorizing session',
   CHECKING_CONFIGURATION: 'Checking provider',
   REQUESTING_MICROPHONE: 'Microphone permission',
   BOOTSTRAPPING_SESSION: 'Creating session',

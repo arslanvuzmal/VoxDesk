@@ -37,6 +37,24 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     expect(body.error).toBe('UNSUPPORTED_CONFIGURATION');
   });
 
+  it('rejects a voice request that does not match its authorized demo session', async () => {
+    const req = new Request('http://localhost/api/demo/voice-bootstrap', {
+      method: 'POST',
+      headers: { cookie: await demoCookie() },
+      body: JSON.stringify({
+        presetKey: 'LEGAL',
+        language: 'en-US',
+        scenario: 'BOOKING',
+        channel: 'WEB_VOICE',
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('DEMO_SESSION_CONTEXT_MISMATCH');
+  });
+
   it('should return 503 ELEVENLABS_NOT_CONFIGURED when ELEVENLABS_API_KEY is missing', async () => {
     delete process.env.ELEVENLABS_API_KEY;
 
@@ -57,7 +75,7 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     expect(body.error).toBe('ELEVENLABS_NOT_CONFIGURED');
   });
 
-  it('should return 502 ELEVENLABS_AGENT_INVALID when ELEVENLABS_AGENT_ID_LEGAL_EN is missing', async () => {
+  it('should return 503 ELEVENLABS_AGENT_NOT_CONFIGURED when the agent ID is missing', async () => {
     process.env.ELEVENLABS_API_KEY = 'sk_mock_key_for_unit_tests_1234567890';
     delete process.env.ELEVENLABS_AGENT_ID_LEGAL_EN;
     delete process.env.ELEVENLABS_AGENT_ID;
@@ -74,9 +92,9 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.error).toBe('ELEVENLABS_AGENT_INVALID');
+    expect(body.error).toBe('ELEVENLABS_AGENT_NOT_CONFIGURED');
   });
 
   it('should successfully sign and verify short-lived session token', () => {

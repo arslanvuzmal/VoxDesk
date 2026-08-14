@@ -7,6 +7,7 @@ This is the technical documentation portal. Product pages distinguish implemente
 - [Vision](product/vision.md)
 - [Capabilities and maturity](product/capabilities.md)
 - [Customer-service department evolution](product/customer-service-department.md)
+- [Customer operations function catalog](product/customer-operations-function-catalog.md)
 - [Product roadmap](product/roadmap.md)
 
 ## Architecture
