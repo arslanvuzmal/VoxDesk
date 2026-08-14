@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
+const isHttpsDeployment = Boolean(process.env.VERCEL || process.env.VERCEL_ENV);
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -16,7 +17,7 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  ...(isDevelopment ? [] : ['upgrade-insecure-requests']),
+  ...(isHttpsDeployment ? ['upgrade-insecure-requests'] : []),
 ].join('; ');
 
 const securityHeaders = [
