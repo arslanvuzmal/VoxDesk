@@ -56,12 +56,12 @@ export async function GET(req: NextRequest) {
         { status: 503 }
       );
     }
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
         code: 'INTERNAL_ERROR',
-        message: error?.message || 'Failed to fetch appointments',
+        message: 'Failed to fetch appointments.',
       },
       { status: 500 }
     );

@@ -104,16 +104,22 @@ export class TelnyxProvider implements TelephonyProvider {
     return response.json() as Promise<T>;
   }
 
-  async createAgent(config: VoiceAgentConfig): Promise<string> {
-    return `telnyx-agent-${config.businessId}-${config.agentVersion}`;
+  async createAgent(_config: VoiceAgentConfig): Promise<string> {
+    throw new Error(
+      'Telnyx does not provision conversational agents. Configure the ElevenLabs agent and keep Telnyx for PSTN/SIP.'
+    );
   }
 
-  async updateAgent(agentId: string, config: Partial<VoiceAgentConfig>): Promise<boolean> {
-    return true;
+  async updateAgent(_agentId: string, _config: Partial<VoiceAgentConfig>): Promise<boolean> {
+    throw new Error(
+      'Telnyx does not manage conversational agent versions. Update the canonical ElevenLabs agent.'
+    );
   }
 
-  async deleteAgent(agentId: string): Promise<boolean> {
-    return true;
+  async deleteAgent(_agentId: string): Promise<boolean> {
+    throw new Error(
+      'Telnyx does not manage conversational agent versions. Remove the canonical ElevenLabs agent.'
+    );
   }
 
   async assignPhoneNumber(agentId: string, phoneNumber: string): Promise<boolean> {
@@ -129,7 +135,14 @@ export class TelnyxProvider implements TelephonyProvider {
 
   async startCall(options: CallStartOptions): Promise<TelephonyCallRecord> {
     assertLiveTelephonyConfiguration();
-    const fromNumber = options.callerIdNumber || this.getCallerId(options.direction);
+    const configuredCallerId = this.getCallerId(options.direction);
+    if (!configuredCallerId) {
+      throw new Error('TELNYX_PRIMARY_PHONE_NUMBER is not configured.');
+    }
+    if (options.callerIdNumber && options.callerIdNumber !== configuredCallerId) {
+      throw new Error('The requested caller ID is not an approved Telnyx number.');
+    }
+    const fromNumber = configuredCallerId;
     const toNumber = options.callerNumber;
 
     const response = await this.request<{ data: TelnyxCall }>('POST', '/calls', {
@@ -494,10 +507,8 @@ export class TelnyxProvider implements TelephonyProvider {
     }
   }
 
-  private getCallerId(direction: CallDirection): string {
-    if (direction === 'OUTBOUND' && this.outboundProfileId) {
-      return this.outboundProfileId;
-    }
+  private getCallerId(_direction: CallDirection): string {
+    // Outbound voice profile IDs configure routing; they are not caller IDs.
     return process.env.TELNYX_PRIMARY_PHONE_NUMBER || '';
   }
 

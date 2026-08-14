@@ -27,8 +27,8 @@ export const ENV_SPECS: EnvVarSpec[] = [
   },
   {
     name: 'DIRECT_URL',
-    required: true,
-    description: 'Direct PostgreSQL connection string for migrations',
+    required: false,
+    description: 'Optional direct PostgreSQL connection string for migration workflows',
     sensitive: true,
   },
   {
@@ -41,15 +41,8 @@ export const ENV_SPECS: EnvVarSpec[] = [
   {
     name: 'ENCRYPTION_KEY',
     required: true,
-    description: 'Data encryption key (base64, 32 bytes)',
-    validator: v => {
-      try {
-        const buf = Buffer.from(v, 'base64');
-        return buf.length === 32;
-      } catch {
-        return false;
-      }
-    },
+    description: 'Data encryption key (64 hexadecimal characters)',
+    validator: v => /^[a-fA-F0-9]{64}$/.test(v),
     sensitive: true,
   },
   {
@@ -72,28 +65,28 @@ export const ENV_SPECS: EnvVarSpec[] = [
     sensitive: true,
   },
   {
-    name: 'DEMO_DATA_ENCRYPTION_KEY',
+    name: 'PHONE_HASH_SECRET',
     required: true,
-    description: 'Demo data encryption key (base64, 32 bytes)',
-    validator: v => {
-      try {
-        const buf = Buffer.from(v, 'base64');
-        return buf.length === 32;
-      } catch {
-        return false;
-      }
-    },
+    description: 'HMAC secret for searchable phone identifiers',
+    validator: v => v.length >= 32,
+    sensitive: true,
+  },
+  {
+    name: 'DEMO_DATA_ENCRYPTION_KEY',
+    required: false,
+    description: 'Optional demo data encryption key',
+    validator: v => v.length >= 32,
     sensitive: true,
   },
   {
     name: 'ELEVENLABS_API_KEY',
-    required: true,
+    required: false,
     description: 'ElevenLabs API key',
     sensitive: true,
   },
   {
     name: 'ELEVENLABS_AGENT_ID_LEGAL_EN',
-    required: true,
+    required: false,
     description: 'ElevenLabs agent ID for Legal English',
     sensitive: true,
   },
@@ -273,7 +266,9 @@ export function assertEnvironment(requiredOnly = false): void {
 
     if (result.invalid.length > 0) {
       messages.push(
-        `Invalid environment variables: ${result.invalid.map(i => `${i.name} (${i.reason})`).join(', ')}`
+        `Invalid environment variables: ${result.invalid
+          .map(i => `${i.name} (${i.reason})`)
+          .join(', ')}`
       );
     }
 

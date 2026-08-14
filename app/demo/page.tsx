@@ -1,5 +1,5 @@
-import { Navbar } from '@/components/ui/navbar';
 import { DemoStudio } from '@/components/demo/demo-studio';
+import { Navbar } from '@/components/ui/navbar';
 
 export default function DemoPage() {
   return (

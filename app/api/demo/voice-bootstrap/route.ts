@@ -4,6 +4,7 @@ import { signDemoSessionToken } from '@/lib/security/session-token';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { DEFAULT_DEMO_CONFIGURATION } from '@/lib/demo/configuration';
+import { getDemoSessionFromCookieToken } from '@/lib/demo/session';
 
 const DemoBootstrapSchema = z.object({
   presetKey: z.literal('LEGAL'),
@@ -13,6 +14,18 @@ const DemoBootstrapSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const existingToken = cookieHeader.match(/(?:^|;\s*)voxdesk_demo_session=([^;]+)/)?.[1];
+  const existingSession = existingToken ? await getDemoSessionFromCookieToken(existingToken) : null;
+  if (!existingSession) {
+    return NextResponse.json(
+      {
+        error: 'DEMO_SESSION_REQUIRED',
+        message: 'Start an authenticated demo session before starting Web Voice.',
+      },
+      { status: 401, headers: { 'Cache-Control': 'no-store, private' } }
+    );
+  }
   let body: unknown;
   try {
     body = await req.json();

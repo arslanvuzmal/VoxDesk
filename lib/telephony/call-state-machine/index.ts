@@ -319,7 +319,7 @@ export function createCallContextFromTelniWebhook(
     agentVersionId: '',
     direction: event.direction,
     channel: 'PHONE',
-    provider: 'TELNIX',
+    provider: 'TELNYX',
     providerCallControlId: event.providerCallControlId,
     providerCallSessionId: event.providerCallSessionId,
     providerCallLegId: event.providerCallLegId,

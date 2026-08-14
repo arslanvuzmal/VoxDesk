@@ -20,7 +20,11 @@ export function mapCallChannel(channel: string): ConversationChannel {
   return 'PHONE';
 }
 
-export function mapCallDirection(direction: CallDirection): ConversationDirection {
+export function mapCallDirection(
+  direction: CallDirection,
+  channel?: string
+): ConversationDirection {
+  if (channel === 'WEB' || channel === 'WEB_VOICE') return 'INTERACTIVE';
   return direction === 'OUTBOUND' ? 'OUTBOUND' : 'INBOUND';
 }
 
@@ -82,7 +86,7 @@ export async function syncConversationProjection(callId: string): Promise<Conver
         businessId: business.id,
         contactId: call.contactId,
         channel: mapCallChannel(call.channel),
-        direction: mapCallDirection(call.direction),
+        direction: mapCallDirection(call.direction, call.channel),
         status: mapCallStatus(call.status),
         agentId: call.agentId,
         agentVersionId: agentVersion?.id,
@@ -158,28 +162,31 @@ export async function syncConversationProjection(callId: string): Promise<Conver
       identifierType: string;
       identifierValue: string;
     }> = [];
+    const isSimulation = call.provider === 'SIMULATION';
+    const telephonyProvider = isSimulation ? 'SIMULATION' : 'TELNYX';
+    const telephonyPrefix = isSimulation ? 'SIMULATION' : 'TELNYX';
     if (call.providerCallControlId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_CONTROL_ID',
+        provider: telephonyProvider,
+        identifierType: `${telephonyPrefix}_CALL_CONTROL_ID`,
         identifierValue: call.providerCallControlId,
       });
     if (call.providerCallSessionId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_SESSION_ID',
+        provider: telephonyProvider,
+        identifierType: `${telephonyPrefix}_CALL_SESSION_ID`,
         identifierValue: call.providerCallSessionId,
       });
     if (call.providerCallLegId)
       correlations.push({
-        provider: 'TELNYX',
-        identifierType: 'TELNYX_CALL_LEG_ID',
+        provider: telephonyProvider,
+        identifierType: `${telephonyPrefix}_CALL_LEG_ID`,
         identifierValue: call.providerCallLegId,
       });
     if (call.providerConversationId)
       correlations.push({
-        provider: 'ELEVENLABS',
-        identifierType: 'ELEVENLABS_CONVERSATION_ID',
+        provider: isSimulation ? 'SIMULATION' : 'ELEVENLABS',
+        identifierType: isSimulation ? 'SIMULATION_CONVERSATION_ID' : 'ELEVENLABS_CONVERSATION_ID',
         identifierValue: call.providerConversationId,
       });
     if (correlations.length > 0) {
