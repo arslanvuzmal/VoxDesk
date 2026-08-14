@@ -83,12 +83,10 @@ describe('outbound authorization', () => {
       })
     );
 
-    expect(mocks.contactFindFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 'contact-a', workspaceId: 'workspace-a' } })
-    );
-    expect(response.status).toBe(503);
+    expect(mocks.contactFindFirst).not.toHaveBeenCalled();
+    expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: 'NOT_CONFIGURED' },
+      error: { code: 'CAMPAIGN_REQUIRED' },
     });
   });
 });
