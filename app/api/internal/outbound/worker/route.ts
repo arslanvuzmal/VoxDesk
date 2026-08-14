@@ -18,7 +18,9 @@ function hasWorkerAuthorization(request: NextRequest): boolean {
 async function process(request: NextRequest) {
   if (!hasWorkerAuthorization(request)) {
     return NextResponse.json(
-      { error: { code: 'UNAUTHORIZED', message: 'Worker authorization is required.' } },
+      {
+        error: { code: 'UNAUTHORIZED', message: 'Worker authorization is required.' },
+      },
       { status: 401, headers: { 'Cache-Control': 'no-store' } }
     );
   }
