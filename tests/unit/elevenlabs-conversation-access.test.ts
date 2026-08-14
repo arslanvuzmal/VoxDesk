@@ -27,8 +27,7 @@ describe('ElevenLabs conversation access', () => {
 
     expect(result).toEqual({
       ok: true,
-      signedUrl:
-        'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test',
+      signedUrl: 'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test',
     });
   });
 
@@ -39,26 +38,33 @@ describe('ElevenLabs conversation access', () => {
     [422, 'ELEVENLABS_AGENT_CONFIGURATION_INVALID'],
     [429, 'ELEVENLABS_RATE_LIMITED'],
     [503, 'ELEVENLABS_PROVIDER_UNAVAILABLE'],
-  ] as const)('maps provider status %s to %s without exposing a response body', async (status, code) => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(JSON.stringify({ detail: 'provider detail must remain private' }), { status })
-      )
-    );
+  ] as const)(
+    'maps provider status %s to %s without exposing a response body',
+    async (status, code) => {
+      vi.stubGlobal(
+        'fetch',
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response(JSON.stringify({ detail: 'provider detail must remain private' }), {
+              status,
+            })
+          )
+      );
 
-    const result = await requestElevenLabsSignedUrl({
-      apiKey: 'test-key',
-      agentId: 'agent_test',
-    });
+      const result = await requestElevenLabsSignedUrl({
+        apiKey: 'test-key',
+        agentId: 'agent_test',
+      });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.code).toBe(code);
-      expect(result.providerStatus).toBe(status);
-      expect(result.message).not.toContain('provider detail');
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.code).toBe(code);
+        expect(result.providerStatus).toBe(status);
+        expect(result.message).not.toContain('provider detail');
+      }
     }
-  });
+  );
 
   it('rejects a successful provider response without a signed WebSocket URL', async () => {
     vi.stubGlobal(

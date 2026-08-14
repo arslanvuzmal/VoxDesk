@@ -28,7 +28,12 @@ const layers = [
     number: '02',
     title: 'Conversation intelligence',
     description: 'Maintains turns, language, intent, context, and requested outcome.',
-    items: ['ElevenLabs realtime voice', 'Conversation state', 'Intent and risk', 'Context assembly'],
+    items: [
+      'ElevenLabs realtime voice',
+      'Conversation state',
+      'Intent and risk',
+      'Context assembly',
+    ],
     accent: 'text-[#78AFFF]',
   },
   {
@@ -112,8 +117,8 @@ export default function PlatformPage() {
                 </h1>
                 <p className="mt-7 max-w-2xl text-base leading-7 text-[#A1A8B3] sm:text-lg">
                   VoxDesk separates conversational intelligence, provider infrastructure, and
-                  business authority. The model can request an action; the server decides whether
-                  it is permitted and records the result.
+                  business authority. The model can request an action; the server decides whether it
+                  is permitted and records the result.
                 </p>
               </div>
               <div className="border-l border-white/[0.13] pl-6">
@@ -265,12 +270,32 @@ export default function PlatformPage() {
             </div>
             <ol className="overflow-hidden rounded-[10px] border border-white/[0.1]">
               {[
-                ['01', 'Tool proposal', 'The voice or text agent proposes a typed business action.'],
-                ['02', 'Signed context', 'VoxDesk binds the request to its conversation and tenant.'],
+                [
+                  '01',
+                  'Tool proposal',
+                  'The voice or text agent proposes a typed business action.',
+                ],
+                [
+                  '02',
+                  'Signed context',
+                  'VoxDesk binds the request to its conversation and tenant.',
+                ],
                 ['03', 'Policy decision', 'Allow, deny, or escalate for human approval.'],
-                ['04', 'Execution integrity', 'Idempotency prevents duplicate consequential writes.'],
-                ['05', 'Domain result', 'CRM, calendar, task, opportunity, or handoff state is persisted.'],
-                ['06', 'Audit and response', 'The decision and safe result return to the conversation.'],
+                [
+                  '04',
+                  'Execution integrity',
+                  'Idempotency prevents duplicate consequential writes.',
+                ],
+                [
+                  '05',
+                  'Domain result',
+                  'CRM, calendar, task, opportunity, or handoff state is persisted.',
+                ],
+                [
+                  '06',
+                  'Audit and response',
+                  'The decision and safe result return to the conversation.',
+                ],
               ].map(([number, title, copy]) => (
                 <li
                   key={number}

@@ -34,7 +34,11 @@ export function Navbar() {
           aria-label="Primary navigation"
         >
           {navigation.map(item => (
-            <Link key={item.href} href={item.href} className="transition-colors hover:text-[#F4F5F7]">
+            <Link
+              key={item.href}
+              href={item.href}
+              className="transition-colors hover:text-[#F4F5F7]"
+            >
               {item.label}
             </Link>
           ))}
@@ -68,7 +72,10 @@ export function Navbar() {
 
       {mobileMenuOpen && (
         <div className="absolute left-0 right-0 top-16 border-b border-white/[0.08] bg-[#0D0F12] p-6 md:hidden">
-          <nav className="flex flex-col text-sm font-medium text-[#A1A8B3]" aria-label="Mobile navigation">
+          <nav
+            className="flex flex-col text-sm font-medium text-[#A1A8B3]"
+            aria-label="Mobile navigation"
+          >
             {navigation.map(item => (
               <Link
                 key={item.href}

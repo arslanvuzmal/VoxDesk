@@ -74,9 +74,17 @@ const capabilities = [
 
 const leadStages = [
   ['01', 'Capture', 'Voice, chat, campaign response, or approved external lead event.'],
-  ['02', 'Resolve', 'Match an existing contact or create a provisional identity when enough data exists.'],
+  [
+    '02',
+    'Resolve',
+    'Match an existing contact or create a provisional identity when enough data exists.',
+  ],
   ['03', 'Qualify', 'Apply explicit business criteria and retain the supporting evidence.'],
-  ['04', 'Authorize', 'Policy decides whether to create, update, contact, or request human approval.'],
+  [
+    '04',
+    'Authorize',
+    'Policy decides whether to create, update, contact, or request human approval.',
+  ],
   ['05', 'Act', 'Create an opportunity, appointment, task, follow-up, or human handoff.'],
   ['06', 'Measure', 'Record outcome, ownership, completeness, and the next action.'],
 ];
@@ -85,7 +93,13 @@ const maturity = [
   {
     phase: 'Foundation',
     state: 'CURRENT',
-    items: ['Canonical conversations', 'Contacts and CRM state', 'Authorized tools', 'Scheduling', 'Telephony simulation'],
+    items: [
+      'Canonical conversations',
+      'Contacts and CRM state',
+      'Authorized tools',
+      'Scheduling',
+      'Telephony simulation',
+    ],
   },
   {
     phase: 'Customer operations',
@@ -100,7 +114,13 @@ const maturity = [
   {
     phase: 'Operational intelligence',
     state: 'PARTIAL',
-    items: ['Outcome analytics', 'QA scorecards', 'CSAT', 'Resolution effectiveness', 'Knowledge-gap reporting'],
+    items: [
+      'Outcome analytics',
+      'QA scorecards',
+      'CSAT',
+      'Resolution effectiveness',
+      'Knowledge-gap reporting',
+    ],
   },
 ];
 
@@ -302,9 +322,9 @@ export default function OperationsPage() {
                   <div className="flex items-start gap-3">
                     <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#75D6C9]" />
                     <p className="text-sm leading-6 text-[#A1A8B3]">
-                      External lead systems may propose data or work. They do not receive unrestricted
-                      CRM authority and cannot initiate outreach outside VoxDesk consent, suppression,
-                      calling-window, approval, and attempt controls.
+                      External lead systems may propose data or work. They do not receive
+                      unrestricted CRM authority and cannot initiate outreach outside VoxDesk
+                      consent, suppression, calling-window, approval, and attempt controls.
                     </p>
                   </div>
                 </div>
