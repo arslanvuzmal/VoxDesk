@@ -57,7 +57,7 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     expect(body.error).toBe('ELEVENLABS_NOT_CONFIGURED');
   });
 
-  it('should return 502 ELEVENLABS_AGENT_INVALID when ELEVENLABS_AGENT_ID_LEGAL_EN is missing', async () => {
+  it('should return 503 ELEVENLABS_AGENT_NOT_CONFIGURED when the agent ID is missing', async () => {
     process.env.ELEVENLABS_API_KEY = 'sk_mock_key_for_unit_tests_1234567890';
     delete process.env.ELEVENLABS_AGENT_ID_LEGAL_EN;
     delete process.env.ELEVENLABS_AGENT_ID;
@@ -74,9 +74,9 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     });
 
     const res = await POST(req);
-    expect(res.status).toBe(502);
+    expect(res.status).toBe(503);
     const body = await res.json();
-    expect(body.error).toBe('ELEVENLABS_AGENT_INVALID');
+    expect(body.error).toBe('ELEVENLABS_AGENT_NOT_CONFIGURED');
   });
 
   it('should successfully sign and verify short-lived session token', () => {
