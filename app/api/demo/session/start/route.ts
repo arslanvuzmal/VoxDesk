@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createDemoSession } from '@/lib/demo/session';
+import { createDemoSession, getDemoSessionFromCookieToken } from '@/lib/demo/session';
 import { validateSessionEligibility, generateIPHash } from '@/lib/demo/rate-limit';
 import { getDemoSessionStoreStatus } from '@/lib/demo/store';
 import { env } from '@/lib/config/env';
@@ -11,11 +11,14 @@ const SessionStartSchema = z.object({
   language: z.string().optional(),
 });
 
+function noStoreHeaders() {
+  return { 'Cache-Control': 'no-store, private' };
+}
+
 export async function POST(req: NextRequest) {
-  const correlationId = `req_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
+  const correlationId = `req_${crypto.randomUUID()}`;
 
   try {
-    // 1. Check Redis Store Readiness in Production
     const storeStatus = getDemoSessionStoreStatus();
     if (!storeStatus.ready) {
       return NextResponse.json(
@@ -26,11 +29,10 @@ export async function POST(req: NextRequest) {
           recoverable: false,
           guidedDemoUrl: '/demo/story',
         },
-        { status: 503 }
+        { status: 503, headers: noStoreHeaders() }
       );
     }
 
-    // 2. Check Global Kill Switch
     if (env.DEMO_LIVE_PROVIDER_KILL_SWITCH === 'true') {
       return NextResponse.json(
         {
@@ -41,30 +43,10 @@ export async function POST(req: NextRequest) {
           recoverable: false,
           guidedDemoUrl: '/demo/story',
         },
-        { status: 503 }
+        { status: 503, headers: noStoreHeaders() }
       );
     }
 
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
-    const ua = req.headers.get('user-agent') || 'unknown-ua';
-    const ipHash = generateIPHash(ip);
-
-    // 3. Rate Limit & Cooldown Validation
-    const eligibility = await validateSessionEligibility(ipHash);
-    if (!eligibility.eligible) {
-      return NextResponse.json(
-        {
-          error: eligibility.reason,
-          code: eligibility.code,
-          correlationId,
-          recoverable: true,
-          guidedDemoUrl: '/demo/story',
-        },
-        { status: 429 }
-      );
-    }
-
-    // 4. Validate Request Body
     const body = await req.json().catch(() => ({}));
     const parseResult = SessionStartSchema.safeParse(body);
     if (!parseResult.success) {
@@ -77,7 +59,7 @@ export async function POST(req: NextRequest) {
           recoverable: true,
           guidedDemoUrl: '/demo/story',
         },
-        { status: 400 }
+        { status: 400, headers: noStoreHeaders() }
       );
     }
 
@@ -85,21 +67,74 @@ export async function POST(req: NextRequest) {
     const presetKey = parseResult.data.presetKey || 'LEGAL';
     const language = parseResult.data.language || 'en-US';
 
+    // A valid signed cookie may be reused by the same browser. This prevents a
+    // provider error followed by an immediate retry from consuming another
+    // quota slot or tripping the cooldown.
+    const existingToken = req.cookies.get('voxdesk_demo_session')?.value;
+    const existingSession = existingToken
+      ? await getDemoSessionFromCookieToken(existingToken)
+      : null;
+    if (
+      existingSession &&
+      existingSession.scenario === scenario &&
+      existingSession.presetKey === presetKey &&
+      existingSession.language === language
+    ) {
+      return NextResponse.json(
+        {
+          success: true,
+          reused: true,
+          sessionId: existingSession.sessionId,
+          scenario: existingSession.scenario,
+          presetKey,
+          language,
+          expiresAt: existingSession.expiresAt,
+          maxTurns: existingSession.maxTurns,
+          correlationId,
+          sessionStore: storeStatus.provider,
+        },
+        { status: 200, headers: noStoreHeaders() }
+      );
+    }
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '127.0.0.1';
+    const ua = req.headers.get('user-agent') || 'unknown-ua';
+    const ipHash = generateIPHash(ip);
+
+    const eligibility = await validateSessionEligibility(ipHash);
+    if (!eligibility.eligible) {
+      return NextResponse.json(
+        {
+          error: eligibility.reason,
+          code: eligibility.code,
+          correlationId,
+          recoverable: true,
+          guidedDemoUrl: '/demo/story',
+        },
+        { status: 429, headers: noStoreHeaders() }
+      );
+    }
+
     const { token, session } = await createDemoSession(scenario, ip, ua, {
       presetKey,
       language,
     });
 
-    const response = NextResponse.json({
-      success: true,
-      sessionId: session.sessionId,
-      scenario: session.scenario,
-      presetKey,
-      language,
-      expiresAt: session.expiresAt,
-      maxTurns: session.maxTurns,
-      correlationId,
-    });
+    const response = NextResponse.json(
+      {
+        success: true,
+        reused: false,
+        sessionId: session.sessionId,
+        scenario: session.scenario,
+        presetKey,
+        language,
+        expiresAt: session.expiresAt,
+        maxTurns: session.maxTurns,
+        correlationId,
+        sessionStore: storeStatus.provider,
+      },
+      { status: 200, headers: noStoreHeaders() }
+    );
 
     response.cookies.set('voxdesk_demo_session', token, {
       httpOnly: true,
@@ -111,7 +146,9 @@ export async function POST(req: NextRequest) {
 
     return response;
   } catch (error) {
-    console.error(`[SESSION START ERROR] correlationId=${correlationId}:`, error);
+    console.error(`[SESSION START ERROR] correlationId=${correlationId}`, {
+      error: error instanceof Error ? error.name : 'UnknownError',
+    });
     return NextResponse.json(
       {
         error: 'Failed to initialize demo session.',
@@ -120,7 +157,7 @@ export async function POST(req: NextRequest) {
         recoverable: true,
         guidedDemoUrl: '/demo/story',
       },
-      { status: 500 }
+      { status: 500, headers: noStoreHeaders() }
     );
   }
 }
