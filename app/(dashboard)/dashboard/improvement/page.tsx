@@ -1,8 +1,8 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function ImprovementPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('improvement:view');
   const [observations, proposals, candidates] = await Promise.all([
     prisma.improvementObservation.findMany({
       where: { workspaceId },
@@ -65,7 +65,7 @@ export default async function ImprovementPage() {
                     Expected benefit: {proposal.expectedBenefit}
                   </p>
                   <p className="mt-1 text-xs text-[#475569]">
-                    Risk: {proposal.risk || 'Not provided'} Â· Rollback:{' '}
+                    Risk: {proposal.risk || 'Not provided'} · Rollback:{' '}
                     {proposal.rollbackPath || 'Not provided'}
                   </p>
                 </div>

@@ -1,128 +1,181 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { TrendingUp, RefreshCw, PhoneCall, Calendar, Users, Percent, Clock } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
+
+interface AnalyticsMetrics {
+  totalConversations: number;
+  totalDurationSeconds: number;
+  averageDurationSeconds: number;
+  appointmentsBooked: number;
+  opportunitiesCreated: number;
+  appointmentRate: number | null;
+  opportunityStages: Record<string, number>;
+}
+
+interface AnalyticsResponse {
+  data?: AnalyticsMetrics;
+  error?: {
+    code: string;
+    message: string;
+    correlationId?: string;
+  };
+}
+
+function formatDuration(totalSeconds: number): string {
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return seconds === 0 ? `${minutes}m` : `${minutes}m ${seconds}s`;
+}
 
 export default function AnalyticsPage() {
-  const [metrics, setMetrics] = useState<any | null>(null);
+  const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
+    setError(null);
+
     try {
-      const res = await fetch('/api/analytics');
-      const data = await res.json();
-      if (data.metrics) {
-        setMetrics(data.metrics);
+      const response = await fetch('/api/analytics', {
+        headers: { accept: 'application/json' },
+        cache: 'no-store',
+      });
+      const payload = (await response.json()) as AnalyticsResponse;
+
+      if (!response.ok || !payload.data) {
+        throw new Error(payload.error?.message || 'Analytics data is unavailable.');
       }
-    } catch {
-      // Handled
+
+      setMetrics(payload.data);
+    } catch (fetchError) {
+      setMetrics(null);
+      setError(fetchError instanceof Error ? fetchError.message : 'Analytics data is unavailable.');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchAnalytics();
   }, []);
 
+  useEffect(() => {
+    void fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  const stageRows = Object.entries(metrics?.opportunityStages || {}).sort(
+    ([firstStage], [secondStage]) => firstStage.localeCompare(secondStage)
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-7">
+      <header className="flex flex-col gap-4 border-b border-[#E2E8F0] pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Voice Analytics & Performance</h1>
-          <p className="text-sm text-[#8B949E]">
-            Calculated database metrics for inbound call volumes, booking conversion, and lead
-            qualification scores.
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">
+            Insight
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#0F172A]">Analytics</h1>
+          <p className="mt-1 text-sm text-[#64748B]">
+            Calculated from persisted conversations and confirmed CRM records.
           </p>
         </div>
-
         <button
           type="button"
-          onClick={fetchAnalytics}
-          className="px-4 py-2 rounded-xl bg-[#13171C] border border-[#272D35] text-xs text-[#F4F4F5] hover:border-[#8B949E] flex items-center gap-2"
+          onClick={() => void fetchAnalytics()}
+          disabled={loading}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#CBD5E1] bg-white px-4 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Analytics</span>
+          <RefreshCw
+            aria-hidden="true"
+            className={`h-4 w-4 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`}
+          />
+          Refresh
         </button>
+      </header>
+
+      <div aria-live="polite">
+        {loading ? (
+          <section className="rounded-lg border border-[#E2E8F0] bg-white p-8 text-center">
+            <p className="text-sm text-[#64748B]">Calculating analytics from stored records…</p>
+          </section>
+        ) : error || !metrics ? (
+          <section className="rounded-lg border border-[#F59E0B]/40 bg-[#FFFBEB] p-5">
+            <h2 className="font-semibold text-[#78350F]">Analytics are unavailable</h2>
+            <p className="mt-1 text-sm text-[#92400E]">
+              {error || 'The analytics service did not return a valid result.'}
+            </p>
+          </section>
+        ) : (
+          <div className="space-y-6">
+            <section
+              aria-label="Conversation analytics"
+              className="grid overflow-hidden rounded-lg border border-[#E2E8F0] bg-white sm:grid-cols-2 lg:grid-cols-4"
+            >
+              {[
+                ['Conversations', metrics.totalConversations.toLocaleString()],
+                ['Appointments', metrics.appointmentsBooked.toLocaleString()],
+                ['Opportunities', metrics.opportunitiesCreated.toLocaleString()],
+                ['Average duration', formatDuration(metrics.averageDurationSeconds)],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="border-b border-r border-[#E2E8F0] p-4 last:border-r-0 lg:border-b-0"
+                >
+                  <p className="text-xs text-[#64748B]">{label}</p>
+                  <p className="mt-2 text-2xl font-semibold text-[#0F172A]">{value}</p>
+                </div>
+              ))}
+            </section>
+
+            <section className="grid gap-5 lg:grid-cols-[1fr_1.4fr]">
+              <div className="rounded-lg border border-[#E2E8F0] bg-white p-5">
+                <h2 className="font-semibold text-[#0F172A]">Confirmed outcomes</h2>
+                <dl className="mt-5 divide-y divide-[#E2E8F0] text-sm">
+                  <div className="flex min-h-12 items-center justify-between gap-4">
+                    <dt className="text-[#64748B]">Appointment rate</dt>
+                    <dd className="font-semibold text-[#0F172A]">
+                      {metrics.appointmentRate === null
+                        ? 'Not provided'
+                        : `${metrics.appointmentRate}%`}
+                    </dd>
+                  </div>
+                  <div className="flex min-h-12 items-center justify-between gap-4">
+                    <dt className="text-[#64748B]">Total conversation time</dt>
+                    <dd className="font-semibold text-[#0F172A]">
+                      {formatDuration(metrics.totalDurationSeconds)}
+                    </dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div className="rounded-lg border border-[#E2E8F0] bg-white">
+                <div className="border-b border-[#E2E8F0] p-5">
+                  <h2 className="font-semibold text-[#0F172A]">Opportunity stages</h2>
+                  <p className="mt-1 text-sm text-[#64748B]">
+                    Current persisted opportunity records by stage.
+                  </p>
+                </div>
+                {stageRows.length === 0 ? (
+                  <p className="p-5 text-sm text-[#64748B]">
+                    No opportunities have been created yet.
+                  </p>
+                ) : (
+                  <dl className="divide-y divide-[#E2E8F0]">
+                    {stageRows.map(([stage, count]) => (
+                      <div
+                        key={stage}
+                        className="flex min-h-12 items-center justify-between gap-4 px-5 text-sm"
+                      >
+                        <dt className="text-[#475569]">{stage.replaceAll('_', ' ')}</dt>
+                        <dd className="font-semibold text-[#0F172A]">{count}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+              </div>
+            </section>
+          </div>
+        )}
       </div>
-
-      {loading ? (
-        <div className="py-20 text-center space-y-2">
-          <RefreshCw className="w-6 h-6 text-[#2DD4BF] animate-spin mx-auto" />
-          <p className="text-xs text-[#8B949E]">Calculating voice metrics from database...</p>
-        </div>
-      ) : !metrics ? (
-        <div className="py-20 text-center space-y-2">
-          <TrendingUp className="w-8 h-8 text-[#8B949E] mx-auto" />
-          <p className="text-sm font-semibold text-white">No database analytics available.</p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-1">
-              <span className="text-xs font-mono text-[#8B949E] uppercase">
-                Total Inbound Calls
-              </span>
-              <div className="text-3xl font-black text-white">{metrics.totalCalls}</div>
-              <p className="text-xs text-[#8B949E]">Calls logged in system</p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-1">
-              <span className="text-xs font-mono text-[#8B949E] uppercase">
-                Appointments Booked
-              </span>
-              <div className="text-3xl font-black text-[#2DD4BF]">{metrics.appointmentsBooked}</div>
-              <p className="text-xs text-[#8B949E]">Confirmed calendar events</p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-1">
-              <span className="text-xs font-mono text-[#8B949E] uppercase">Leads Qualified</span>
-              <div className="text-3xl font-black text-[#F59E0B]">{metrics.leadsCreated}</div>
-              <p className="text-xs text-[#8B949E]">CRM lead inbox entries</p>
-            </div>
-
-            <div className="p-5 rounded-xl bg-[#13171C] border border-[#272D35] space-y-1">
-              <span className="text-xs font-mono text-[#8B949E] uppercase">Booking Conversion</span>
-              <div className="text-3xl font-black text-[#3B82F6]">{metrics.conversionRate}%</div>
-              <p className="text-xs text-[#8B949E]">Calls to booked appointments</p>
-            </div>
-          </div>
-
-          {/* LEAD CATEGORY DISTRIBUTION */}
-          <div className="p-6 rounded-2xl bg-[#13171C] border border-[#272D35] space-y-4">
-            <h3 className="text-base font-bold text-white">Lead Qualification Distribution</h3>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono text-center">
-              <div className="p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 space-y-1">
-                <span className="text-[#EF4444] font-bold block">HOT LEADS</span>
-                <span className="text-2xl font-black text-white">{metrics.leadCategories.hot}</span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#F59E0B]/10 border border-[#F59E0B]/30 space-y-1">
-                <span className="text-[#F59E0B] font-bold block">WARM LEADS</span>
-                <span className="text-2xl font-black text-white">
-                  {metrics.leadCategories.warm}
-                </span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/30 space-y-1">
-                <span className="text-[#3B82F6] font-bold block">HUMAN REVIEW</span>
-                <span className="text-2xl font-black text-white">
-                  {metrics.leadCategories.review}
-                </span>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#0F1216] border border-[#272D35] space-y-1">
-                <span className="text-[#8B949E] font-bold block">COLD LEADS</span>
-                <span className="text-2xl font-black text-white">
-                  {metrics.leadCategories.cold}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

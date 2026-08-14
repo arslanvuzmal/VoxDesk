@@ -66,13 +66,13 @@ export default function LandingPage() {
                   href="/demo"
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#78AFFF] px-5 text-sm font-medium text-[#08090B] transition-colors hover:bg-[#91BEFF]"
                 >
-                  Try a Live Conversation <ArrowRight className="h-4 w-4" />
+                  Explore Demo <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
                   href="/dashboard/conversations"
                   className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/[0.13] bg-[#121519] px-5 text-sm font-medium text-[#F4F5F7] transition-colors hover:bg-[#15191D]"
                 >
-                  Explore the CRM
+                  View Platform
                 </Link>
               </div>
               <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-[#737C88]">
@@ -92,7 +92,7 @@ export default function LandingPage() {
                   </p>
                   <p className="mt-4 text-sm font-medium">Sarah Mitchell</p>
                   <p className="mt-5 text-sm leading-6 text-[#A1A8B3]">
-                    â€œI need to move my appointment to Thursday afternoon.â€
+                    “I need to move my appointment to Thursday afternoon.”
                   </p>
                 </div>
                 <div className="border-b border-white/[0.08] p-5 md:border-b-0 md:border-r">
@@ -182,7 +182,7 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="flex items-center justify-center border-y border-white/[0.08] bg-[#0D0F12] px-4 py-8 font-mono text-[11px] uppercase tracking-[0.16em] text-[#78AFFF] lg:border-x lg:border-y-0">
-                â† VoxDesk â†’
+                ← VoxDesk →
               </div>
               <div id="outbound" className="p-6 sm:p-8">
                 <PhoneOutgoing className="h-5 w-5 text-[#78AFFF]" />
@@ -227,7 +227,7 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="font-mono text-xs uppercase tracking-[0.15em] text-[#78AFFF]">
-                  â†’ VoxDesk â†’
+                  → VoxDesk →
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <span>Contact</span>
@@ -256,13 +256,13 @@ export default function LandingPage() {
                 href="/demo"
                 className="inline-flex min-h-11 items-center justify-center rounded-md bg-[#78AFFF] px-5 text-sm font-medium text-[#08090B]"
               >
-                Try a Live Conversation
+                Explore Demo
               </Link>
               <Link
                 href="/dashboard/conversations"
                 className="inline-flex min-h-11 items-center justify-center rounded-md border border-white/[0.13] px-5 text-sm font-medium"
               >
-                Explore the CRM
+                View Platform
               </Link>
             </div>
           </div>

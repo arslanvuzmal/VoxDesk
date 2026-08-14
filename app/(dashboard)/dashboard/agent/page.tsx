@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AgentPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('agents:edit');
   const agents = await prisma.voiceAgent.findMany({
     where: { workspaceId },
     orderBy: { updatedAt: 'desc' },

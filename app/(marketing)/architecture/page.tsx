@@ -1,53 +1,128 @@
+import { Activity, Database, LockKeyhole, Phone, ShieldCheck, Sparkles, Users } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
-import { ShieldCheck, Lock, Database, Server, Cpu, Key } from 'lucide-react';
+
+const layers = [
+  {
+    label: 'Customer channels',
+    detail: 'Web voice · Web chat · PSTN/SIP · approved campaigns',
+    icon: Phone,
+    tone: 'text-[#6EE7F9]',
+  },
+  {
+    label: 'Conversation intelligence',
+    detail: 'ElevenLabs realtime voice, turns, transcript and agent context',
+    icon: Sparkles,
+    tone: 'text-[#A78BFA]',
+  },
+  {
+    label: 'VoxDesk orchestration',
+    detail: 'Tenant context, policy checks, authorized tools and workflow state',
+    icon: ShieldCheck,
+    tone: 'text-[#7C8CFF]',
+  },
+  {
+    label: 'Business operations',
+    detail: 'Contacts · appointments · opportunities · tasks · handoffs',
+    icon: Users,
+    tone: 'text-[#6EF3B0]',
+  },
+  {
+    label: 'Persistence and quality',
+    detail: 'PostgreSQL CRM state, audit records, analytics and supervised review',
+    icon: Database,
+    tone: 'text-[#FBBF24]',
+  },
+] as const;
 
 export default function ArchitecturePage() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-[#080C12] text-[#F1F5F9]">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-6 py-16 space-y-12">
-        <div className="text-center space-y-4">
-          <span className="px-3 py-1 rounded-full bg-teal-950 text-teal-400 border border-teal-800/60 font-mono text-xs font-semibold">
-            SYSTEM ARCHITECTURE & SECURITY
+      <main className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
+        <header className="max-w-3xl">
+          <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#6EE7F9]">
+            Platform architecture
           </span>
-          <h1 className="text-4xl font-extrabold text-white">
-            Technical Architecture & Security Controls
+          <h1 className="mt-5 text-4xl font-semibold tracking-[-0.045em] sm:text-6xl">
+            One conversation layer. Every operational consequence.
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto text-sm">
-            VoxDesk AI is built for strict multi-tenant isolation, AES-256 encryption, HMAC
-            signature verification, and zero credential leakage.
+          <p className="mt-6 max-w-2xl text-base leading-7 text-[#94A3B8]">
+            VoxDesk separates realtime conversation intelligence from business state. The model can
+            request an action; the server validates, authorizes, executes, and records it.
           </p>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
-            <Lock className="w-8 h-8 text-teal-400" />
-            <h3 className="text-lg font-bold text-white">AES-256-GCM Encryption</h3>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              All stored telephony credentials, provider tokens, and customer phone numbers are
-              encrypted at rest using AES-256-GCM authenticated encryption.
-            </p>
+        <section className="mt-14 grid gap-3 lg:grid-cols-[1fr_280px]">
+          <div className="space-y-3">
+            {layers.map(({ label, detail, icon: Icon, tone }, index) => (
+              <article
+                key={label}
+                className="flex items-start gap-4 border border-white/[0.09] bg-[#101826] p-5"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/[0.1] bg-[#172233]">
+                  <Icon className={`h-5 w-5 ${tone}`} />
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#64748B]">
+                    {String(index + 1).padStart(2, '0')}
+                  </p>
+                  <h2 className="mt-1 text-lg font-medium">{label}</h2>
+                  <p className="mt-2 text-sm leading-6 text-[#94A3B8]">{detail}</p>
+                </div>
+              </article>
+            ))}
           </div>
 
-          <div className="glass-panel p-8 rounded-2xl border border-gray-800 space-y-4">
-            <ShieldCheck className="w-8 h-8 text-electric-400" />
-            <h3 className="text-lg font-bold text-white">Multi-Tenant Isolation</h3>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              Every database query is enforced with a mandatory workspaceId scoping filter. RBAC
-              permissions ensure cross-workspace data access is strictly prevented.
-            </p>
-          </div>
+          <aside className="space-y-3">
+            <div className="border border-[#FBBF24]/25 bg-[#FBBF24]/[0.06] p-5">
+              <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#FBBF24]">
+                Portfolio mode
+              </p>
+              <h2 className="mt-3 text-lg font-medium">Simulation ready</h2>
+              <p className="mt-2 text-sm leading-6 text-[#94A3B8]">
+                The public deployment exercises the same state and CRM boundaries without placing
+                paid PSTN calls.
+              </p>
+            </div>
 
-          <div className="glass-panel p-8 rounded-2xl border border-gray-800 space-y-4">
-            <Key className="w-8 h-8 text-emerald-400" />
-            <h3 className="text-lg font-bold text-white">Webhook HMAC Signature Verification</h3>
-            <p className="text-xs text-gray-300 leading-relaxed">
-              Telephony webhooks from Twilio, Vapi, and Retell undergo SHA-256 HMAC signature
-              verification and timestamp replay protection.
-            </p>
-          </div>
-        </div>
-      </div>
+            <div className="border border-white/[0.09] bg-[#101826] p-5">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <LockKeyhole className="h-4 w-4 text-[#6EF3B0]" />
+                Security boundary
+              </div>
+              <ul className="mt-4 space-y-3 text-xs leading-5 text-[#94A3B8]">
+                <li>Server-owned tool authorization</li>
+                <li>Workspace-scoped persistence</li>
+                <li>Signed provider events</li>
+                <li>Idempotent consequential actions</li>
+              </ul>
+            </div>
+
+            <div className="border border-white/[0.09] bg-[#101826] p-5">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Activity className="h-4 w-4 text-[#7C8CFF]" />
+                Provider roles
+              </div>
+              <dl className="mt-4 space-y-3 text-xs">
+                <div>
+                  <dt className="text-[#64748B]">ElevenLabs</dt>
+                  <dd className="mt-1 text-[#DCE6F2]">Conversational intelligence</dd>
+                </div>
+                <div>
+                  <dt className="text-[#64748B]">Telnyx</dt>
+                  <dd className="mt-1 text-[#DCE6F2]">PSTN and SIP infrastructure</dd>
+                </div>
+                <div>
+                  <dt className="text-[#64748B]">VoxDesk</dt>
+                  <dd className="mt-1 text-[#DCE6F2]">Operations, CRM, policy and analytics</dd>
+                </div>
+              </dl>
+            </div>
+          </aside>
+        </section>
+      </main>
     </div>
   );
 }
+
+// Architecture surfaces are intentionally read-only and provider-truthful.

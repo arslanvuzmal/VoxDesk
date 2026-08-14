@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 import Link from 'next/link';
 
 export default async function ContactsPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('calls:view');
   const contacts = await prisma.contact.findMany({
     where: { workspaceId },
     orderBy: { updatedAt: 'desc' },

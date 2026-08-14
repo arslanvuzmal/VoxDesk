@@ -21,6 +21,8 @@ const ElevenLabsVoiceController = dynamic(
     ),
   }
 );
+import { Navbar } from '@/components/ui/navbar';
+import { DemoStudio } from '@/components/demo/demo-studio';
 
 const presets = [
   {
@@ -135,7 +137,7 @@ export default function DemoPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#08090B] text-[#F4F5F7]">
+    <div className="min-h-screen bg-[#080C12]">
       <Navbar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <div className="mx-auto max-w-5xl space-y-8">
@@ -314,6 +316,7 @@ export default function DemoPage() {
           </section>
         </div>
       </main>
+      <DemoStudio />
     </div>
   );
 }

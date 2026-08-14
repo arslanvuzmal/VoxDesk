@@ -1,5 +1,9 @@
 import { MetadataRoute } from 'next';
 
+import { resolveApplicationUrl } from '@/lib/config/application-url';
+
+const applicationUrl = resolveApplicationUrl();
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
@@ -18,6 +22,6 @@ export default function robots(): MetadataRoute.Robots {
       ],
       disallow: ['/dashboard', '/dashboard/', '/dashboard/*', '/api/', '/login', '/register'],
     },
-    sitemap: 'https://voxdesk-ai.vercel.app/sitemap.xml',
+    sitemap: new URL('/sitemap.xml', applicationUrl).toString(),
   };
 }

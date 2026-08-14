@@ -130,10 +130,25 @@ enum ConversationMessageType {
 enum ConversationToolStatus {
   REQUESTED
   AUTHORIZED
+  PENDING_APPROVAL
   EXECUTING
   SUCCEEDED
   FAILED
   BLOCKED
+}
+
+enum ToolPolicyOutcome {
+  ALLOW
+  DENY
+  ESCALATE
+}
+
+enum ToolApprovalStatus {
+  PENDING
+  APPROVED
+  DENIED
+  EXPIRED
+  CONSUMED
 }
 
 enum ConversationCompletenessStatus {
@@ -1477,6 +1492,7 @@ model Conversation {
   messages               ConversationMessage[]
   fields                 ConversationField[]
   toolExecutions         ConversationToolExecution[]
+  toolApprovalRequests   ToolApprovalRequest[]
   providerCorrelations   ConversationProviderCorrelation[]
   state                  ConversationState?
   appointments           Appointment[]
@@ -1534,20 +1550,61 @@ model ConversationToolExecution {
   id                   String                 @id @default(cuid())
   conversationId       String
   tool                 String
+  actionId             String?
   operationFingerprint String?
+  payloadFingerprint   String?
   safeInput            Json?
   safeResult           Json?
   status               ConversationToolStatus @default(REQUESTED)
+  policyOutcome        ToolPolicyOutcome?
+  policyVersion        String?
+  riskLevel            String?
+  riskScore            Int?
+  triggeredPolicyIds   Json?
+  decisionReasonCodes  Json?
   latencyMs            Int?
   errorCategory        String?
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   conversation         Conversation           @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  approvalRequest      ToolApprovalRequest?
 
+  @@unique([conversationId, actionId])
   @@unique([conversationId, operationFingerprint])
   @@index([conversationId, createdAt])
   @@index([conversationId, status])
+  @@index([conversationId, tool, payloadFingerprint])
   @@map("conversation_tool_executions")
+}
+
+model ToolApprovalRequest {
+  id                  String                    @id @default(cuid())
+  workspaceId         String
+  conversationId      String
+  toolExecutionId     String                    @unique
+  actionId            String
+  tool                String
+  payloadFingerprint  String
+  status              ToolApprovalStatus        @default(PENDING)
+  policyVersion       String
+  riskLevel           String
+  riskScore           Int
+  triggeredPolicyIds  Json?
+  reasonCodes         Json?
+  expiresAt           DateTime
+  decidedAt           DateTime?
+  decidedByUserId     String?
+  decisionComment     String?
+  consumedAt          DateTime?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  conversation        Conversation              @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  toolExecution       ConversationToolExecution @relation(fields: [toolExecutionId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, actionId])
+  @@index([workspaceId, status, createdAt])
+  @@index([conversationId, status])
+  @@map("tool_approval_requests")
 }
 
 model ConversationProviderCorrelation {

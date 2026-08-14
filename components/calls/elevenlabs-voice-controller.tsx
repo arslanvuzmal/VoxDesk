@@ -50,7 +50,19 @@ export interface FinalizationResult {
   warnings: string[];
 }
 
-export function ElevenLabsVoiceController({ configuration }: { configuration: DemoConfiguration }) {
+export interface ElevenLabsVoiceControllerProps {
+  configuration: DemoConfiguration;
+  onStateChange?: (state: CallState) => void;
+  onTranscriptChange?: (transcript: VoiceTranscriptLine[]) => void;
+  onFinalization?: (result: FinalizationResult | null) => void;
+}
+
+export function ElevenLabsVoiceController({
+  configuration,
+  onStateChange,
+  onTranscriptChange,
+  onFinalization,
+}: ElevenLabsVoiceControllerProps) {
   const [callState, setCallState] = useState<CallState>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [transcripts, setTranscripts] = useState<VoiceTranscriptLine[]>([]);
@@ -298,6 +310,18 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
   );
 
   useEffect(() => {
+    onStateChange?.(callState);
+  }, [callState, onStateChange]);
+
+  useEffect(() => {
+    onTranscriptChange?.(transcripts);
+  }, [transcripts, onTranscriptChange]);
+
+  useEffect(() => {
+    onFinalization?.(finalResult);
+  }, [finalResult, onFinalization]);
+
+  useEffect(() => {
     return () => {
       cleanupAudio();
     };
@@ -339,7 +363,7 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
             <p className="mt-1 text-xs text-[#737C88]">
               Agent:{' '}
               <span className="font-semibold text-slate-200">{configuration.agentDisplayName}</span>{' '}
-              Â· Language: {configuration.language}
+              · Language: {configuration.language}
             </p>
           </div>
         </div>
@@ -423,7 +447,7 @@ export function ElevenLabsVoiceController({ configuration }: { configuration: De
                   {callState === 'CALLER_SPEAKING' && 'Listening to caller...'}
                   {callState === 'LISTENING' && `${configuration.agentDisplayName} is listening...`}
                   {callState === 'CONNECTED' &&
-                    `Call connected â€” waiting for ${configuration.agentDisplayName}'s greeting...`}
+                    `Call connected — waiting for ${configuration.agentDisplayName}'s greeting...`}
                 </span>
               </div>
 

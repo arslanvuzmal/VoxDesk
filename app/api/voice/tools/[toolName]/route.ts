@@ -8,12 +8,14 @@ import {
 import {
   executeDatabaseTool,
   isSupportedDatabaseTool,
+  ToolApprovalRequiredError,
   ToolExecutionError,
 } from '@/lib/voice-agent/tool-executor';
 
 const ToolExecutionSchema = z.object({
   toolExecutionId: z.string().min(8).max(200),
   parameters: z.record(z.unknown()).default({}),
+  approvalRequestId: z.string().min(8).max(200).optional(),
 });
 
 const MUTATING_TOOLS = new Set([
@@ -77,7 +79,8 @@ export async function POST(
         toolName,
         parsed.data.toolExecutionId,
         parsed.data.parameters,
-        context
+        context,
+        { approvalRequestId: parsed.data.approvalRequestId }
       );
       const refreshedContext =
         toolName === 'create_or_update_contact' && typeof data.contactId === 'string'
@@ -88,6 +91,19 @@ export async function POST(
         meta: { correlationId },
       });
     } catch (error) {
+      if (error instanceof ToolApprovalRequiredError) {
+        return NextResponse.json(
+          {
+            data: {
+              status: 'PENDING_APPROVAL',
+              approvalRequestId: error.approvalRequestId,
+              executed: false,
+            },
+            meta: { correlationId },
+          },
+          { status: error.status }
+        );
+      }
       if (error instanceof ToolExecutionError) {
         return NextResponse.json(
           { error: { code: error.code, message: error.message, correlationId } },

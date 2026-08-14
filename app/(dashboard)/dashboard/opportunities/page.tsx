@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/database';
-import { requireDashboardContext } from '@/lib/auth/dashboard-context';
+import { requireDashboardPermission } from '@/lib/auth/dashboard-context';
 
 export default async function OpportunitiesPage() {
-  const { workspaceId } = await requireDashboardContext();
+  const { workspaceId } = await requireDashboardPermission('calls:view');
   const opportunities = await prisma.opportunity.findMany({
     where: { workspaceId },
     orderBy: { updatedAt: 'desc' },

@@ -145,7 +145,7 @@ export default async function DashboardOverviewPage() {
                 href="/dashboard/conversations"
                 className="mt-8 inline-flex min-h-11 items-center text-sm font-semibold text-[#78AFFF]"
               >
-                Open conversations â†’
+                Open conversations →
               </Link>
             </div>
           </section>

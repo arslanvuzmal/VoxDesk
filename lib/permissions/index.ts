@@ -26,7 +26,8 @@ export type PermissionAction =
   | 'analytics:view'
   | 'audit:view'
   | 'improvement:view'
-  | 'improvement:approve';
+  | 'improvement:approve'
+  | 'tools:approve';
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, PermissionAction[]> = {
   OWNER: [
@@ -56,6 +57,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, PermissionAction[]> = {
     'audit:view',
     'improvement:view',
     'improvement:approve',
+    'tools:approve',
   ],
   ADMIN: [
     'workspace:manage',
@@ -81,6 +83,7 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, PermissionAction[]> = {
     'audit:view',
     'improvement:view',
     'improvement:approve',
+    'tools:approve',
   ],
   OPERATOR: [
     'calls:view',
