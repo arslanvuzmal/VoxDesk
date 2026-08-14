@@ -7,6 +7,10 @@ const mocks = vi.hoisted(() => ({
   contactFindFirst: vi.fn(),
   campaignFindFirst: vi.fn(),
   businessProfileFindUnique: vi.fn(),
+  voiceAgentFindFirst: vi.fn(),
+  agentVersionFindFirst: vi.fn(),
+  businessTrainingPackFindFirst: vi.fn(),
+  communicationPreferenceFindUnique: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/require-session', () => ({
@@ -20,6 +24,10 @@ vi.mock('@/lib/database', () => ({
     contact: { findFirst: mocks.contactFindFirst },
     campaign: { findFirst: mocks.campaignFindFirst },
     businessProfile: { findUnique: mocks.businessProfileFindUnique },
+    voiceAgent: { findFirst: mocks.voiceAgentFindFirst },
+    agentVersion: { findFirst: mocks.agentVersionFindFirst },
+    businessTrainingPack: { findFirst: mocks.businessTrainingPackFindFirst },
+    communicationPreference: { findUnique: mocks.communicationPreferenceFindUnique },
   },
 }));
 
@@ -43,6 +51,10 @@ describe('outbound authorization', () => {
     });
     mocks.contactFindFirst.mockResolvedValue({ id: 'contact-a', phoneEncrypted: 'ciphertext' });
     mocks.businessProfileFindUnique.mockResolvedValue(null);
+    mocks.voiceAgentFindFirst.mockResolvedValue(null);
+    mocks.agentVersionFindFirst.mockResolvedValue(null);
+    mocks.businessTrainingPackFindFirst.mockResolvedValue(null);
+    mocks.communicationPreferenceFindUnique.mockResolvedValue(null);
   });
 
   it('requires the outbound execution permission', async () => {
