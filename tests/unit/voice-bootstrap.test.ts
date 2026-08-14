@@ -37,6 +37,24 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     expect(body.error).toBe('UNSUPPORTED_CONFIGURATION');
   });
 
+  it('rejects a voice request that does not match its authorized demo session', async () => {
+    const req = new Request('http://localhost/api/demo/voice-bootstrap', {
+      method: 'POST',
+      headers: { cookie: await demoCookie() },
+      body: JSON.stringify({
+        presetKey: 'LEGAL',
+        language: 'en-US',
+        scenario: 'BOOKING',
+        channel: 'WEB_VOICE',
+      }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    const body = await res.json();
+    expect(body.error).toBe('DEMO_SESSION_CONTEXT_MISMATCH');
+  });
+
   it('should return 503 ELEVENLABS_NOT_CONFIGURED when ELEVENLABS_API_KEY is missing', async () => {
     delete process.env.ELEVENLABS_API_KEY;
 
