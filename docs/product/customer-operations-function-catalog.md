@@ -131,16 +131,3 @@ flowchart TD
 ```
 
 The evolution is capability-based rather than a claim that all roadmap modules are already active.
-
-## Web Voice session integrity
-
-Web Voice admission is server-owned and rate-limited. VoxDesk issues a signed browser cookie only
-after the selected demo configuration is accepted. Production deployments use Redis when configured
-and otherwise use the application Postgres database for expiring sessions, concurrency locks,
-retry-safe response consumption, and per-IP limits. ElevenLabs receives no authority to select a
-workspace, business, or scenario.
-
-The active ElevenLabs conversation uses a separate short-lived cookie. This keeps demo admission and
-provider-session authorization independent and prevents retries from corrupting the original session
-context.
-
