@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
       // Public Route Consolidation
       { source: '/features', destination: '/#product', permanent: true },
       { source: '/industries', destination: '/#solutions', permanent: true },
-      { source: '/architecture', destination: '/#enterprise', permanent: true },
+      { source: '/architecture', destination: '/platform', permanent: true },
       { source: '/demo/story', destination: '/#workflow', permanent: true },
 
       // Dashboard Route Consolidation
