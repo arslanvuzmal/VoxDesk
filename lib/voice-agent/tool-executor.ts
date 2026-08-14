@@ -214,11 +214,9 @@ export async function executeDatabaseTool(
   options: ToolExecutionOptions = {}
 ): Promise<Prisma.JsonObject> {
   const conversation = await assertPersistedConversationContext(context);
-  const operationFingerprint = `${tool}:${payloadFingerprint(parameters)}`;
-  const inputFingerprint = payloadFingerprint(parameters);
-  const existing = await prisma.conversationToolExecution.findUnique({
   const payloadFingerprint = fingerprintToolPayload(tool, parameters);
   const operationFingerprint = payloadFingerprint;
+  const inputFingerprint = payloadFingerprint;
   let approvedRequestId: string | null = null;
   const existing = await prisma.conversationToolExecution.findFirst({
     where: {
@@ -228,118 +226,6 @@ export async function executeDatabaseTool(
     include: { approvalRequest: true },
   });
 
-  if (existing) {
-    const recordedFingerprint =
-      existing.safeInput &&
-      typeof existing.safeInput === 'object' &&
-      !Array.isArray(existing.safeInput)
-        ? (existing.safeInput as { inputFingerprint?: unknown }).inputFingerprint
-        : undefined;
-    if (recordedFingerprint && recordedFingerprint !== inputFingerprint) {
-      throw new ToolExecutionError(
-        'CONFLICT',
-        'This idempotency key was already used with a different payload.',
-        409
-      );
-    }
-    if (
-      existing.actionId === toolExecutionId &&
-      existing.payloadFingerprint &&
-      existing.payloadFingerprint !== payloadFingerprint
-    ) {
-      throw new ToolExecutionError(
-        'CONFLICT',
-        'This action ID was already used with a different payload.',
-        409
-      );
-    }
-    if (
-      existing.status === 'SUCCEEDED' &&
-      existing.safeResult &&
-      !Array.isArray(existing.safeResult)
-    ) {
-      return existing.safeResult as Prisma.JsonObject;
-    }
-    throw new ToolExecutionError(
-      'CONFLICT',
-      'This tool execution is already in progress or failed.',
-      409
-    );
-  }
-  const priorExecutions =
-    typeof prisma.conversationToolExecution.findMany === 'function'
-      ? await prisma.conversationToolExecution.findMany({
-          where: { conversationId: conversation.id, status: 'SUCCEEDED' },
-          select: { tool: true },
-        })
-      : [];
-  const policy = evaluateToolPolicy({
-    tool,
-    parameters,
-    priorSuccessfulTools: priorExecutions.map(execution => execution.tool),
-  });
-  const policyMetadata = {
-    decision: policy.decision,
-    riskScore: policy.riskScore,
-    policyCodes: policy.policyCodes,
-    policyReason: policy.reason,
-    policyFingerprint: policyAuditFingerprint(policy),
-    inputFingerprint,
-  };
-  if (policy.decision !== 'ALLOW') {
-    await prisma.$transaction([
-      prisma.conversationToolExecution.create({
-        data: {
-          conversationId: conversation.id,
-          tool,
-          operationFingerprint,
-          safeInput: {
-            parameterKeys: Object.keys(parameters).sort(),
-            ...policyMetadata,
-          },
-          safeResult: {
-            decision: policy.decision,
-            reason: policy.reason,
-            policyCodes: policy.policyCodes,
-          },
-          status: 'BLOCKED',
-          errorCategory:
-            policy.decision === 'ESCALATE' ? 'HUMAN_APPROVAL_REQUIRED' : 'AUTHORIZATION',
-        },
-      }),
-      prisma.auditLog.create({
-        data: {
-          workspaceId: context.workspaceId,
-          action: `TOOL_POLICY_${policy.decision}`,
-          entityType: 'CONVERSATION_TOOL_EXECUTION',
-          entityId: conversation.id,
-          metadata: policyMetadata,
-        },
-      }),
-    ]);
-    throw new ToolExecutionError(
-      'AUTHORIZATION',
-      policy.decision === 'ESCALATE'
-        ? 'Human approval is required before this business action can run.'
-        : 'This business action was denied by conversation policy.',
-      policy.decision === 'ESCALATE' ? 409 : 403
-    );
-  }
-  try {
-    await prisma.conversationToolExecution.create({
-      data: {
-        conversationId: conversation.id,
-        tool,
-        operationFingerprint,
-        safeInput: {
-          parameterKeys: Object.keys(parameters).sort(),
-          inputFingerprint,
-          policyDecision: policy.decision,
-          policyCodes: policy.policyCodes,
-          riskScore: policy.riskScore,
-        },
-        status: 'AUTHORIZED',
-      },
     if (existing.status === 'BLOCKED') {
       throw new ToolExecutionError('POLICY_DENIED', 'Policy denied this action.', 403);
     }
