@@ -21,7 +21,6 @@ const ElevenLabsVoiceController = dynamic(
     ),
   }
 );
-import { Navbar } from '@/components/ui/navbar';
 import { DemoStudio } from '@/components/demo/demo-studio';
 
 const presets = [
