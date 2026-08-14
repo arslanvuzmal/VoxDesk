@@ -61,7 +61,12 @@ export async function POST(req: NextRequest) {
   });
   if (!business || !agent) {
     return NextResponse.json(
-      { error: { code: 'NOT_CONFIGURED', message: 'Outbound business routing is not configured.' } },
+      {
+        error: {
+          code: 'NOT_CONFIGURED',
+          message: 'Outbound business routing is not configured.',
+        },
+      },
       { status: 503 }
     );
   }
