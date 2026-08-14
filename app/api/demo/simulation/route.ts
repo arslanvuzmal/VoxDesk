@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getDemoSessionFromCookieToken } from '@/lib/demo/session';
 import { prisma } from '@/lib/database';
+import { env } from '@/lib/config/env';
 import {
   runTelephonySimulation,
   SimulationConfigurationError,
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const workspace = await prisma.workspace.findUnique({
-      where: { slug: 'demo-workspace' },
+      where: { slug: env.DEMO_WORKSPACE_SLUG },
       select: { id: true },
     });
     if (!workspace) {
