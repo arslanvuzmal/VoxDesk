@@ -1,5 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { requestElevenLabsSignedUrl } from '@/lib/elevenlabs/conversation-access';
+
+const signedUrl =
+  'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test';
+
+function mockProvider(status: number, payload: object) {
+  const response = new Response(JSON.stringify(payload), { status });
+  vi.stubGlobal('fetch', vi.fn(async () => response));
+}
 
 describe('ElevenLabs conversation access', () => {
   afterEach(() => {
@@ -7,28 +16,14 @@ describe('ElevenLabs conversation access', () => {
   });
 
   it('returns the signed WebSocket URL used by the browser client', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            signed_url:
-              'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test',
-          }),
-          { status: 200 }
-        )
-      )
-    );
+    mockProvider(200, { signed_url: signedUrl });
 
     const result = await requestElevenLabsSignedUrl({
       apiKey: 'test-key',
       agentId: 'agent_test',
     });
 
-    expect(result).toEqual({
-      ok: true,
-      signedUrl: 'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test',
-    });
+    expect(result).toEqual({ ok: true, signedUrl });
   });
 
   it.each([
@@ -41,16 +36,7 @@ describe('ElevenLabs conversation access', () => {
   ] as const)(
     'maps provider status %s to %s without exposing a response body',
     async (status, code) => {
-      vi.stubGlobal(
-        'fetch',
-        vi
-          .fn()
-          .mockResolvedValue(
-            new Response(JSON.stringify({ detail: 'provider detail must remain private' }), {
-              status,
-            })
-          )
-      );
+      mockProvider(status, { detail: 'provider detail must remain private' });
 
       const result = await requestElevenLabsSignedUrl({
         apiKey: 'test-key',
@@ -66,11 +52,8 @@ describe('ElevenLabs conversation access', () => {
     }
   );
 
-  it('rejects a successful provider response without a signed WebSocket URL', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue(new Response(JSON.stringify({ signed_url: 'https://invalid' })))
-    );
+  it('rejects a response without a signed WebSocket URL', async () => {
+    mockProvider(200, { signed_url: 'https://invalid' });
 
     const result = await requestElevenLabsSignedUrl({
       apiKey: 'test-key',
