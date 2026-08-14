@@ -26,13 +26,9 @@ test.describe('VoxDesk /demo route', () => {
     await expect(page.getByRole('heading', { name: 'Conversations into operations.' })).toBeVisible(
       { timeout: 10000 }
     );
-    // 4. Assert header and call button are visible (flexible text matching)
-    await expect(
-      page.getByRole('heading', { name: 'Conversation to operational record' })
-    ).toBeVisible({ timeout: 10000 });
-    await expect(
-      page.getByRole('button', { name: /Start Live Voice Call|Start Call/i })
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: 'Run persisted simulation' })).toBeVisible({
+      timeout: 10000,
+    });
     await expect(page.getByRole('button', { name: 'Start Live Voice Call' })).toBeVisible({
       timeout: 10000,
     });
