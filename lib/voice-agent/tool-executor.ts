@@ -227,6 +227,13 @@ export async function executeDatabaseTool(
   });
 
   if (existing) {
+    if (
+      existing.status === 'SUCCEEDED' &&
+      existing.safeResult &&
+      !Array.isArray(existing.safeResult)
+    ) {
+      return existing.safeResult as Prisma.JsonObject;
+    }
     if (existing.status === 'BLOCKED') {
       throw new ToolExecutionError('POLICY_DENIED', 'Policy denied this action.', 403);
     }
