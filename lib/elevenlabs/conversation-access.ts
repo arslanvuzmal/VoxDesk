@@ -20,7 +20,9 @@ export type ElevenLabsConversationAccessResult =
       providerStatus: number | null;
     };
 
-function failureForStatus(status: number): Exclude<ElevenLabsConversationAccessResult, { ok: true }> {
+function failureForStatus(
+  status: number
+): Exclude<ElevenLabsConversationAccessResult, { ok: true }> {
   if (status === 401 || status === 403) {
     return {
       ok: false,
