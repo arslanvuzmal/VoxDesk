@@ -2,12 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { requestElevenLabsSignedUrl } from '@/lib/elevenlabs/conversation-access';
 
-const signedUrl =
-  'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test';
+const signedUrl = 'wss://api.elevenlabs.io/v1/convai/conversation?agent_id=agent_test&token=test';
 
 function mockProvider(status: number, payload: object) {
   const response = new Response(JSON.stringify(payload), { status });
-  vi.stubGlobal('fetch', vi.fn(async () => response));
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () => response)
+  );
 }
 
 describe('ElevenLabs conversation access', () => {
