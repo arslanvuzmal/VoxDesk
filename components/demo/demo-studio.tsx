@@ -90,6 +90,8 @@ export function DemoStudio() {
   const [state, setState] = useState<CallState>('IDLE');
   const [transcript, setTranscript] = useState<VoiceTranscriptLine[]>([]);
   const [result, setResult] = useState<FinalizationResult | null>(null);
+  const [simulationStatus, setSimulationStatus] = useState<string | null>(null);
+  const [simulationConversationId, setSimulationConversationId] = useState<string | null>(null);
 
   const configuration = useMemo<DemoConfiguration>(
     () => ({ ...DEFAULT_DEMO_CONFIGURATION, scenario }),
@@ -99,6 +101,59 @@ export function DemoStudio() {
   const onTranscriptChange = useCallback((next: VoiceTranscriptLine[]) => setTranscript(next), []);
   const onFinalization = useCallback((next: FinalizationResult | null) => setResult(next), []);
   const disabled = !['IDLE', 'COMPLETED', 'FAILED'].includes(state);
+
+  const runPersistedSimulation = useCallback(async () => {
+    setSimulationStatus('Starting a protected demo session…');
+    setSimulationConversationId(null);
+
+    try {
+      const sessionResponse = await fetch('/api/demo/session/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scenario,
+          presetKey: configuration.presetKey,
+          language: configuration.language,
+        }),
+      });
+      const sessionPayload = await sessionResponse.json().catch(() => null);
+      const scenarioMap: Record<DemoScenario, string> = {
+        BOOKING: 'appointment-booked',
+        QUALIFICATION: 'qualified-lead',
+        ESCALATION: 'human-escalation',
+        ROUTINE: 'support-resolution',
+      };
+      const sessionUnavailable = sessionResponse.status === 503;
+
+      if (!sessionResponse.ok && !sessionUnavailable) {
+        throw new Error(sessionPayload?.error || 'Demo session could not be started.');
+      }
+
+      setSimulationStatus('Running the normalized call lifecycle…');
+      const response = await fetch(
+        sessionUnavailable ? '/api/telephony/simulations' : '/api/demo/simulation',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenario: sessionUnavailable ? scenarioMap[scenario] : scenario,
+          }),
+        }
+      );
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok || !payload?.data?.conversationId) {
+        throw new Error(payload?.error?.message || 'Simulation could not be completed.');
+      }
+
+      setSimulationConversationId(payload.data.conversationId);
+      setSimulationStatus('Simulation complete. The conversation is available in the CRM.');
+    } catch (error) {
+      setSimulationStatus(
+        error instanceof Error ? error.message : 'Simulation could not be completed.'
+      );
+    }
+  }, [configuration.language, configuration.presetKey, scenario]);
 
   const effects = [
     {
@@ -118,7 +173,7 @@ export function DemoStudio() {
     },
     {
       label: 'CRM persistence',
-      value: result?.persistenceStatus ?? 'Pending',
+      value: simulationConversationId ? 'Persisted' : (result?.persistenceStatus ?? 'Pending'),
       icon: Database,
     },
   ];
@@ -174,6 +229,27 @@ export function DemoStudio() {
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={runPersistedSimulation}
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center bg-[#6EE7F9] px-4 text-xs font-semibold text-[#080C12] transition-colors hover:bg-[#9BEFFC] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Run persisted simulation
+          </button>
+          {simulationStatus && (
+            <p
+              className="mt-3 border border-white/[0.08] bg-[#101826] p-3 text-xs leading-5 text-[#94A3B8]"
+              role="status"
+            >
+              {simulationStatus}
+              {simulationConversationId && (
+                <span className="mt-1 block font-mono text-[10px] text-[#6EF3B0]">
+                  {simulationConversationId}
+                </span>
+              )}
+            </p>
+          )}
           <dl className="mt-5 space-y-3 border-t border-white/[0.08] pt-4 text-xs">
             <div className="flex justify-between">
               <dt className="text-[#64748B]">Business</dt>

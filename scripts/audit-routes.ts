@@ -2,6 +2,7 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import nextConfig from '../next.config';
 
+const BASE_URL = process.env.AUDIT_BASE_URL || 'http://127.0.0.1:3000';
 const auditBaseUrl = process.env.AUDIT_BASE_URL?.replace(/\/$/, '');
 
 interface RouteCheck {

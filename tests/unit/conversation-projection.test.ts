@@ -11,6 +11,7 @@ describe('conversation projection mappings', () => {
   it('preserves call direction', () => {
     expect(mapCallDirection('INBOUND')).toBe('INBOUND');
     expect(mapCallDirection('OUTBOUND')).toBe('OUTBOUND');
+    expect(mapCallDirection('INBOUND', 'WEB')).toBe('INTERACTIVE');
   });
 
   it('maps terminal unsuccessful telephone states without inventing a successful outcome', () => {

@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { verifyDemoSessionToken } from '@/lib/security/session-token';
 import { prisma } from '@/lib/database';
-import { syncConversationProjectionIfEnabled } from '@/lib/conversation/persistence';
+import { syncConversationProjection } from '@/lib/conversation/persistence';
 
 const TranscriptLineSchema = z.object({
   id: z.string().max(200),
@@ -60,40 +60,56 @@ export async function POST(req: Request) {
     warnings.push('Database is not configured; provider reconciliation is pending externally.');
   } else {
     try {
-      const workspace = await prisma.workspace.findFirst({
-        where: { slug: 'demo-workspace' },
-        select: { id: true },
-      });
-      const agent = workspace
-        ? await prisma.voiceAgent.findFirst({
-            where: { workspaceId: workspace.id, voiceProvider: 'ELEVENLABS', status: 'ACTIVE' },
-            select: { id: true },
-          })
-        : null;
-      if (workspace && agent) {
-        const call = await prisma.call.create({
-          data: {
-            workspaceId: workspace.id,
-            agentId: agent.id,
-            provider: 'ELEVENLABS',
-            providerConversationId,
-            callerNumberMasked: 'Not provided',
-            language: session.language,
-            channel: 'WEB',
-            status: 'IN_PROGRESS',
-            startedAt: new Date(startMs),
-          },
-        });
-        callId = call.id;
-        persistenceStatus = 'PERSISTED';
-        await syncConversationProjectionIfEnabled(call.id);
-        if (!providerConversationId) {
-          warnings.push(
-            'Provider conversation ID is pending; post-call reconciliation may be delayed.'
-          );
-        }
+      if (!providerConversationId) {
+        warnings.push(
+          'Provider conversation ID is pending; no CRM record was created from browser state.'
+        );
       } else {
-        warnings.push('The isolated demo workspace or ElevenLabs agent is not configured.');
+        const workspace = await prisma.workspace.findFirst({
+          where: { slug: 'demo-workspace' },
+          select: { id: true },
+        });
+        const agent = workspace
+          ? await prisma.voiceAgent.findFirst({
+              where: { workspaceId: workspace.id, voiceProvider: 'ELEVENLABS', status: 'ACTIVE' },
+              select: { id: true },
+            })
+          : null;
+        if (workspace && agent) {
+          const existing = await prisma.call.findFirst({
+            where: { workspaceId: workspace.id, providerConversationId },
+            select: { id: true },
+          });
+          const call =
+            existing ||
+            (await prisma.call.create({
+              data: {
+                workspaceId: workspace.id,
+                agentId: agent.id,
+                provider: 'ELEVENLABS',
+                providerConversationId,
+                callerNumberMasked: 'Not provided',
+                language: session.language,
+                channel: 'WEB',
+                status: 'IN_PROGRESS',
+                startedAt: new Date(startMs),
+              },
+              select: { id: true },
+            }));
+          callId = call.id;
+          persistenceStatus = 'PERSISTED';
+          const projected = await syncConversationProjection(call.id);
+          if (!projected.synced) {
+            persistenceStatus = 'FAILED';
+            warnings.push(
+              projected.reason === 'BUSINESS_NOT_CONFIGURED'
+                ? 'The business profile is not configured; no canonical conversation was created.'
+                : 'The canonical conversation could not be created.'
+            );
+          }
+        } else {
+          warnings.push('The isolated demo workspace or ElevenLabs agent is not configured.');
+        }
       }
     } catch {
       persistenceStatus = 'FAILED';

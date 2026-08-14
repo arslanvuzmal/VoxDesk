@@ -6,6 +6,11 @@ const mocks = vi.hoisted(() => ({
   isEnabled: vi.fn(),
   contactFindFirst: vi.fn(),
   campaignFindFirst: vi.fn(),
+  businessProfileFindUnique: vi.fn(),
+  voiceAgentFindFirst: vi.fn(),
+  agentVersionFindFirst: vi.fn(),
+  businessTrainingPackFindFirst: vi.fn(),
+  communicationPreferenceFindUnique: vi.fn(),
 }));
 
 vi.mock('@/lib/auth/require-session', () => ({
@@ -18,6 +23,11 @@ vi.mock('@/lib/database', () => ({
   prisma: {
     contact: { findFirst: mocks.contactFindFirst },
     campaign: { findFirst: mocks.campaignFindFirst },
+    businessProfile: { findUnique: mocks.businessProfileFindUnique },
+    voiceAgent: { findFirst: mocks.voiceAgentFindFirst },
+    agentVersion: { findFirst: mocks.agentVersionFindFirst },
+    businessTrainingPack: { findFirst: mocks.businessTrainingPackFindFirst },
+    communicationPreference: { findUnique: mocks.communicationPreferenceFindUnique },
   },
 }));
 
@@ -40,6 +50,11 @@ describe('outbound authorization', () => {
       role: 'OPERATOR',
     });
     mocks.contactFindFirst.mockResolvedValue({ id: 'contact-a', phoneEncrypted: 'ciphertext' });
+    mocks.businessProfileFindUnique.mockResolvedValue(null);
+    mocks.voiceAgentFindFirst.mockResolvedValue(null);
+    mocks.agentVersionFindFirst.mockResolvedValue(null);
+    mocks.businessTrainingPackFindFirst.mockResolvedValue(null);
+    mocks.communicationPreferenceFindUnique.mockResolvedValue(null);
   });
 
   it('requires the outbound execution permission', async () => {
@@ -68,12 +83,10 @@ describe('outbound authorization', () => {
       })
     );
 
-    expect(mocks.contactFindFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: 'contact-a', workspaceId: 'workspace-a' } })
-    );
-    expect(response.status).toBe(503);
+    expect(mocks.contactFindFirst).not.toHaveBeenCalled();
+    expect(response.status).toBe(409);
     await expect(response.json()).resolves.toMatchObject({
-      error: { code: 'CALLER_ID_REQUIRES_CONFIGURATION' },
+      error: { code: 'CAMPAIGN_REQUIRED' },
     });
   });
 });

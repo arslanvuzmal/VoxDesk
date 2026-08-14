@@ -8,7 +8,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     const workspace = await requireWorkspaceAccess(req, undefined, 'calls:view');
     if ('errorResponse' in workspace) return workspace.errorResponse;
 
-    let appointment: any = null;
+    let appointment: Awaited<ReturnType<typeof prisma.appointment.findFirst>>;
     try {
       appointment = await prisma.appointment.findFirst({
         where: { id, workspaceId: workspace.workspaceId },
@@ -47,12 +47,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       success: true,
       appointment,
     });
-  } catch (error: any) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
         code: 'INTERNAL_ERROR',
-        message: error?.message || 'Failed to fetch appointment detail',
+        message: 'Failed to fetch appointment detail.',
       },
       { status: 500 }
     );

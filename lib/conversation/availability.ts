@@ -1,4 +1,4 @@
-import { legalTrainingPack } from '@/lib/organization/presets/legal';
+import { getOrganizationProfile } from '@/lib/organization/registry';
 
 export interface AppointmentSlot {
   slotId: string;
@@ -15,9 +15,9 @@ export function generateRealAvailableSlots(
   presetKey: string = 'LEGAL',
   serviceId: string = 'srv-corp'
 ): AppointmentSlot[] {
-  const pack = legalTrainingPack;
-  const timeZone = pack.business.timeZone || 'America/New_York';
-  const durationMs = (pack.appointmentPolicy.slotDurationMinutes || 45) * 60000;
+  const profile = getOrganizationProfile(presetKey);
+  const timeZone = profile.timeZone || 'America/New_York';
+  const durationMs = (profile.appointmentSettings.slotDurationMinutes || 45) * 60000;
 
   const now = new Date();
   const slots: AppointmentSlot[] = [];
@@ -52,7 +52,7 @@ export function generateRealAvailableSlots(
       endTime: slotEnd.toISOString(),
       timezone: timeZone,
       serviceId,
-      serviceName: pack.services[0]?.name || 'Legal Strategy Consultation',
+      serviceName: profile.services[0]?.name || 'Consultation',
       available: true,
     });
   });

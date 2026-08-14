@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '@/lib/database';
@@ -10,6 +11,7 @@ import {
   normalizePhoneNumber,
   phoneLast4,
 } from '@/lib/security/identifiers';
+import { evaluateToolPolicy, policyAuditFingerprint } from '@/lib/voice-agent/tool-policy';
 import {
   deterministicToolPolicyEvaluator,
   fingerprintToolPayload,
@@ -99,6 +101,20 @@ const UpdateOpportunitySchema = z
     value => Object.keys(value).some(key => key !== 'opportunityId'),
     'At least one opportunity field must be updated.'
   );
+
+function stableSerialize(value: unknown): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null';
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
+  const record = value as Record<string, unknown>;
+  return `{${Object.keys(record)
+    .sort()
+    .map(key => `${JSON.stringify(key)}:${stableSerialize(record[key])}`)
+    .join(',')}}`;
+}
+
+export function payloadFingerprint(parameters: Record<string, unknown>): string {
+  return crypto.createHash('sha256').update(stableSerialize(parameters)).digest('hex');
+}
 
 export class ToolExecutionError extends Error {
   constructor(
@@ -200,6 +216,7 @@ export async function executeDatabaseTool(
   const conversation = await assertPersistedConversationContext(context);
   const payloadFingerprint = fingerprintToolPayload(tool, parameters);
   const operationFingerprint = payloadFingerprint;
+  const inputFingerprint = payloadFingerprint;
   let approvedRequestId: string | null = null;
   const existing = await prisma.conversationToolExecution.findFirst({
     where: {
@@ -210,17 +227,6 @@ export async function executeDatabaseTool(
   });
 
   if (existing) {
-    if (
-      existing.actionId === toolExecutionId &&
-      existing.payloadFingerprint &&
-      existing.payloadFingerprint !== payloadFingerprint
-    ) {
-      throw new ToolExecutionError(
-        'CONFLICT',
-        'This action ID was already used with a different payload.',
-        409
-      );
-    }
     if (
       existing.status === 'SUCCEEDED' &&
       existing.safeResult &&

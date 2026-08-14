@@ -11,8 +11,8 @@ export interface AvailableSlot {
 
 export async function getAvailableSlots(
   profile: OrganizationProfile,
-  preferredDate?: string,
-  workspaceId: string = 'ws_demo_default'
+  workspaceId: string,
+  preferredDate?: string
 ): Promise<AvailableSlot[]> {
   const slots: AvailableSlot[] = [];
   const tz = profile.timeZone || 'America/New_York';

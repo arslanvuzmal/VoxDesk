@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { POST } from '@/app/api/demo/voice-bootstrap/route';
 import { signDemoSessionToken, verifyDemoSessionToken } from '@/lib/security/session-token';
+import { createDemoSession } from '@/lib/demo/session';
 
 describe('Voice Bootstrap Endpoint Unit Tests', () => {
   const originalEnv = process.env;
@@ -13,9 +14,15 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
     process.env = originalEnv;
   });
 
+  async function demoCookie() {
+    const { token } = await createDemoSession('QUALIFICATION', '127.0.0.1', 'unit-test');
+    return `voxdesk_demo_session=${token}`;
+  }
+
   it('should reject non-LEGAL preset or non-en-US language with 400 UNSUPPORTED_CONFIGURATION', async () => {
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
+      headers: { cookie: await demoCookie() },
       body: JSON.stringify({
         presetKey: 'HEALTHCARE',
         language: 'en-US',
@@ -35,6 +42,7 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
 
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
+      headers: { cookie: await demoCookie() },
       body: JSON.stringify({
         presetKey: 'LEGAL',
         language: 'en-US',
@@ -56,6 +64,7 @@ describe('Voice Bootstrap Endpoint Unit Tests', () => {
 
     const req = new Request('http://localhost/api/demo/voice-bootstrap', {
       method: 'POST',
+      headers: { cookie: await demoCookie() },
       body: JSON.stringify({
         presetKey: 'LEGAL',
         language: 'en-US',
