@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-const processOutboundQueue = vi.fn();
+const { processOutboundQueue } = vi.hoisted(() => ({
+  processOutboundQueue: vi.fn(),
+}));
 
 vi.mock('@/workers/outbound-campaigns', () => ({
   processOutboundQueue,
