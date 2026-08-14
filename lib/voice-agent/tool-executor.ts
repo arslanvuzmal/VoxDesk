@@ -226,6 +226,7 @@ export async function executeDatabaseTool(
     include: { approvalRequest: true },
   });
 
+  if (existing) {
     if (existing.status === 'BLOCKED') {
       throw new ToolExecutionError('POLICY_DENIED', 'Policy denied this action.', 403);
     }
