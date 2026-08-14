@@ -1,15 +1,15 @@
-# VoxDesk AI
+# VoxDesk
 
 **AI customer operations infrastructure for voice, chat, and authorized business workflows.**
 
-[![CI](https://github.com/arslanvuzmal/voxdesk-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/arslanvuzmal/voxdesk-ai/actions/workflows/ci.yml)
+[![CI](https://github.com/arslanvuzmal/VoxDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/arslanvuzmal/VoxDesk/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
 
-[Architecture](docs/architecture/overview.md) · [Documentation](docs/README.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
+[Live application](https://vox-desk.vercel.app) · [Architecture](docs/architecture/overview.md) · [Documentation](docs/README.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
 
-> Deployment is intentionally deferred until repository verification and merge are complete. The Vercel URL will be published only after its deployed SHA and smoke tests are verified.
+> The canonical Vercel project is `vox-desk`. Preview and production acceptance remain tied to an exact Git SHA and verified health checks.
 
 VoxDesk turns customer conversations into tenant-scoped, authorized operational state: contacts, conversations, appointments, opportunities, tasks, follow-ups, handoffs, and audit evidence. It is designed to evolve from AI reception into a controlled customer-service operating layer.
 
@@ -92,8 +92,8 @@ Next.js App Router, TypeScript, Prisma, PostgreSQL, Redis-compatible leases, Ele
 ## Quick start
 
 ```bash
-git clone https://github.com/arslanvuzmal/voxdesk-ai.git
-cd voxdesk-ai
+git clone https://github.com/arslanvuzmal/VoxDesk.git
+cd VoxDesk
 npm ci
 cp .env.example .env.local
 npx prisma migrate dev
