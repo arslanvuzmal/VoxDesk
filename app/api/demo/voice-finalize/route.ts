@@ -23,7 +23,7 @@ const FinalizeSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const sessionCookie = (await cookies()).get('voxdesk_demo_session')?.value;
+  const sessionCookie = (await cookies()).get('voxdesk_voice_session')?.value;
   const session = sessionCookie ? verifyDemoSessionToken(sessionCookie) : null;
   if (!session) {
     return NextResponse.json(
