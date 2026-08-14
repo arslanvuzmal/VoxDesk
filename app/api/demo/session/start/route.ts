@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { z } from 'zod';
 import { createDemoSession, getDemoSessionFromCookieToken } from '@/lib/demo/session';
 import { validateSessionEligibility, generateIPHash } from '@/lib/demo/rate-limit';
