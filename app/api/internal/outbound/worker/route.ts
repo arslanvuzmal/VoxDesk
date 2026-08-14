@@ -24,10 +24,7 @@ async function process(request: NextRequest) {
   }
 
   const result = await processOutboundQueue();
-  return NextResponse.json(
-    { data: result },
-    { headers: { 'Cache-Control': 'no-store, private' } }
-  );
+  return NextResponse.json({ data: result }, { headers: { 'Cache-Control': 'no-store, private' } });
 }
 
 export async function GET(request: NextRequest) {
