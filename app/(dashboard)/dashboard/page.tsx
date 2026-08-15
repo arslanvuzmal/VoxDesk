@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { validateSession } from '@/lib/auth';
 import { prisma } from '@/lib/database';
 
+// prettier-ignore
 export default async function DashboardOverviewPage() {
   const token = (await cookies()).get('voxdesk_session')?.value;
   const user = await validateSession(token || '');
