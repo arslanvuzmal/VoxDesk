@@ -10,6 +10,7 @@ const layers = [
   { title: 'Controls', body: 'Tenant isolation, secrets, leases, webhooks, audit events, recovery.', icon: LockKeyhole, tone: 'border-amber-200 bg-amber-50 text-amber-700' },
 ];
 
+// prettier-ignore
 export default function ArchitectureDocsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
