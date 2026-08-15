@@ -53,4 +53,5 @@ This is the technical documentation portal. Product pages distinguish implemente
 - [Fictional data policy](demo/fictional-data.md)
 - [Architecture decisions](adr/README.md)
 - [Repository audit](audits/repository-professionalization-audit.md)
+- [Completion acceptance tracker](audits/voxdesk-completion-acceptance.md)
 - [Official links](reference/official-links.md)
