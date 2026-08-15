@@ -11,6 +11,7 @@ const stages = [
   ['Observe', 'Events, retries, leases, and reconciliation remain visible.'],
 ];
 
+// prettier-ignore
 export default function OperationsDocsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
