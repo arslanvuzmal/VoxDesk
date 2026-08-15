@@ -9,6 +9,7 @@ const guides = [
   { href: '/docs/operations', title: 'Operations & readiness', body: 'Configuration, verification, simulation, activation, observability, and recovery.', icon: ShieldCheck },
 ];
 
+// prettier-ignore
 export default function DocsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
