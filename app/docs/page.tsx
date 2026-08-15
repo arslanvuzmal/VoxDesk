@@ -3,6 +3,7 @@ import { Footer } from '@/components/ui/footer';
 import Link from 'next/link';
 import { ArrowRight, Code2, Database, GitBranch, ShieldCheck } from 'lucide-react';
 
+// prettier-ignore
 const guides = [
   { href: '/docs/architecture', title: 'Architecture', body: 'Layers, provider boundaries, canonical Conversation flow, and failure containment.', icon: GitBranch },
   { href: '/docs/crm', title: 'CRM operating model', body: 'How conversations become contacts, leads, opportunities, appointments, and tasks.', icon: Database },
