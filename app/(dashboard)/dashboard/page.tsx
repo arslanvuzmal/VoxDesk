@@ -81,15 +81,15 @@ export default async function DashboardOverviewPage() {
             </div>
             <div className="mt-6 grid gap-5 md:grid-cols-4">
               {[
-                ['Contacts', metrics.contacts, '/dashboard/contacts', 'bg-[#DBEAFE]'],
-                ['Leads', metrics.leads, '/dashboard/leads', 'bg-[#EDE9FE]'],
-                ['Opportunities', metrics.opportunities, '/dashboard/opportunities', 'bg-[#D1FAE5]'],
-                ['Open tasks', metrics.tasks, '/dashboard/tasks', 'bg-[#FEF3C7]'],
-              ].map(([label, value, href, tone]) => (
-                <Link key={label} href={href} className="group rounded-lg border border-[#E2E8F0] p-4 hover:border-[#93C5FD]">
-                  <div className="flex items-center justify-between gap-3"><span className="text-sm text-[#64748B]">{label}</span><span className={`h-2 w-2 rounded-full ${tone}`} aria-hidden="true" /></div>
-                  <p className="mt-3 text-3xl font-semibold text-[#0F172A]">{value}</p>
-                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F1F5F9]"><div className={`h-full rounded-full ${tone}`} style={{ width: `${value === 0 ? 0 : Math.min(100, Math.max(12, value * 10))}%` }} /></div>
+                { label: 'Contacts', value: metrics.contacts, href: '/dashboard/contacts', tone: 'bg-[#DBEAFE]' },
+                { label: 'Leads', value: metrics.leads, href: '/dashboard/leads', tone: 'bg-[#EDE9FE]' },
+                { label: 'Opportunities', value: metrics.opportunities, href: '/dashboard/opportunities', tone: 'bg-[#D1FAE5]' },
+                { label: 'Open tasks', value: metrics.tasks, href: '/dashboard/tasks', tone: 'bg-[#FEF3C7]' },
+              ].map(card => (
+                <Link key={card.label} href={card.href} className="group rounded-lg border border-[#E2E8F0] p-4 hover:border-[#93C5FD]">
+                  <div className="flex items-center justify-between gap-3"><span className="text-sm text-[#64748B]">{card.label}</span><span className={`h-2 w-2 rounded-full ${card.tone}`} aria-hidden="true" /></div>
+                  <p className="mt-3 text-3xl font-semibold text-[#0F172A]">{card.value}</p>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#F1F5F9]"><div className={`h-full rounded-full ${card.tone}`} style={{ width: `${card.value === 0 ? 0 : Math.min(100, Math.max(12, card.value * 10))}%` }} /></div>
                 </Link>
               ))}
             </div>
