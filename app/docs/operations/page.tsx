@@ -3,6 +3,7 @@ import { Footer } from '@/components/ui/footer';
 import Link from 'next/link';
 import { ArrowRight, CircleCheck, ShieldCheck } from 'lucide-react';
 
+// prettier-ignore
 const stages = [
   ['Configure', 'Environment values are present but never prove readiness.'],
   ['Verify', 'Provider access, database, and queues are actively checked.'],
