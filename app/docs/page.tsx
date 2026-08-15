@@ -1,55 +1,54 @@
 import { Navbar } from '@/components/ui/navbar';
 import { Footer } from '@/components/ui/footer';
-import { Code2, Terminal } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, Code2, Database, GitBranch, ShieldCheck } from 'lucide-react';
+
+const guides = [
+  { href: '/docs/architecture', title: 'Architecture', body: 'Layers, provider boundaries, canonical Conversation flow, and failure containment.', icon: GitBranch },
+  { href: '/docs/crm', title: 'CRM operating model', body: 'How conversations become contacts, leads, opportunities, appointments, and tasks.', icon: Database },
+  { href: '/docs/operations', title: 'Operations & readiness', body: 'Configuration, verification, simulation, activation, observability, and recovery.', icon: ShieldCheck },
+];
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A]">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
       <Navbar />
-      <div className="max-w-7xl mx-auto px-6 py-12 space-y-8 w-full flex-1">
-        <div className="space-y-2 border-b border-[#E2E8F0] pb-6">
-          <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">
-            VoxDesk Technical Documentation & API Reference
-          </h1>
-          <p className="text-sm text-[#64748B]">
-            System specifications, WebRTC token endpoints, webhook payloads, and calendar
-            integration contracts.
-          </p>
-        </div>
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-10 px-6 py-12">
+        <header className="max-w-4xl space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1D4ED8]">VoxDesk handbook</p>
+          <h1 className="text-4xl font-bold tracking-tight">Understand the system before you activate it</h1>
+          <p className="text-base leading-7 text-[#64748B]">A practical, visual guide to the architecture, CRM domain, provider responsibilities, and enterprise operating model.</p>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-          <div className="bg-white p-6 rounded-xl border border-[#E2E8F0] space-y-3 shadow-sm">
-            <Code2 className="w-5 h-5 text-[#1D4ED8]" />
-            <h3 className="text-sm font-bold text-[#0F172A]">POST /api/demo/voice-bootstrap</h3>
-            <p className="text-[#64748B]">
-              Issues a server-authorized WebSocket/WebRTC conversation token for ElevenLabs voice
-              sessions.
-            </p>
-            <pre className="p-3.5 rounded-lg bg-[#F8FAFC] text-xs font-mono text-[#1D4ED8] overflow-x-auto border border-[#E2E8F0]">
-              {`{
-  "presetKey": "LEGAL",
-  "language": "en-US"
-}`}
-            </pre>
-          </div>
+        <section aria-labelledby="guides" className="grid gap-4 md:grid-cols-3">
+          <h2 id="guides" className="sr-only">Documentation guides</h2>
+          {guides.map(({ href, title, body, icon: Icon }) => (
+            <Link key={href} href={href} className="group rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-[#93C5FD]">
+              <Icon aria-hidden="true" className="h-5 w-5 text-[#1D4ED8]" />
+              <h3 className="mt-5 font-semibold">{title}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#64748B]">{body}</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#1D4ED8]">Read guide <ArrowRight aria-hidden="true" className="h-4 w-4 transition group-hover:translate-x-0.5" /></span>
+            </Link>
+          ))}
+        </section>
 
-          <div className="bg-white p-6 rounded-xl border border-[#E2E8F0] space-y-3 shadow-sm">
-            <Terminal className="w-5 h-5 text-[#15803D]" />
-            <h3 className="text-sm font-bold text-[#0F172A]">POST /api/calendar/book</h3>
-            <p className="text-[#64748B]">
-              Creates a confirmed calendar appointment with validated caller details.
-            </p>
-            <pre className="p-3.5 rounded-lg bg-[#F8FAFC] text-xs font-mono text-[#15803D] overflow-x-auto border border-[#E2E8F0]">
-              {`{
-  "callerName": "Sarah Miller",
-  "service": "Legal Consultation",
-  "startTime": "2026-08-08T14:00:00Z",
-  "timezone": "America/New_York"
-}`}
-            </pre>
-          </div>
-        </div>
-      </div>
+        <section aria-labelledby="contracts" className="grid gap-6 lg:grid-cols-2">
+          <article className="rounded-xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
+            <Code2 aria-hidden="true" className="h-5 w-5 text-[#1D4ED8]" />
+            <h2 id="contracts" className="mt-4 text-xl font-semibold">API contracts</h2>
+            <p className="mt-2 text-sm leading-6 text-[#64748B]">Server-authorized routes keep provider credentials private and return explicit error envelopes.</p>
+            <pre className="mt-5 overflow-x-auto rounded-lg bg-[#F8FAFC] p-4 text-xs leading-6 text-[#1D4ED8]"><code>{`POST /api/demo/session/start
+POST /api/demo/voice-bootstrap
+POST /api/demo/voice-finalize
+POST /api/calendar/book`}</code></pre>
+          </article>
+          <article className="rounded-xl border border-[#E2E8F0] bg-[#0F172A] p-6 text-white shadow-sm">
+            <h2 className="text-xl font-semibold">Truthful readiness</h2>
+            <p className="mt-2 text-sm leading-6 text-[#CBD5E1]">A configured environment variable is not proof of provider readiness. Verify connectivity, access, signed-session authorization, and persisted outcomes.</p>
+            <Link href="/docs/operations" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-[#93C5FD]">Read the release pipeline <ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
+          </article>
+        </section>
+      </main>
       <Footer />
     </div>
   );
