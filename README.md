@@ -29,15 +29,15 @@ Simulation is the safe default. It produces explicit simulated records and exerc
 
 Live provider operation is activation-required. It depends on customer-owned resources, correct environment variables, signed webhooks, consent and suppression controls, provider readiness, and authorized tests. A configured key or a successful build is not proof of live connectivity.
 
-| Capability | Repository status | Portfolio/demo status | Live production status |
-| --- | --- | --- | --- |
-| Conversations and CRM records | Implemented | Database-dependent | Implemented with configured database |
-| Web text | Implemented | Configuration-dependent | Configuration-dependent |
-| Web voice | Implemented | Configuration-dependent | Configuration-dependent |
-| Telephony simulation | Implemented | Safe default | Not applicable |
-| Telnyx PSTN/SIP adapter | Implemented boundary | Not used | Activation-required |
-| Campaign controls | Implemented boundary | Dry run/simulation | Activation-required |
-| Support cases/tickets | Roadmap | Not available | Roadmap |
+| Capability                    | Repository status     | Portfolio/demo status | Live production status             |
+| ---------------------------- | --------------------- | --------------------- | ---------------------------------- |
+| Conversations and CRM records | Implemented           | Database-dependent    | Implemented with configured database |
+| Web text                      | Implemented           | Configuration-dependent | Configuration-dependent          |
+| Web voice                     | Implemented           | Configuration-dependent | Configuration-dependent         |
+| Telephony simulation          | Implemented           | Safe default          | Not applicable                    |
+| Telnyx PSTN/SIP adapter       | Implemented boundary  | Not used              | Activation-required              |
+| Campaign controls             | Implemented boundary  | Dry run/simulation    | Activation-required              |
+| Support cases/tickets         | Roadmap               | Not available         | Roadmap                          |
 
 ## Architecture
 
