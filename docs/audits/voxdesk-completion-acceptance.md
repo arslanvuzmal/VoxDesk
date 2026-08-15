@@ -18,7 +18,10 @@ successful deployment does not establish live telephony readiness.
 
 Evidence: a dedicated branch, a known SHA, and no unrelated changes.
 
-### CI — pending
+### CI — pending final tracker revalidation
+
+The prior tracker SHA passed CI in run #481. This evidence update requires a
+separate run against its own exact SHA.
 
 Evidence: format, lint, typecheck, Prisma validation, tests, route audit, build,
 and E2E run against the exact branch SHA.
@@ -73,6 +76,19 @@ no fabricated metrics.
 
 Evidence: exact Preview and production SHA verification, smoke tests, logs, and
 a rollback target.
+
+## Recorded evidence
+
+GitHub Actions run #481 passed for commit
+`5eaf175c1f9230b6b5257595c2b1dba929bc8f17`.
+
+- Repository validation passed: Prisma validation, format check, documentation
+  links, lint, typecheck, production build, local-server startup, and route
+  audit.
+- Unit, integration, and security tests passed.
+- The independent production-build job passed.
+- Playwright browser acceptance passed.
+- Dependency review passed.
 
 ## Evidence rules
 
