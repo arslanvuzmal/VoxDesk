@@ -1,6 +1,8 @@
 # VoxDesk Documentation
 
-This is the technical documentation portal. Product pages distinguish implemented behavior from simulation, configuration, activation-required resources, and planned capability.
+VoxDesk is **AI Customer Operations Infrastructure**: customer interactions enter a canonical conversation model, authorized actions become operational records, and failures remain observable.
+
+This portal distinguishes implemented behavior from simulation, configuration, activation-required resources, and roadmap work.
 
 ## Product
 
@@ -55,3 +57,14 @@ This is the technical documentation portal. Product pages distinguish implemente
 - [Repository audit](audits/repository-professionalization-audit.md)
 - [Completion acceptance tracker](audits/voxdesk-completion-acceptance.md)
 - [Official links](reference/official-links.md)
+
+## Rendered application guides
+
+The deployed Next.js documentation hub explains the same architecture and CRM model visually:
+
+- [Documentation hub](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs)
+- [Architecture guide](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs/architecture)
+- [CRM guide](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs/crm)
+- [Operations guide](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs/operations)
+
+These pages may require the deployment's access gate. They are documentation surfaces, not evidence that live telephony is enabled.
