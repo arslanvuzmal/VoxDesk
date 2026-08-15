@@ -12,6 +12,7 @@ const records = [
   ['Handoff', 'Escalation requiring a human operator', 'Reason, owner, resolution'],
 ];
 
+// prettier-ignore
 export default function CrmDocsPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
