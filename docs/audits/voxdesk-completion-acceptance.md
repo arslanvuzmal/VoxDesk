@@ -18,39 +18,47 @@ successful deployment does not establish live telephony readiness.
 
 Evidence: a dedicated branch, a known SHA, and no unrelated changes.
 
-### CI — pending final tracker revalidation
+### CI — passed
 
-The prior tracker SHA passed CI in run #481. This evidence update requires a
-separate run against its own exact SHA.
+GitHub Actions run #482 passed for the exact branch head
+`988ff233a926272ca51a1cb0cd0a3bd23e979404`.
 
 Evidence: format, lint, typecheck, Prisma validation, tests, route audit, build,
-and E2E run against the exact branch SHA.
+and browser acceptance all passed.
 
-### Preview database — pending
+### Preview database — schema ready, workflow pending
 
-Evidence: reviewed migrations, a Preview application, persisted conversation,
-call, CRM, campaign, provider-event, and background-job records, plus backup and
-rollback procedures.
+Evidence so far: all repository migrations are applied on the Neon production
+branch, and an isolated Preview branch was created for PR #32. Required
+operational tables exist on the Preview branch. It is currently empty, so
+persisted simulation and CRM-flow evidence is still pending.
 
-### Environment — pending
+### Environment — provider mismatch confirmed
 
-Evidence: sanitized readiness confirms the database, security secrets, web voice
-configuration, URLs, and explicit telephony mode.
+The Preview deployment is ready and `/api/demo/session/start` returns 200.
+However, Web Voice bootstrap returns 502 because ElevenLabs returns HTTP 404
+(`ELEVENLABS_AGENT_NOT_FOUND`) for the configured Agent ID. This means the
+configured API key and Agent ID are not currently a matching accessible pair, or
+the Agent ID is stale. Secret values are not recorded here.
 
 ### Simulation — pending
 
 Evidence: qualification, appointment, handoff, failure, and opt-out scenarios
 with idempotency and dashboard proof.
 
-### Web Voice — pending
+### Web Voice — blocked by provider configuration
 
-Evidence: a signed provider session, authorized action, canonical conversation,
-post-call reconciliation, and no duplicate side effects.
+Evidence cannot be completed until the ElevenLabs Agent ID is copied from the
+same workspace as the configured API key and the Preview deployment is
+redeployed. A signed provider session, authorized action, canonical
+conversation, post-call reconciliation, and no duplicate side effects must then
+be re-tested.
 
 ### CRM operations — pending
 
 Evidence: truthful persisted-data views, tenant isolation, masked browser data,
-and useful empty and error states.
+and useful empty and error states. No CRM records are claimed from the failed
+voice bootstrap.
 
 ### Outbound controls — pending
 
@@ -79,16 +87,16 @@ a rollback target.
 
 ## Recorded evidence
 
-GitHub Actions run #481 passed for commit
-`5eaf175c1f9230b6b5257595c2b1dba929bc8f17`.
-
-- Repository validation passed: Prisma validation, format check, documentation
-  links, lint, typecheck, production build, local-server startup, and route
-  audit.
-- Unit, integration, and security tests passed.
-- The independent production-build job passed.
-- Playwright browser acceptance passed.
-- Dependency review passed.
+- GitHub Actions run #482 passed for commit
+  `988ff233a926272ca51a1cb0cd0a3bd23e979404`.
+- Neon Preview branch `pr-32-voxdesk-completion` was created from the
+  production branch. The schema and migration ledger are present; operational
+  tables contain zero records in the isolated branch.
+- Vercel Preview deployment
+  `dpl_3SWPAmBAjctTbpa3XLFb96skJMJ5` is READY.
+- Vercel runtime logs show `POST /api/demo/session/start 200` followed by
+  `POST /api/demo/voice-bootstrap 502` with
+  `ELEVENLABS_AGENT_NOT_FOUND` and provider status 404.
 
 ## Evidence rules
 
