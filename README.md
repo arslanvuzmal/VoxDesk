@@ -1,93 +1,77 @@
 # VoxDesk
 
-**AI customer operations infrastructure for voice, chat, and authorized business workflows.**
+## AI Customer Operations Infrastructure
+
+VoxDesk turns customer conversations into controlled, tenant-scoped operations: CRM records, appointments, opportunities, tasks, follow-ups, campaigns, human handoffs, and audit evidence.
 
 [![CI](https://github.com/arslanvuzmal/VoxDesk/actions/workflows/ci.yml/badge.svg)](https://github.com/arslanvuzmal/VoxDesk/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](https://www.typescriptlang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
 
-[Live application](https://vox-desk.vercel.app) · [Architecture](docs/architecture/overview.md) · [Documentation](docs/README.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
+[Live demo](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app) · [Rendered docs](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs) · [Architecture](docs/architecture/overview.md) · [Security](SECURITY.md) · [Roadmap](ROADMAP.md)
 
-> The canonical Vercel project is `vox-desk`. Preview and production acceptance remain tied to an exact Git SHA and verified health checks.
+> The hosted application is a portfolio deployment. Dashboard routes require an account, and provider-backed voice requires separately configured, authorized resources.
 
-VoxDesk turns customer conversations into tenant-scoped, authorized operational state: contacts, conversations, appointments, opportunities, tasks, follow-ups, handoffs, and audit evidence. It is designed to evolve from AI reception into a controlled customer-service operating layer.
+## What VoxDesk is
 
-## Portfolio simulation and production activation
+VoxDesk is an application layer for customer operations, not an unrestricted chatbot or an unverified telephony claim. Channels enter a canonical `Conversation` model; server-side policy and domain services decide whether a tool may run; authorized actions become CRM and operational records.
 
-The portfolio configuration uses `TELEPHONY_MODE=simulation`. A deterministic simulator sends normalized events through VoxDesk's call-state, authorization, persistence, CRM, and audit paths. It never purchases a number or places a PSTN call.
+The current provider boundary is:
 
-The production architecture keeps **ElevenLabs** as the realtime conversational layer and **Telnyx** as the PSTN/SIP layer. Live calling is activation-required: it needs customer-owned Telnyx resources, configured ElevenLabs SIP, verified webhooks, and authorized provider tests. A configured value is not treated as verified connectivity.
+- **ElevenLabs** — realtime conversational agent and web-voice provider boundary.
+- **Telnyx** — PSTN/SIP carrier boundary for live telephony.
+- **VoxDesk** — tenant isolation, authorization, CRM state, scheduling, campaigns, audit, and reconciliation.
 
-| Capability                             | Implemented | Portfolio demo          | Production              |
-| -------------------------------------- | ----------- | ----------------------- | ----------------------- |
-| Conversation, CRM, tasks, appointments | Yes         | Database-dependent      | Yes                     |
-| Web voice                              | Yes         | Configuration-dependent | Configuration-dependent |
-| Web text                               | Yes         | Configuration-dependent | Yes                     |
-| Telephony simulation                   | Yes         | Database-dependent      | N/A                     |
-| Telnyx adapter                         | Yes         | N/A                     | Activation-required     |
-| Inbound and outbound PSTN architecture | Yes         | Simulated lifecycle     | Activation-required     |
-| Human handoff state                    | Yes         | Simulated lifecycle     | Configuration-dependent |
-| Campaign controls                      | Yes         | Dry run/simulation      | Activation-required     |
-| Support cases/tickets                  | Planned     | Planned                 | Planned                 |
+## Demo versus production
+
+Simulation is the safe default. It produces explicit simulated records and exercises normalization, state transitions, authorization, persistence, CRM projections, and audit paths without purchasing numbers or placing PSTN calls.
+
+Live provider operation is activation-required. It depends on customer-owned resources, correct environment variables, signed webhooks, consent and suppression controls, provider readiness, and authorized tests. A configured key or a successful build is not proof of live connectivity.
+
+| Capability | Repository status | Portfolio/demo status | Live production status |
+| --- | --- | --- | --- |
+| Conversations and CRM records | Implemented | Database-dependent | Implemented with configured database |
+| Web text | Implemented | Configuration-dependent | Configuration-dependent |
+| Web voice | Implemented | Configuration-dependent | Configuration-dependent |
+| Telephony simulation | Implemented | Safe default | Not applicable |
+| Telnyx PSTN/SIP adapter | Implemented boundary | Not used | Activation-required |
+| Campaign controls | Implemented boundary | Dry run/simulation | Activation-required |
+| Support cases/tickets | Roadmap | Not available | Roadmap |
 
 ## Architecture
 
 ```mermaid
 flowchart TD
-  Channels[Phone / Web Voice / Web Chat / Future Email and Form]
-  Gateway[Channel gateway\nvalidation and tenant resolution]
-  Conversation[Conversation orchestrator\nintent, risk, language, state]
-  Context[Knowledge and Customer 360 context]
-  Tools[Authorized tools\npolicy, idempotency, audit]
-  Operations[Contacts, conversations, appointments, leads, opportunities, tasks, handoffs, campaigns]
-  Human[Human operations]
-  Quality[Evaluation and supervised improvement]
-
-  Channels --> Gateway --> Conversation
-  Conversation --> Context
-  Conversation --> Tools --> Operations
-  Operations --> Human
-  Operations --> Quality
+  Channels[Phone / Web Voice / Web Chat] --> Gateway[Channel gateway]
+  Gateway --> Conversation[Canonical Conversation]
+  Conversation --> Orchestrator[Conversation orchestrator]
+  Orchestrator --> Context[Customer and business context]
+  Orchestrator --> Tools[Authorized tool gateway]
+  Tools --> Operations[CRM, scheduling, campaigns, handoffs]
+  Conversation --> Reconcile[Finalization and provider reconciliation]
+  Operations --> Quality[Evaluation and supervised improvement]
+  Reconcile --> Quality
 ```
 
-The model can request an action. VoxDesk validates the conversation context, tenant, role, policy, schema, and idempotency before any domain service or provider performs it. See [tool authorization](docs/security/tool-authorization.md).
+A model may propose an action, but it cannot directly write business data. VoxDesk resolves the workspace and conversation again, validates policy and schema, checks idempotency, executes through a domain service, and records safe audit evidence.
 
-## Customer interaction lifecycle
+See the detailed [architecture overview](docs/architecture/overview.md) and [tool-authorization model](docs/security/tool-authorization.md).
 
-```mermaid
-sequenceDiagram
-  participant C as Customer
-  participant G as Channel gateway
-  participant O as Orchestrator
-  participant T as Tool gateway
-  participant D as Operations domain
-  participant Q as Quality system
+## Features
 
-  C->>G: Voice, chat, or phone interaction
-  G->>O: Resolve tenant, contact, channel, conversation
-  O->>O: Assemble context; determine intent and risk
-  O->>T: Request a scoped action
-  T->>T: Validate context, policy, permissions, idempotency
-  T->>D: Persist authorized business action
-  D-->>O: Safe result and audit evidence
-  O->>D: Finalize outcome and follow-up
-  D->>Q: Evaluate and create observations
-```
+- Canonical conversations across phone, web voice, and web text.
+- Tenant-scoped authentication, authorization, and workspace isolation.
+- Server-owned tools with policy decisions, approvals, idempotency, and audit records.
+- CRM projections for contacts, leads, opportunities, appointments, tasks, follow-ups, campaigns, and handoffs.
+- ElevenLabs web-voice boundary and post-call reconciliation.
+- Telnyx inbound/outbound architecture with consent, suppression, calling-window, attempt, and capacity controls.
+- Deterministic simulation mode for safe acceptance testing.
+- Evaluation and supervised improvement lifecycle with proposal, canary, promotion, and rollback states.
 
-## What is in the repository
+## Tech stack
 
-- Canonical `Conversation` domain across phone, website voice, and web text
-- Tenant isolation, workspace roles, signed conversation context, and server-owned tools
-- Contact, lead/opportunity, appointment, task, follow-up, handoff, campaign, and provider-event models
-- Telnyx provider boundary, signed webhook ingestion, reconciliation, and controlled outbound architecture
-- ElevenLabs agent/post-call boundary and web voice support
-- Deterministic simulation mode with explicit `SIMULATION` records and `sim_` identifiers
-- Evaluation, proposal, candidate, canary, promotion, and rollback lifecycle
-
-## Technology
-
-Next.js App Router, TypeScript, Prisma, PostgreSQL, Redis-compatible leases, ElevenLabs, Telnyx, Zod, Vitest, Playwright, and Vercel.
+Next.js App Router, TypeScript, Prisma, PostgreSQL, Redis-compatible leases, Zod, Vitest, Playwright, ElevenLabs, Telnyx, and Vercel.
 
 ## Quick start
 
@@ -100,7 +84,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-`DATABASE_URL` is required for persisted application behavior. Simulation is the default telephony mode. Do not place credentials in source control.
+Set `DATABASE_URL` for persisted behavior. Keep `TELEPHONY_MODE=simulation` unless live provider activation has been explicitly configured and tested. Never commit credentials or real customer data.
 
 ## Verification
 
@@ -117,16 +101,35 @@ npm run build
 npm run test:e2e
 ```
 
-Live provider commands are manual, separately authorized checks. A green build or Vercel preview is not proof of provider, migration, or production acceptance.
+Run the broad `npm run verify` command when local database and browser prerequisites are available. Provider, migration, and production acceptance remain separate checks.
 
-## Documentation map
+## Documentation
 
-Start at [docs/README.md](docs/README.md). It links product scope, architecture, provider activation, security, operations, testing, ADRs, and the public demo contract.
+- [Documentation portal](docs/README.md)
+- [Architecture](docs/architecture/overview.md)
+- [Customer operations and CRM](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs/crm)
+- [Simulation versus production](docs/DEMO_VS_PRODUCTION.md)
+- [Provider activation](docs/guides/activate-live-telephony.md)
+- [Security and tool authorization](docs/security/tool-authorization.md)
+- [Testing strategy](docs/testing/strategy.md)
+- [Official integration references](docs/reference/official-links.md)
 
-## Contributing and support
+The rendered documentation pages are available from the hosted [documentation hub](https://vox-desk-hybty8pq0-arslan-vuzmal-lone.vercel.app/docs). They are protected by the deployment's access controls where applicable.
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a change. Report vulnerabilities privately through [SECURITY.md](SECURITY.md). For product support and issue expectations, see [SUPPORT.md](SUPPORT.md).
+## Security
+
+Report vulnerabilities privately using [GitHub Security Advisories](https://github.com/arslanvuzmal/VoxDesk/security/advisories/new). Do not include credentials, raw transcripts, full phone numbers, or customer data in issues, pull requests, logs, or screenshots. See [SECURITY.md](SECURITY.md).
+
+## Roadmap
+
+The roadmap is capability-based, not a delivery promise. The next product areas are support cases and tickets, human queues and internal notes, SLA operations, email/form/messaging adapters, published quality scorecards, and authorized live-telephony acceptance evidence.
+
+See [ROADMAP.md](ROADMAP.md) for the maintained checklist.
+
+## Contributing
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Use the pull-request template, describe database/provider/security impact, and report exactly which checks ran. Keep simulation and live-provider claims distinct.
 
 ## License
 
-[MIT](LICENSE)
+VoxDesk is released under the [MIT License](LICENSE).

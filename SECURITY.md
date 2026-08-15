@@ -4,9 +4,9 @@ VoxDesk processes tenant-scoped customer operations data and integrates with voi
 
 ## Reporting a vulnerability
 
-Do **not** open a public issue for a suspected vulnerability. Use [GitHub private vulnerability reporting](https://github.com/arslanvuzmal/voxdesk-ai/security/advisories/new) and include:
+Do **not** open a public issue for a suspected vulnerability. Use [GitHub private vulnerability reporting](https://github.com/arslanvuzmal/VoxDesk/security/advisories/new) and include:
 
-- affected commit or deployment URL
+- affected commit, route, or deployment URL
 - reproduction steps and impact
 - a minimal proof of concept
 - whether customer, provider, or tenant data could be exposed
@@ -24,4 +24,4 @@ The maintainer will acknowledge a private report, assess reproducibility and imp
 
 ## Supported code
 
-Security fixes are assessed against the current default branch and the active hardening branch. Historical demo-only or retired routes may be removed rather than patched when that is safer.
+Security fixes are assessed against the current `main` branch and the active production code. Historical demo-only or retired routes may be removed rather than patched when that is safer.
