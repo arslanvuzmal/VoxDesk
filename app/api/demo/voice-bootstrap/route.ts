@@ -90,6 +90,17 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!/^(agent_|seng_)[A-Za-z0-9_-]+$/.test(agentId)) {
+    return NextResponse.json(
+      {
+        error: 'ELEVENLABS_AGENT_ID_INVALID',
+        message:
+          'The configured ElevenLabs ID is invalid. Use the Agent ID shown in the ElevenLabs Agents dashboard (agent_… or seng_…).',
+      },
+      { status: 503, headers: noStoreHeaders() }
+    );
+  }
+
   try {
     await ensureDemoVoiceConfiguration(agentId);
   } catch (error) {
