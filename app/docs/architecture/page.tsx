@@ -3,6 +3,7 @@ import { Footer } from '@/components/ui/footer';
 import Link from 'next/link';
 import { ArrowRight, Database, LockKeyhole, Radio, Workflow } from 'lucide-react';
 
+// prettier-ignore
 const layers = [
   { title: 'Channels', body: 'Web Voice, simulated sessions, inbound PSTN, outbound campaigns.', icon: Radio, tone: 'border-blue-200 bg-blue-50 text-blue-700' },
   { title: 'Orchestration', body: 'Authenticated session, policy checks, tool authorization, idempotency.', icon: Workflow, tone: 'border-violet-200 bg-violet-50 text-violet-700' },
