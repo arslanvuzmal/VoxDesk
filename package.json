@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@elevenlabs/client": "^1.17.0",
-    "@elevenlabs/elevenlabs-js": "^2.60.0",
+    "@elevenlabs/elevenlabs-js": "^2.64.0",
     "@elevenlabs/react": "^1.12.1",
     "@openrouter/sdk": "^1.2.4",
     "@prisma/client": "^6.19.3",
