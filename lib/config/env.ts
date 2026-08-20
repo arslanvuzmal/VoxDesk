@@ -57,6 +57,13 @@ const envSchema = z.object({
   // Deprecated paths may read these while they are removed. They are never
   // deployment requirements and no provider action is allowed without its own
   // explicit provider credentials.
+  AUTH_SECRET: z.string().min(32, 'AUTH_SECRET must be at least 32 characters'),
+  ENCRYPTION_KEY: z.string().regex(/^[a-fA-F0-9]{64}$/, 'ENCRYPTION_KEY must be a 64-character hexadecimal key'),
+  INTERNAL_API_SECRET: z.string().min(32, 'INTERNAL_API_SECRET must be at least 32 characters'),
+  DEMO_SESSION_SECRET: z.string().min(32, 'DEMO_SESSION_SECRET must be at least 32 characters'),
+  IP_HASH_SECRET: z.string().min(32, 'IP_HASH_SECRET must be at least 32 characters'),
+  PHONE_HASH_SECRET: z.string().min(32, 'PHONE_HASH_SECRET must be at least 32 characters'),
+  DEMO_DATA_ENCRYPTION_KEY: z.string().min(32, 'DEMO_DATA_ENCRYPTION_KEY must be at least 32 characters').optional(),
   AUTH_SECRET: z.string().min(32, 'AUTH_SECRET is required'),
   ENCRYPTION_KEY: z
     .string()
