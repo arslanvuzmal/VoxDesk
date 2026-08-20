@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">VoxDesk action authority gate</title><desc id="desc">The current request, session history, customer state and risk signals feed policy. Policy allows, denies or escalates; execution is separately guarded by fingerprints and idempotency.</desc>
+  <defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#64748b"/></marker><style>.h{font:700 22px ui-sans-serif,system-ui;fill:#f8fafc}.k{font:700 12px ui-monospace,monospace;letter-spacing:.08em;fill:#bfdbfe}.b{font:500 14px ui-sans-serif,system-ui;fill:#cbd5e1}.c{fill:#111827;stroke:#475569;stroke-width:1.5}.l{stroke:#64748b;stroke-width:2;marker-end:url(#a)}</style></defs>
+  <rect width="1200" height="560" rx="24" fill="#07111f"/>
+  <text x="52" y="58" class="h">Authority is evaluated from more than one model request</text>
+  <g transform="translate(52 104)"><rect width="230" height="66" rx="12" class="c"/><text x="115" y="28" class="k" text-anchor="middle">CURRENT REQUEST</text><text x="115" y="50" class="b" text-anchor="middle">tool + canonical payload</text></g>
+  <g transform="translate(52 190)"><rect width="230" height="66" rx="12" class="c"/><text x="115" y="28" class="k" text-anchor="middle">SIGNED CONTEXT</text><text x="115" y="50" class="b" text-anchor="middle">tenant + conversation + TTL</text></g>
+  <g transform="translate(52 276)"><rect width="230" height="66" rx="12" class="c"/><text x="115" y="28" class="k" text-anchor="middle">SESSION STATE</text><text x="115" y="50" class="b" text-anchor="middle">specialist + action history</text></g>
+  <g transform="translate(52 362)"><rect width="230" height="66" rx="12" class="c"/><text x="115" y="28" class="k" text-anchor="middle">RISK SIGNALS</text><text x="115" y="50" class="b" text-anchor="middle">identity + data + flags</text></g>
+  <g transform="translate(410 180)"><rect width="270" height="180" rx="20" fill="#172554" stroke="#3b82f6" stroke-width="2"/><text x="135" y="44" class="k" text-anchor="middle">DETERMINISTIC POLICY</text><text x="135" y="82" class="b" text-anchor="middle">tenant re-resolution</text><text x="135" y="111" class="b" text-anchor="middle">schema validation</text><text x="135" y="140" class="b" text-anchor="middle">risk + rule evaluation</text></g>
+  <line x1="282" y1="137" x2="410" y2="225" class="l"/><line x1="282" y1="223" x2="410" y2="250" class="l"/><line x1="282" y1="309" x2="410" y2="280" class="l"/><line x1="282" y1="395" x2="410" y2="315" class="l"/>
+  <line x1="680" y1="270" x2="770" y2="270" class="l"/>
+  <g transform="translate(790 102)"><rect width="350" height="92" rx="15" fill="#052e2b" stroke="#10b981"/><text x="30" y="35" class="k" fill="#a7f3d0">ALLOW</text><text x="30" y="63" class="b">fingerprint → execute once → audit</text></g>
+  <g transform="translate(790 220)"><rect width="350" height="92" rx="15" fill="#451a03" stroke="#f59e0b"/><text x="30" y="35" class="k" fill="#fde68a">ESCALATE</text><text x="30" y="63" class="b">payload-bound approval → identical retry</text></g>
+  <g transform="translate(790 338)"><rect width="350" height="92" rx="15" fill="#450a0a" stroke="#ef4444"/><text x="30" y="35" class="k" fill="#fecaca">DENY</text><text x="30" y="63" class="b">no domain mutation → safe audit evidence</text></g>
+  <path d="M770 270V148H790M770 270H790M770 270V384H790" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#a)"/>
+  <text x="600" y="500" class="k" text-anchor="middle">POLICY AUTHORIZATION: MAY IT HAPPEN? · EXECUTION INTEGRITY: HAS IT HAPPENED?</text>
+</svg>
