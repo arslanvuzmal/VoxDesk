@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="430" viewBox="0 0 1280 430" role="img" aria-labelledby="title desc">
+  <title id="title">Animated VoxDesk conversation-to-operation lifecycle</title>
+  <desc id="desc">A technical animation showing customer input progressing through conversation context, model proposal, policy, idempotency, domain execution and audit.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8fafc"/><stop offset="1" stop-color="#eef2ff"/></linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#64748b" flood-opacity=".18"/></filter>
+    <style>.h{font:700 22px ui-sans-serif,system-ui;fill:#0f172a}.k{font:700 12px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em;fill:#1e40af}.b{font:500 14px ui-sans-serif,system-ui;fill:#475569}.card{fill:#fff;stroke:#cbd5e1;stroke-width:1.5}.line{stroke:#94a3b8;stroke-width:3}.pulse{fill:#2563eb;filter:url(#s)}</style>
+  </defs>
+  <rect width="1280" height="430" rx="24" fill="url(#bg)"/>
+  <text x="54" y="56" class="h">Conversation → authorized operation</text>
+  <text x="54" y="84" class="b">The moving signal represents control passing through deterministic boundaries.</text>
+  <path d="M95 226H1185" class="line"/>
+  <g transform="translate(40 150)"><rect width="160" height="152" rx="16" class="card"/><text x="80" y="42" class="k" text-anchor="middle">CUSTOMER</text><text x="80" y="76" class="b" text-anchor="middle">“Schedule Tuesday”</text><text x="80" y="105" class="b" text-anchor="middle">web voice</text></g>
+  <g transform="translate(240 150)"><rect width="160" height="152" rx="16" class="card"/><text x="80" y="42" class="k" text-anchor="middle">CONVERSATION</text><text x="80" y="76" class="b" text-anchor="middle">tenant + customer</text><text x="80" y="105" class="b" text-anchor="middle">channel + state</text></g>
+  <g transform="translate(440 150)"><rect width="160" height="152" rx="16" class="card"/><text x="80" y="42" class="k" text-anchor="middle">PROPOSAL</text><text x="80" y="76" class="b" text-anchor="middle">book_appointment</text><text x="80" y="105" class="b" text-anchor="middle">model requests</text></g>
+  <g transform="translate(640 150)"><rect width="160" height="152" rx="16" fill="#fffbeb" stroke="#f59e0b"/><text x="80" y="42" class="k" text-anchor="middle">POLICY</text><text x="80" y="76" class="b" text-anchor="middle">ALLOW</text><text x="80" y="105" class="b" text-anchor="middle">signed context</text></g>
+  <g transform="translate(840 150)"><rect width="160" height="152" rx="16" fill="#ecfdf5" stroke="#10b981"/><text x="80" y="42" class="k" text-anchor="middle">EXECUTE ONCE</text><text x="80" y="76" class="b" text-anchor="middle">fingerprint new</text><text x="80" y="105" class="b" text-anchor="middle">domain service</text></g>
+  <g transform="translate(1040 150)"><rect width="200" height="152" rx="16" fill="#eff6ff" stroke="#3b82f6"/><text x="100" y="42" class="k" text-anchor="middle">BUSINESS STATE</text><text x="100" y="76" class="b" text-anchor="middle">appointment created</text><text x="100" y="105" class="b" text-anchor="middle">audit recorded</text></g>
+  <circle cx="95" cy="226" r="10" class="pulse"><animate attributeName="cx" values="95;295;495;695;895;1140;95" keyTimes="0;.16;.32;.48;.64;.82;1" dur="8s" repeatCount="indefinite"/><animate attributeName="r" values="8;12;8;12;8;12;8" dur="8s" repeatCount="indefinite"/></circle>
+  <text x="640" y="376" class="k" text-anchor="middle">PROPOSAL ≠ AUTHORITY · APPROVAL ≠ EXECUTION · RETRY ≠ DUPLICATE</text>
+</svg>
