@@ -70,15 +70,15 @@ A customer enters through phone, web voice, or authenticated web text. Channel-s
 
 ### Customer view vs. operations view
 
-| Customer view | VoxDesk view |
-| --- | --- |
-| “Schedule a consultation for Tuesday.” | Authenticated workspace and canonical conversation |
-| Appointment confirmation | Customer, agent, language, availability, and channel context |
-| One coherent response | Proposed `book_appointment` tool call |
-| — | Schema validation and signed-context verification |
-| — | `ALLOW`, `DENY`, or `ESCALATE` policy decision |
-| — | Fingerprint lookup and execute-once semantics |
-| — | Appointment, conversation state, and audit evidence persisted |
+| Customer view                          | VoxDesk view                                                  |
+| -------------------------------------- | ------------------------------------------------------------- |
+| “Schedule a consultation for Tuesday.” | Authenticated workspace and canonical conversation            |
+| Appointment confirmation               | Customer, agent, language, availability, and channel context  |
+| One coherent response                  | Proposed `book_appointment` tool call                         |
+| —                                      | Schema validation and signed-context verification             |
+| —                                      | `ALLOW`, `DENY`, or `ESCALATE` policy decision                |
+| —                                      | Fingerprint lookup and execute-once semantics                 |
+| —                                      | Appointment, conversation state, and audit evidence persisted |
 
 ## Why VoxDesk
 
@@ -88,16 +88,16 @@ Once an assistant can create appointments, update contacts, open opportunities, 
 
 VoxDesk separates those responsibilities:
 
-| Failure mode | Deterministic boundary |
-| --- | --- |
-| A model invents or modifies an action payload | Zod schema validation and a canonical payload fingerprint |
-| A caller supplies another workspace’s resource ID | Server-side membership checks and tenant-scoped re-resolution |
-| A risky action should not execute immediately | Session-aware policy returns `ESCALATE` and creates a bounded approval request |
-| A network or agent retry repeats an operation | Unique action and operation fingerprints return the original safe result |
-| A provider webhook is forged or replayed | Raw-body signature verification, timestamp tolerance, and provider-event identity |
-| A campaign targets an ineligible recipient | Consent, suppression, calling-window, country, attempt, and capacity gates |
-| Provider state diverges from business state | Event inbox, asynchronous projection, and reconciliation |
-| An evaluation suggests an unsafe change | Human review, golden-suite gates, canary evidence, promotion, and rollback |
+| Failure mode                                      | Deterministic boundary                                                            |
+| ------------------------------------------------- | --------------------------------------------------------------------------------- |
+| A model invents or modifies an action payload     | Zod schema validation and a canonical payload fingerprint                         |
+| A caller supplies another workspace’s resource ID | Server-side membership checks and tenant-scoped re-resolution                     |
+| A risky action should not execute immediately     | Session-aware policy returns `ESCALATE` and creates a bounded approval request    |
+| A network or agent retry repeats an operation     | Unique action and operation fingerprints return the original safe result          |
+| A provider webhook is forged or replayed          | Raw-body signature verification, timestamp tolerance, and provider-event identity |
+| A campaign targets an ineligible recipient        | Consent, suppression, calling-window, country, attempt, and capacity gates        |
+| Provider state diverges from business state       | Event inbox, asynchronous projection, and reconciliation                          |
+| An evaluation suggests an unsafe change           | Human review, golden-suite gates, canary evidence, promotion, and rollback        |
 
 The important boundary is not “AI versus no AI.” It is **reasoning versus authority**. VoxDesk keeps authority in tenant-scoped, testable application logic.
 
@@ -133,17 +133,17 @@ flowchart TB
 
 ### Core capabilities
 
-| Plane | Implemented capability | Why it exists |
-| --- | --- | --- |
-| Conversation | Phone, web voice, and web text converge on `Conversation` | Business workflows remain channel-independent. |
-| Context | Persisted `ConversationState` stores intent, specialist, collected fields, risk flags, and safe tool results | Workflow state does not depend on transcript text alone. |
-| Authority | Signed context, schema validation, tenant re-resolution, policy, and approvals | The model cannot turn a plausible payload into permission. |
-| Integrity | Action IDs, canonical SHA-256 fingerprints, execution states, and unique constraints | Provider and agent retries do not duplicate semantic operations. |
-| CRM | Contacts, leads, opportunities, appointments, tasks, follow-ups, and handoffs | Conversations create durable operational records outside model context. |
-| Outreach | Campaign, recipient, attempt, consent, suppression, window, country, and capacity controls | Outbound work is evaluated before a provider request. |
-| Providers | ElevenLabs conversational boundary, Telnyx PSTN/SIP boundary, explicit simulation provider | External services remain adapters rather than the source of business truth. |
-| Reliability | Provider-event inbox, background jobs, bounded retries, reconciliation, and correlation IDs | Asynchronous delivery becomes inspectable state. |
-| Quality | Evaluations, observations, proposals, candidates, canaries, promotions, and rollback records | Improvement is reviewed and gated rather than silently self-modifying. |
+| Plane        | Implemented capability                                                                                       | Why it exists                                                               |
+| ------------ | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Conversation | Phone, web voice, and web text converge on `Conversation`                                                    | Business workflows remain channel-independent.                              |
+| Context      | Persisted `ConversationState` stores intent, specialist, collected fields, risk flags, and safe tool results | Workflow state does not depend on transcript text alone.                    |
+| Authority    | Signed context, schema validation, tenant re-resolution, policy, and approvals                               | The model cannot turn a plausible payload into permission.                  |
+| Integrity    | Action IDs, canonical SHA-256 fingerprints, execution states, and unique constraints                         | Provider and agent retries do not duplicate semantic operations.            |
+| CRM          | Contacts, leads, opportunities, appointments, tasks, follow-ups, and handoffs                                | Conversations create durable operational records outside model context.     |
+| Outreach     | Campaign, recipient, attempt, consent, suppression, window, country, and capacity controls                   | Outbound work is evaluated before a provider request.                       |
+| Providers    | ElevenLabs conversational boundary, Telnyx PSTN/SIP boundary, explicit simulation provider                   | External services remain adapters rather than the source of business truth. |
+| Reliability  | Provider-event inbox, background jobs, bounded retries, reconciliation, and correlation IDs                  | Asynchronous delivery becomes inspectable state.                            |
+| Quality      | Evaluations, observations, proposals, candidates, canaries, promotions, and rollback records                 | Improvement is reviewed and gated rather than silently self-modifying.      |
 
 ## System architecture
 
@@ -268,13 +268,13 @@ flowchart TD
 
 ### Model authority
 
-| The model can | The model cannot directly |
-| --- | --- |
-| Interpret a customer turn | Select or grant a workspace |
-| Propose a supported tool and arguments | Mutate CRM or scheduling records |
-| Compose a customer response from safe results | Bypass policy or tenant re-resolution |
-| Request a human handoff | Approve its own escalated request |
-| Continue after an authorized tool result | Override fingerprints, unique constraints, or execution state |
+| The model can                                 | The model cannot directly                                     |
+| --------------------------------------------- | ------------------------------------------------------------- |
+| Interpret a customer turn                     | Select or grant a workspace                                   |
+| Propose a supported tool and arguments        | Mutate CRM or scheduling records                              |
+| Compose a customer response from safe results | Bypass policy or tenant re-resolution                         |
+| Request a human handoff                       | Approve its own escalated request                             |
+| Continue after an authorized tool result      | Override fingerprints, unique constraints, or execution state |
 
 The signed `ConversationContext` is an HS256 JWT with a five-minute default lifetime. Its subject is the conversation ID; its claims bind workspace, business, optional contact, agent, agent version, training-pack version, channel, direction, and language. The server then verifies those values against the persisted conversation instead of trusting the token alone.
 
@@ -329,16 +329,16 @@ The executor canonicalizes the tool name and parameters, computes a SHA-256 fing
 
 VoxDesk persists business state independently from the conversational provider.
 
-| Domain | Records | Operational role |
-| --- | --- | --- |
-| Customer | `Contact`, `Lead` | Identity, communication preferences, qualification, and lifecycle state |
-| Conversation | `Conversation`, `ConversationMessage`, `ConversationState`, `Call` | Canonical interaction, evidence, channel projection, and workflow state |
-| Revenue and service | `Opportunity`, `Appointment`, `CalendarConnection` | Durable outcomes created through authorized tools |
-| Work | `Task`, `FollowUp`, `Handoff`, `Notification` | Work that survives beyond a generated response |
-| Outreach | `Campaign`, `CampaignRecipient`, `OutboundAttempt` | Controlled outbound execution and recipient state |
-| Configuration | `VoiceAgent`, `AgentVersion`, `BusinessTrainingPack`, `LanguageProfile` | Versioned behavior and language readiness |
-| Governance | `ConversationToolExecution`, `ToolApprovalRequest`, `AuditLog` | Policy evidence, execution integrity, and decisions |
-| Quality | `CallEvaluation`, `EvaluationSuite`, `EvaluationRun`, `DeploymentCandidate`, `AgentDeployment`, `RollbackRecord` | Supervised evidence and release lifecycle |
+| Domain              | Records                                                                                                          | Operational role                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Customer            | `Contact`, `Lead`                                                                                                | Identity, communication preferences, qualification, and lifecycle state |
+| Conversation        | `Conversation`, `ConversationMessage`, `ConversationState`, `Call`                                               | Canonical interaction, evidence, channel projection, and workflow state |
+| Revenue and service | `Opportunity`, `Appointment`, `CalendarConnection`                                                               | Durable outcomes created through authorized tools                       |
+| Work                | `Task`, `FollowUp`, `Handoff`, `Notification`                                                                    | Work that survives beyond a generated response                          |
+| Outreach            | `Campaign`, `CampaignRecipient`, `OutboundAttempt`                                                               | Controlled outbound execution and recipient state                       |
+| Configuration       | `VoiceAgent`, `AgentVersion`, `BusinessTrainingPack`, `LanguageProfile`                                          | Versioned behavior and language readiness                               |
+| Governance          | `ConversationToolExecution`, `ToolApprovalRequest`, `AuditLog`                                                   | Policy evidence, execution integrity, and decisions                     |
+| Quality             | `CallEvaluation`, `EvaluationSuite`, `EvaluationRun`, `DeploymentCandidate`, `AgentDeployment`, `RollbackRecord` | Supervised evidence and release lifecycle                               |
 
 ### Scheduling, work, and handoff
 
@@ -356,12 +356,12 @@ Qualification logic and collected fields can create or update tenant-scoped lead
 
 ### Provider ownership
 
-| Boundary | Owns | Does not own |
-| --- | --- | --- |
-| VoxDesk | Tenant context, canonical conversations, CRM, scheduling, campaign controls, authorization, audit, reconciliation | Carrier transport or realtime speech turns |
-| ElevenLabs adapter | Realtime conversational execution and post-call signals when configured | VoxDesk customer records, policy decisions, or domain mutations |
-| Telnyx adapter | PSTN/SIP transport, phone-number resources, call-control primitives, and carrier events when configured | CRM, appointment, campaign, or approval truth |
-| Simulation provider | Deterministic internal call records with explicit `sim_*` identifiers | External network calls, number assignment, public provider webhooks |
+| Boundary            | Owns                                                                                                              | Does not own                                                        |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| VoxDesk             | Tenant context, canonical conversations, CRM, scheduling, campaign controls, authorization, audit, reconciliation | Carrier transport or realtime speech turns                          |
+| ElevenLabs adapter  | Realtime conversational execution and post-call signals when configured                                           | VoxDesk customer records, policy decisions, or domain mutations     |
+| Telnyx adapter      | PSTN/SIP transport, phone-number resources, call-control primitives, and carrier events when configured           | CRM, appointment, campaign, or approval truth                       |
+| Simulation provider | Deterministic internal call records with explicit `sim_*` identifiers                                             | External network calls, number assignment, public provider webhooks |
 
 `TELEPHONY_MODE` defaults to `simulation`. Switching to `live` fails closed unless the repository’s required Telnyx, ElevenLabs, database, and application URL configuration is present. An adapter or credential is not described as verified live connectivity; provider activation remains an explicit operational test.
 
@@ -499,34 +499,34 @@ flowchart TB
 
 The critical invariant is: **resource IDs do not grant access**. An ID supplied by the browser, provider, or model is resolved again under the authenticated workspace. Unauthorized and cross-tenant lookups use not-found responses where appropriate, reducing resource-enumeration signals.
 
-| Surface | Threat | Verified control |
-| --- | --- | --- |
-| Passwords | Offline credential disclosure | `bcrypt` with cost 10 |
-| Sessions | Plaintext token disclosure | 256-bit opaque token; SHA-256 stored server-side; seven-day expiry; `httpOnly`, `sameSite=lax`, secure-in-production cookie |
-| Tenant data | BOLA / cross-workspace access | Session → membership → permission → workspace-scoped query |
-| Tool context | Forged workspace, contact, or agent | Five-minute HS256 context plus persisted-field re-resolution |
-| Tool payload | Mutation or replay | Zod validation, canonical SHA-256 fingerprint, unique action and operation constraints |
-| Approval | Reuse for a modified action | Tenant, conversation, execution, expiry, status, and payload-fingerprint binding |
-| Sensitive values | Data exposure | AES-256-GCM encryption with random 96-bit IV; HMAC-SHA256 phone lookup; masked display |
-| Browser | Injection and capability abuse | CSP, frame denial, MIME-sniff prevention, strict referrer policy, microphone-only permission, HSTS on HTTPS deployments |
-| Telnyx webhook | Forgery and replay | Ed25519 raw-body verification, timestamp tolerance, provider event identity |
-| ElevenLabs callback | Forgery and replay | HMAC-SHA256 raw-body verification, timestamp tolerance, provider event identity |
-| Outbound work | Contact or capacity abuse | Consent, suppression, DNC, recipient timezone, country, attempt, campaign approval, and lease gates |
-| Audit | Secondary sensitive-data store | Safe metadata and fingerprints rather than raw payloads, secrets, or full transcripts |
+| Surface             | Threat                              | Verified control                                                                                                            |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Passwords           | Offline credential disclosure       | `bcrypt` with cost 10                                                                                                       |
+| Sessions            | Plaintext token disclosure          | 256-bit opaque token; SHA-256 stored server-side; seven-day expiry; `httpOnly`, `sameSite=lax`, secure-in-production cookie |
+| Tenant data         | BOLA / cross-workspace access       | Session → membership → permission → workspace-scoped query                                                                  |
+| Tool context        | Forged workspace, contact, or agent | Five-minute HS256 context plus persisted-field re-resolution                                                                |
+| Tool payload        | Mutation or replay                  | Zod validation, canonical SHA-256 fingerprint, unique action and operation constraints                                      |
+| Approval            | Reuse for a modified action         | Tenant, conversation, execution, expiry, status, and payload-fingerprint binding                                            |
+| Sensitive values    | Data exposure                       | AES-256-GCM encryption with random 96-bit IV; HMAC-SHA256 phone lookup; masked display                                      |
+| Browser             | Injection and capability abuse      | CSP, frame denial, MIME-sniff prevention, strict referrer policy, microphone-only permission, HSTS on HTTPS deployments     |
+| Telnyx webhook      | Forgery and replay                  | Ed25519 raw-body verification, timestamp tolerance, provider event identity                                                 |
+| ElevenLabs callback | Forgery and replay                  | HMAC-SHA256 raw-body verification, timestamp tolerance, provider event identity                                             |
+| Outbound work       | Contact or capacity abuse           | Consent, suppression, DNC, recipient timezone, country, attempt, campaign approval, and lease gates                         |
+| Audit               | Secondary sensitive-data store      | Safe metadata and fingerprints rather than raw payloads, secrets, or full transcripts                                       |
 
 VoxDesk makes no compliance-certification claim. The repository documents concrete controls and the tests that exercise their boundaries.
 
 ### Deterministic forged-request outcomes
 
-| Condition | Result |
-| --- | --- |
-| Missing or expired signed conversation context | Request rejected before policy or mutation |
-| Context fields do not match the persisted conversation | Request rejected as invalid context |
-| Resource belongs to another workspace | Resource not found under authorized tenant scope |
-| Payload changes after human approval | Fingerprint mismatch; approval cannot be consumed |
-| Semantic action already succeeded | Original safe result returned; no second mutation |
-| Policy returns `DENY` | Blocked execution and audit; no domain write |
-| Recipient is suppressed or lacks consent | Campaign attempt blocked before provider execution |
+| Condition                                              | Result                                             |
+| ------------------------------------------------------ | -------------------------------------------------- |
+| Missing or expired signed conversation context         | Request rejected before policy or mutation         |
+| Context fields do not match the persisted conversation | Request rejected as invalid context                |
+| Resource belongs to another workspace                  | Resource not found under authorized tenant scope   |
+| Payload changes after human approval                   | Fingerprint mismatch; approval cannot be consumed  |
+| Semantic action already succeeded                      | Original safe result returned; no second mutation  |
+| Policy returns `DENY`                                  | Blocked execution and audit; no domain write       |
+| Recipient is suppressed or lacks consent               | Campaign attempt blocked before provider execution |
 
 ## Data architecture
 
@@ -563,15 +563,15 @@ erDiagram
 
 ### Domain ownership
 
-| Domain | Source of truth |
-| --- | --- |
-| Conversation and workflow state | VoxDesk `Conversation` and `ConversationState` |
-| Phone-specific execution | Provider state plus reconciled VoxDesk `Call` projection |
-| Customer, lead, opportunity, appointment, task, follow-up, handoff | VoxDesk tenant-scoped domain records |
-| Policy and approval | Versioned VoxDesk execution and approval records |
-| Carrier transport | Telnyx when configured; normalized into VoxDesk provider events |
-| Realtime conversational turn | ElevenLabs when configured; reconciled post-call evidence |
-| Simulation | Explicit VoxDesk simulation records and internal events |
+| Domain                                                             | Source of truth                                                 |
+| ------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Conversation and workflow state                                    | VoxDesk `Conversation` and `ConversationState`                  |
+| Phone-specific execution                                           | Provider state plus reconciled VoxDesk `Call` projection        |
+| Customer, lead, opportunity, appointment, task, follow-up, handoff | VoxDesk tenant-scoped domain records                            |
+| Policy and approval                                                | Versioned VoxDesk execution and approval records                |
+| Carrier transport                                                  | Telnyx when configured; normalized into VoxDesk provider events |
+| Realtime conversational turn                                       | ElevenLabs when configured; reconciled post-call evidence       |
+| Simulation                                                         | Explicit VoxDesk simulation records and internal events         |
 
 PostgreSQL holds relational tenancy, operational state, execution uniqueness, provider-event identity, jobs, and audit in one transactional model. JSON fields are used for bounded evolving payloads such as safe context, policy evidence, normalized provider data, and evaluation results—not as a substitute for tenant ownership or core relationships.
 
@@ -579,16 +579,16 @@ PostgreSQL holds relational tenancy, operational state, execution uniqueness, pr
 
 The route map below follows the current application surface and links to the public portfolio deployment without substituting generated UI for product evidence.
 
-| Surface | Route | Engineering value |
-| --- | --- | --- |
-| Public workflow | [`/demo`](https://vox-desk.vercel.app/demo) | Demonstrates the explicitly labeled portfolio interaction path. |
-| Operations overview | `/dashboard` | Aggregates tenant-scoped customer-operations state. |
-| Conversations | `/dashboard/conversations` | Unifies canonical interactions, live/escalated views, and channel-independent state. |
-| Contacts and leads | `/dashboard/contacts`, `/dashboard/leads` | Keeps customer and qualification records durable outside the model context. |
-| Appointments and opportunities | `/dashboard/appointments`, `/dashboard/opportunities` | Makes authorized business outcomes independently inspectable. |
-| Campaigns | `/dashboard/campaigns` | Surfaces campaign state and recipient controls. |
-| Audit | `/dashboard/settings/audit` | Exposes recorded operational evidence without treating raw transcripts as an audit strategy. |
-| Improvement | `/dashboard/improvement` | Presents supervised proposals, candidates, canary evidence, promotion, and rollback state. |
+| Surface                        | Route                                                 | Engineering value                                                                            |
+| ------------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Public workflow                | [`/demo`](https://vox-desk.vercel.app/demo)           | Demonstrates the explicitly labeled portfolio interaction path.                              |
+| Operations overview            | `/dashboard`                                          | Aggregates tenant-scoped customer-operations state.                                          |
+| Conversations                  | `/dashboard/conversations`                            | Unifies canonical interactions, live/escalated views, and channel-independent state.         |
+| Contacts and leads             | `/dashboard/contacts`, `/dashboard/leads`             | Keeps customer and qualification records durable outside the model context.                  |
+| Appointments and opportunities | `/dashboard/appointments`, `/dashboard/opportunities` | Makes authorized business outcomes independently inspectable.                                |
+| Campaigns                      | `/dashboard/campaigns`                                | Surfaces campaign state and recipient controls.                                              |
+| Audit                          | `/dashboard/settings/audit`                           | Exposes recorded operational evidence without treating raw transcripts as an audit strategy. |
+| Improvement                    | `/dashboard/improvement`                              | Presents supervised proposals, candidates, canary evidence, promotion, and rollback state.   |
 
 Dashboard routes require an authenticated account and configured persistence. The public portfolio environment uses explicit demo/simulation boundaries; it should not be interpreted as carrier-activation evidence.
 
@@ -599,39 +599,39 @@ Dashboard routes require an authenticated account and configured persistence. Th
 
 ### Channels
 
-| Specification | Implementation |
-| --- | --- |
-| Canonical interaction | Prisma `Conversation` |
-| Implemented channels | `PHONE`, `WEB_VOICE`, `WEB_TEXT` |
-| Directions | `INBOUND`, `OUTBOUND`, `INTERACTIVE` |
-| Phone projection | One optional `Call` per `Conversation` |
+| Specification            | Implementation                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical interaction    | Prisma `Conversation`                                                                                                                  |
+| Implemented channels     | `PHONE`, `WEB_VOICE`, `WEB_TEXT`                                                                                                       |
+| Directions               | `INBOUND`, `OUTBOUND`, `INTERACTIVE`                                                                                                   |
+| Phone projection         | One optional `Call` per `Conversation`                                                                                                 |
 | Persisted workflow state | `ConversationState` for identity, collected fields, specialist, tool results, risk/compliance, handoff, follow-up, and compact summary |
-| Web-text boundary | Authenticated, workspace-scoped POST route with Zod validation and workspace rate limiting |
-| Web-voice boundary | Verified active ElevenLabs agent, version, training pack, language profile, and signed provider URL |
+| Web-text boundary        | Authenticated, workspace-scoped POST route with Zod validation and workspace rate limiting                                             |
+| Web-voice boundary       | Verified active ElevenLabs agent, version, training pack, language profile, and signed provider URL                                    |
 
 ### Authorization
 
-| Specification | Implementation |
-| --- | --- |
-| Tool context | HS256 JWT; five-minute default TTL; issuer/audience bound to VoxDesk tools |
-| Context claims | Conversation, workspace, business, optional contact, agent/version, training pack, channel, direction, language |
-| Policy outcomes | `ALLOW`, `DENY`, `ESCALATE` |
-| Policy evidence | Version, risk level/score, rule IDs, reason codes |
-| Approval lifetime | 15 minutes |
-| Approval authority | Workspace permission `tools:approve` |
-| Payload binding | SHA-256 of canonical tool name + parameters |
-| Execution transaction | Prisma serializable transaction for business mutation and execution state |
+| Specification         | Implementation                                                                                                  |
+| --------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Tool context          | HS256 JWT; five-minute default TTL; issuer/audience bound to VoxDesk tools                                      |
+| Context claims        | Conversation, workspace, business, optional contact, agent/version, training pack, channel, direction, language |
+| Policy outcomes       | `ALLOW`, `DENY`, `ESCALATE`                                                                                     |
+| Policy evidence       | Version, risk level/score, rule IDs, reason codes                                                               |
+| Approval lifetime     | 15 minutes                                                                                                      |
+| Approval authority    | Workspace permission `tools:approve`                                                                            |
+| Payload binding       | SHA-256 of canonical tool name + parameters                                                                     |
+| Execution transaction | Prisma serializable transaction for business mutation and execution state                                       |
 
 ### Execution integrity
 
-| Specification | Implementation |
-| --- | --- |
-| Caller key | `actionId` scoped to conversation |
-| Semantic key | `operationFingerprint` scoped to conversation |
-| Duplicate success | Returns the previously stored safe result |
-| Approval retry | Same action and identical payload required |
-| Concurrency race | Unique constraints plus guarded state transitions |
-| Result storage | Bounded safe result; raw sensitive payload excluded from approval |
+| Specification     | Implementation                                                    |
+| ----------------- | ----------------------------------------------------------------- |
+| Caller key        | `actionId` scoped to conversation                                 |
+| Semantic key      | `operationFingerprint` scoped to conversation                     |
+| Duplicate success | Returns the previously stored safe result                         |
+| Approval retry    | Same action and identical payload required                        |
+| Concurrency race  | Unique constraints plus guarded state transitions                 |
+| Result storage    | Bounded safe result; raw sensitive payload excluded from approval |
 
 </details>
 
@@ -640,42 +640,42 @@ Dashboard routes require an authenticated account and configured persistence. Th
 
 ### Customer operations
 
-| Capability | Persisted model / tool boundary |
-| --- | --- |
-| Contact | `Contact`; create/update tool |
-| Lead | `Lead`; qualification and conversation relationships |
-| Opportunity | `Opportunity`; create/update tools |
+| Capability  | Persisted model / tool boundary                                            |
+| ----------- | -------------------------------------------------------------------------- |
+| Contact     | `Contact`; create/update tool                                              |
+| Lead        | `Lead`; qualification and conversation relationships                       |
+| Opportunity | `Opportunity`; create/update tools                                         |
 | Appointment | `Appointment` and `CalendarConnection`; check/book/reschedule/cancel tools |
-| Work | `Task`, `FollowUp`; create/complete/schedule tools |
-| Escalation | `Handoff`; request tool plus provider reconciliation |
-| Campaign | `Campaign`, `CampaignRecipient`, `OutboundAttempt` |
-| Consent | `ConsentRecord`, `CommunicationPreference`, `SuppressionEntry` |
+| Work        | `Task`, `FollowUp`; create/complete/schedule tools                         |
+| Escalation  | `Handoff`; request tool plus provider reconciliation                       |
+| Campaign    | `Campaign`, `CampaignRecipient`, `OutboundAttempt`                         |
+| Consent     | `ConsentRecord`, `CommunicationPreference`, `SuppressionEntry`             |
 
 ### Telephony and providers
 
-| Specification | Implementation |
-| --- | --- |
-| Default mode | `simulation` |
-| Live-mode gate | `TELEPHONY_MODE=live` plus required Telnyx, ElevenLabs, database, and app URL configuration |
-| Realtime conversation | ElevenLabs adapter when configured |
-| PSTN / SIP | Telnyx adapter when configured |
-| Simulation safety | No external connection, public webhook, or number assignment; `sim_*` identifiers |
-| Telnyx verification | Ed25519 raw body + five-minute timestamp tolerance |
-| ElevenLabs verification | HMAC-SHA256 raw body + five-minute timestamp tolerance |
-| Event integrity | Provider + provider-event ID uniqueness |
-| Async processing | Provider inbox + `BackgroundJob`; maximum attempts persisted per job |
-| Capacity | Upstash Redis-compatible scoped leases; inbound reserve; production fail-closed |
+| Specification           | Implementation                                                                              |
+| ----------------------- | ------------------------------------------------------------------------------------------- |
+| Default mode            | `simulation`                                                                                |
+| Live-mode gate          | `TELEPHONY_MODE=live` plus required Telnyx, ElevenLabs, database, and app URL configuration |
+| Realtime conversation   | ElevenLabs adapter when configured                                                          |
+| PSTN / SIP              | Telnyx adapter when configured                                                              |
+| Simulation safety       | No external connection, public webhook, or number assignment; `sim_*` identifiers           |
+| Telnyx verification     | Ed25519 raw body + five-minute timestamp tolerance                                          |
+| ElevenLabs verification | HMAC-SHA256 raw body + five-minute timestamp tolerance                                      |
+| Event integrity         | Provider + provider-event ID uniqueness                                                     |
+| Async processing        | Provider inbox + `BackgroundJob`; maximum attempts persisted per job                        |
+| Capacity                | Upstash Redis-compatible scoped leases; inbound reserve; production fail-closed             |
 
 ### Quality
 
-| Specification | Implementation |
-| --- | --- |
-| Evidence | `CallEvaluation`, `EvaluationSuite`, `EvaluationRun`, `ImprovementObservation` |
-| Change proposal | `ImprovementProposal` with review state and rollback plan |
-| Candidate gate | Latest required suite runs must pass; no missing suite or critical failure |
-| Canary gate | Minimum conversations, zero critical failures, no detected regression |
-| Promotion | Atomic active deployment switch after gate completion |
-| Rollback | Restore the most recent prior production deployment and record reason |
+| Specification   | Implementation                                                                 |
+| --------------- | ------------------------------------------------------------------------------ |
+| Evidence        | `CallEvaluation`, `EvaluationSuite`, `EvaluationRun`, `ImprovementObservation` |
+| Change proposal | `ImprovementProposal` with review state and rollback plan                      |
+| Candidate gate  | Latest required suite runs must pass; no missing suite or critical failure     |
+| Canary gate     | Minimum conversations, zero critical failures, no detected regression          |
+| Promotion       | Atomic active deployment switch after gate completion                          |
+| Rollback        | Restore the most recent prior production deployment and record reason          |
 
 </details>
 
@@ -684,39 +684,39 @@ Dashboard routes require an authenticated account and configured persistence. Th
 
 ### Security
 
-| Specification | Implementation |
-| --- | --- |
-| Password hashing | `bcrypt`, cost 10 |
-| Session token | 32 random bytes, hex encoded; SHA-256 hash persisted |
-| Session cookie | `httpOnly`, `sameSite=lax`, secure in production, seven-day lifetime |
-| Sensitive-value encryption | AES-256-GCM, random 12-byte IV, authenticated ciphertext |
-| Phone lookup | E.164 normalization + HMAC-SHA256 |
-| Tenant isolation | Workspace membership and permission checks followed by tenant-scoped queries |
-| Browser headers | CSP, HSTS, frame denial, MIME protection, strict referrer, restricted permissions |
-| Audit minimization | Safe metadata, hashes, reason codes, and IDs; no credentials or complete transcripts |
+| Specification              | Implementation                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| Password hashing           | `bcrypt`, cost 10                                                                    |
+| Session token              | 32 random bytes, hex encoded; SHA-256 hash persisted                                 |
+| Session cookie             | `httpOnly`, `sameSite=lax`, secure in production, seven-day lifetime                 |
+| Sensitive-value encryption | AES-256-GCM, random 12-byte IV, authenticated ciphertext                             |
+| Phone lookup               | E.164 normalization + HMAC-SHA256                                                    |
+| Tenant isolation           | Workspace membership and permission checks followed by tenant-scoped queries         |
+| Browser headers            | CSP, HSTS, frame denial, MIME protection, strict referrer, restricted permissions    |
+| Audit minimization         | Safe metadata, hashes, reason codes, and IDs; no credentials or complete transcripts |
 
 ### Observability
 
-| Specification | Implementation |
-| --- | --- |
-| Correlation | IDs carried through conversations, provider events, jobs, tools, and API metadata |
-| Tool trace | Policy, risk, rules, reasons, fingerprint, latency, status, and error category |
-| Provider trace | Provider event, processing state, background job, reconciliation result |
-| Health | Application, database, integration, queue, telephony, and voice routes |
+| Specification      | Implementation                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| Correlation        | IDs carried through conversations, provider events, jobs, tools, and API metadata        |
+| Tool trace         | Policy, risk, rules, reasons, fingerprint, latency, status, and error category           |
+| Provider trace     | Provider event, processing state, background job, reconciliation result                  |
+| Health             | Application, database, integration, queue, telephony, and voice routes                   |
 | Analytics surfaces | Dashboard analytics plus persisted conversation, call, campaign, and evaluation outcomes |
 
 ### Platform
 
-| Layer | Technology |
-| --- | --- |
-| Application | Next.js 16 App Router, React 19, strict TypeScript 5.7 |
-| Validation | Zod 3 |
-| Persistence | PostgreSQL 16 locally, Prisma 6 |
-| Distributed capacity | Upstash Redis-compatible lease store |
-| Styling | Tailwind CSS 3 |
-| Voice / carrier adapters | ElevenLabs and Telnyx |
-| Tests | Vitest 3 and Playwright 1.50 |
-| Hosting model | Vercel application, PostgreSQL, optional Redis-compatible lease service, external providers |
+| Layer                    | Technology                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------------------------- |
+| Application              | Next.js 16 App Router, React 19, strict TypeScript 5.7                                      |
+| Validation               | Zod 3                                                                                       |
+| Persistence              | PostgreSQL 16 locally, Prisma 6                                                             |
+| Distributed capacity     | Upstash Redis-compatible lease store                                                        |
+| Styling                  | Tailwind CSS 3                                                                              |
+| Voice / carrier adapters | ElevenLabs and Telnyx                                                                       |
+| Tests                    | Vitest 3 and Playwright 1.50                                                                |
+| Hosting model            | Vercel application, PostgreSQL, optional Redis-compatible lease service, external providers |
 
 </details>
 
@@ -724,12 +724,12 @@ Dashboard routes require an authenticated account and configured persistence. Th
 
 The repository contains **73 test files**: 33 unit, 9 integration, 28 security, and 3 Playwright E2E specifications. This is a source-derived file count, not an invented test-case total or a claim that provider resources are active.
 
-| Suite | Important invariants exercised |
-| --- | --- |
-| Unit | Call state machine, canonical schema, calling windows, campaign readiness, concurrency leases, tool policy, payload fingerprints, orchestration, encryption, simulation/live separation, provider caller ID, and improvement gates |
-| Integration | Appointment and booking tools, conversation projection, campaign queue start, Telnyx event inbox/acknowledgement, outbound worker reconciliation, ElevenLabs post-call acknowledgement, and the bounded demo call |
-| Security | Tenant isolation for calls/contacts/CRM/campaigns, signed conversation context, persisted-context checks, forged web voice/text requests, tool-governance boundaries, provider webhook verification, sensitive identifiers, recording policy, outbound authorization, and retired mutation routes |
-| E2E | Public/demo flow, platform architecture, and route-level browser contracts; explicitly not carrier activation |
+| Suite       | Important invariants exercised                                                                                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit        | Call state machine, canonical schema, calling windows, campaign readiness, concurrency leases, tool policy, payload fingerprints, orchestration, encryption, simulation/live separation, provider caller ID, and improvement gates                                                                |
+| Integration | Appointment and booking tools, conversation projection, campaign queue start, Telnyx event inbox/acknowledgement, outbound worker reconciliation, ElevenLabs post-call acknowledgement, and the bounded demo call                                                                                 |
+| Security    | Tenant isolation for calls/contacts/CRM/campaigns, signed conversation context, persisted-context checks, forged web voice/text requests, tool-governance boundaries, provider webhook verification, sensitive identifiers, recording policy, outbound authorization, and retired mutation routes |
+| E2E         | Public/demo flow, platform architecture, and route-level browser contracts; explicitly not carrier activation                                                                                                                                                                                     |
 
 CI uses Node.js 24 and runs Prisma validation, formatting, documentation checks, linting, type checking, production builds, route audits, unit/integration/security suites, and Chromium E2E. Paid provider calls are not part of CI.
 
@@ -744,10 +744,10 @@ The broad repository check is `npm run verify`; it expects the database and brow
 
 ## Deployment architecture
 
-| Path | Components |
-| --- | --- |
-| Delivery | Developer → GitHub pull request → GitHub Actions → Vercel preview/deployment |
-| Application | Next.js application → PostgreSQL; Redis-compatible leases when distributed capacity is exercised |
+| Path              | Components                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| Delivery          | Developer → GitHub pull request → GitHub Actions → Vercel preview/deployment                                  |
+| Application       | Next.js application → PostgreSQL; Redis-compatible leases when distributed capacity is exercised              |
 | Provider boundary | Application ↔ configured ElevenLabs and Telnyx resources → verified webhook inbox → PostgreSQL reconciliation |
 
 A Vercel `READY` state verifies deployment completion, not database migrations, provider activation, phone-number ownership, signed-webhook reachability, or live-call acceptance. The repository keeps those as separate health and operational checks.
@@ -775,15 +775,15 @@ npm run dev
 <details>
 <summary><strong>Configuration groups</strong></summary>
 
-| Group | Variables |
-| --- | --- |
-| Application | `APP_URL`, `NEXT_PUBLIC_APP_URL`, `DATABASE_URL` |
-| Core secrets | `AUTH_SECRET`, `ENCRYPTION_KEY`, `INTERNAL_API_SECRET`, `DEMO_SESSION_SECRET`, `IP_HASH_SECRET`, `PHONE_HASH_SECRET` |
-| Mode | `TELEPHONY_MODE` (`simulation` or `live`) |
-| ElevenLabs | `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_WEBHOOK_SECRET` |
-| Telnyx | `TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY`, `TELNYX_CONNECTION_ID`, `TELNYX_PRIMARY_PHONE_NUMBER`, `TELNYX_OUTBOUND_VOICE_PROFILE_ID`, webhook and SIP variables |
-| Capacity | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` |
-| Demo safety | `DEMO_ENABLED`, `DEMO_MODE`, `DEMO_GLOBAL_KILL_SWITCH`, duration/turn limits, `CONTENT_LOGGING_MODE` |
+| Group        | Variables                                                                                                                                                   |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application  | `APP_URL`, `NEXT_PUBLIC_APP_URL`, `DATABASE_URL`                                                                                                            |
+| Core secrets | `AUTH_SECRET`, `ENCRYPTION_KEY`, `INTERNAL_API_SECRET`, `DEMO_SESSION_SECRET`, `IP_HASH_SECRET`, `PHONE_HASH_SECRET`                                        |
+| Mode         | `TELEPHONY_MODE` (`simulation` or `live`)                                                                                                                   |
+| ElevenLabs   | `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_WEBHOOK_SECRET`                                                                                    |
+| Telnyx       | `TELNYX_API_KEY`, `TELNYX_PUBLIC_KEY`, `TELNYX_CONNECTION_ID`, `TELNYX_PRIMARY_PHONE_NUMBER`, `TELNYX_OUTBOUND_VOICE_PROFILE_ID`, webhook and SIP variables |
+| Capacity     | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`                                                                                                        |
+| Demo safety  | `DEMO_ENABLED`, `DEMO_MODE`, `DEMO_GLOBAL_KILL_SWITCH`, duration/turn limits, `CONTENT_LOGGING_MODE`                                                        |
 
 Use [.env.example](.env.example) as the complete source of truth. Never commit credentials, raw customer data, full phone numbers, or transcripts.
 
@@ -813,19 +813,19 @@ VoxCircuit/
 
 ## Operational invariants
 
-| Invariant | Why it exists |
-| --- | --- |
-| One canonical `Conversation` | Downstream operations remain independent of phone, web voice, or web text transport. |
-| `Call` is a phone projection | Carrier detail does not distort every conversation type. |
-| No direct model mutation | Language output cannot become business authority by itself. |
-| Workspace re-resolution | Caller-provided IDs cannot widen tenant access. |
-| Authorization and idempotency are separate | Permission does not prove an action has not already occurred. |
-| Approval is payload-bound | A human decision cannot authorize a modified operation. |
-| Approval does not execute | The original boundary still performs validation, fingerprint checks, and mutation. |
-| Provider events are inboxed before projection | Acknowledgement and slow reconciliation are decoupled and inspectable. |
-| Simulation is explicit | Portfolio activity cannot be mistaken for carrier activity. |
-| Audit evidence is minimized | Traceability does not require copying secrets or full transcripts. |
-| Improvement is supervised | Evaluations create evidence; humans control promotion and rollback. |
+| Invariant                                     | Why it exists                                                                        |
+| --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| One canonical `Conversation`                  | Downstream operations remain independent of phone, web voice, or web text transport. |
+| `Call` is a phone projection                  | Carrier detail does not distort every conversation type.                             |
+| No direct model mutation                      | Language output cannot become business authority by itself.                          |
+| Workspace re-resolution                       | Caller-provided IDs cannot widen tenant access.                                      |
+| Authorization and idempotency are separate    | Permission does not prove an action has not already occurred.                        |
+| Approval is payload-bound                     | A human decision cannot authorize a modified operation.                              |
+| Approval does not execute                     | The original boundary still performs validation, fingerprint checks, and mutation.   |
+| Provider events are inboxed before projection | Acknowledgement and slow reconciliation are decoupled and inspectable.               |
+| Simulation is explicit                        | Portfolio activity cannot be mistaken for carrier activity.                          |
+| Audit evidence is minimized                   | Traceability does not require copying secrets or full transcripts.                   |
+| Improvement is supervised                     | Evaluations create evidence; humans control promotion and rollback.                  |
 
 ## Design principles
 
@@ -843,27 +843,27 @@ VoxCircuit/
 
 ## Documentation map
 
-| Document | What it explains |
-| --- | --- |
-| [Documentation portal](docs/README.md) | Complete repository documentation index |
-| [Architecture overview](docs/architecture/overview.md) | System layers, ownership, and global invariants |
-| [System context](docs/architecture/system-context.md) | Actors, services, state stores, and external boundaries |
-| [Data flow](docs/architecture/data-flow.md) | Interaction, tool, provider-event, and reconciliation paths |
-| [Conversation model](docs/architecture/conversation-model.md) | Canonical conversation, phone projection, messages, and state |
-| [Customer operations](docs/architecture/customer-operations.md) | Domain capabilities and server-owned tool boundary |
-| [Provider boundaries](docs/architecture/provider-boundaries.md) | ElevenLabs, Telnyx, storage, calendar, and CRM ownership |
-| [Telephony](docs/architecture/telephony.md) | Simulation, inbound/outbound calls, provider events, and readiness |
-| [Async processing](docs/architecture/async-processing.md) | Event inbox, acknowledgement, jobs, retries, and leases |
-| [Tool authorization](docs/security/tool-authorization.md) | Signed context, policy, approval, idempotency, and audit semantics |
-| [Outbound compliance](docs/security/outbound-compliance.md) | Consent, suppression, windows, attempts, and campaign authority |
-| [Webhook security](docs/security/webhooks.md) | Signature, replay, idempotency, and acknowledgement controls |
-| [Security overview](docs/security/overview.md) | Threat-to-control map |
-| [Simulation vs. provider execution](docs/DEMO_VS_PRODUCTION.md) | Explicit operational separation and fail-closed live mode |
-| [Supervised improvement](docs/architecture/improvement-loop.md) | Evaluation, candidate, canary, promotion, and rollback gates |
-| [Testing strategy](docs/testing/strategy.md) | Unit, integration, security, E2E, and provider acceptance scope |
-| [Local development](docs/guides/local-development.md) | Prerequisites, setup, and verification |
-| [Live-provider activation](docs/guides/activate-live-telephony.md) | Authorized Telnyx and ElevenLabs activation procedure |
-| [Architecture decisions](docs/adr/README.md) | Canonical conversation, provider, simulation, authorization, tenancy, and quality ADRs |
+| Document                                                           | What it explains                                                                       |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| [Documentation portal](docs/README.md)                             | Complete repository documentation index                                                |
+| [Architecture overview](docs/architecture/overview.md)             | System layers, ownership, and global invariants                                        |
+| [System context](docs/architecture/system-context.md)              | Actors, services, state stores, and external boundaries                                |
+| [Data flow](docs/architecture/data-flow.md)                        | Interaction, tool, provider-event, and reconciliation paths                            |
+| [Conversation model](docs/architecture/conversation-model.md)      | Canonical conversation, phone projection, messages, and state                          |
+| [Customer operations](docs/architecture/customer-operations.md)    | Domain capabilities and server-owned tool boundary                                     |
+| [Provider boundaries](docs/architecture/provider-boundaries.md)    | ElevenLabs, Telnyx, storage, calendar, and CRM ownership                               |
+| [Telephony](docs/architecture/telephony.md)                        | Simulation, inbound/outbound calls, provider events, and readiness                     |
+| [Async processing](docs/architecture/async-processing.md)          | Event inbox, acknowledgement, jobs, retries, and leases                                |
+| [Tool authorization](docs/security/tool-authorization.md)          | Signed context, policy, approval, idempotency, and audit semantics                     |
+| [Outbound compliance](docs/security/outbound-compliance.md)        | Consent, suppression, windows, attempts, and campaign authority                        |
+| [Webhook security](docs/security/webhooks.md)                      | Signature, replay, idempotency, and acknowledgement controls                           |
+| [Security overview](docs/security/overview.md)                     | Threat-to-control map                                                                  |
+| [Simulation vs. provider execution](docs/DEMO_VS_PRODUCTION.md)    | Explicit operational separation and fail-closed live mode                              |
+| [Supervised improvement](docs/architecture/improvement-loop.md)    | Evaluation, candidate, canary, promotion, and rollback gates                           |
+| [Testing strategy](docs/testing/strategy.md)                       | Unit, integration, security, E2E, and provider acceptance scope                        |
+| [Local development](docs/guides/local-development.md)              | Prerequisites, setup, and verification                                                 |
+| [Live-provider activation](docs/guides/activate-live-telephony.md) | Authorized Telnyx and ElevenLabs activation procedure                                  |
+| [Architecture decisions](docs/adr/README.md)                       | Canonical conversation, provider, simulation, authorization, tenancy, and quality ADRs |
 
 ## Contributing, security, and license
 
